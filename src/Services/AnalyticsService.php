@@ -74,6 +74,7 @@ final class AnalyticsService
             }
 
             $present = $absent = $late = $lateMinutes = $workMinutes = $overtime = 0;
+            $incomplete = 0;
             $approvedLeaveDates = $leaveDatesByUser[$userId] ?? [];
             foreach ($recordsByUser[$userId] ?? [] as $record) {
                 $date = (string) $record['attendance_date'];
@@ -86,6 +87,9 @@ final class AnalyticsService
                     if ((int) ($record['late_minutes'] ?? 0) > 0) {
                         $late++;
                         $lateMinutes += (int) $record['late_minutes'];
+                    }
+                    if (($record['attendance_display_status'] ?? '') === 'incomplete') {
+                        $incomplete++;
                     }
                 } elseif (($record['status'] ?? '') === 'absent') {
                     $absent++;
@@ -121,6 +125,7 @@ final class AnalyticsService
             $absent += $derivedAbsent;
             $recordedDays = $present + $absent;
             $percentage = $expectedDays > 0 ? round(($present / $expectedDays) * 100, 1) : 0.0;
+            $has100Percent = $expectedDays > 0 && $present >= $expectedDays && $absent === 0 && $incomplete === 0;
             
             // Treat an employee as "having attendance/expected" if they have expected days OR they came in on non-expected days
             if ($expectedDays > 0 || $present > 0) {
@@ -134,6 +139,7 @@ final class AnalyticsService
                 'late_days' => $late, 'late_minutes_total' => $lateMinutes, 'working_hours' => round($workMinutes / 60, 2),
                 'work_minutes' => $workMinutes, 'overtime_minutes' => $overtime, 'recorded_days' => $recordedDays,
                 'attendance_percentage' => $percentage,
+                'has_100_percent_attendance' => $has100Percent,
             ];
             $summary['total_employees']++;
             $summary['total_present_days'] += $present;

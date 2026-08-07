@@ -578,8 +578,11 @@ $attentionCount = count($attentionRows);
                                 ?>
                                 <td class="px-4 py-4 text-sm text-slate-800">
                                     <div class="sapas-person-cell">
-                                        <div class="sapas-person-cell-head">
+                                        <div class="sapas-person-cell-head flex items-center gap-2">
                                             <p class="sapas-person-name font-medium text-slate-900" title="<?= htmlspecialchars($employeeIdentity, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($employeeIdentity, ENT_QUOTES, 'UTF-8') ?></p>
+                                            <?php if ($analytics['has_100_percent_attendance'] ?? false): ?>
+                                                <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20" title="Full attendance for expected working days this month">⭐ 100% Attendance</span>
+                                            <?php endif; ?>
                                         </div>
                                         <p class="sapas-person-email" title="<?= htmlspecialchars($analytics['email'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($analytics['email'], ENT_QUOTES, 'UTF-8') ?></p>
                                     </div>

@@ -135,6 +135,12 @@ $summaryCards = [
                             </div>
                             <p class="mt-2 text-2xl font-semibold leading-tight text-emerald-600"><?= htmlspecialchars(number_format((float) $attendancePercentage, 1) . '%', ENT_QUOTES, 'UTF-8') ?></p>
                             <p class="mt-1 text-sm leading-6 text-slate-500"><?= htmlspecialchars($t('dashboard.employee.attendance_rate'), ENT_QUOTES, 'UTF-8') ?></p>
+                            <?php if ($has100PercentAttendance ?? false): ?>
+                                <div class="mt-3 rounded-md bg-amber-50 p-2 border border-amber-200">
+                                    <p class="text-sm font-medium text-amber-800 flex items-center gap-1">⭐ 100% Attendance</p>
+                                    <p class="text-xs text-amber-700 mt-0.5">Full attendance for expected working days this month</p>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

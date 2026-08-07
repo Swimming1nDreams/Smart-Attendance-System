@@ -82,8 +82,9 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
         <div class="sapas-form-grid">
             <div>
                 <label for="name" class="sapas-form-label"><?= htmlspecialchars($t('common.labels.name'), ENT_QUOTES, 'UTF-8') ?><?= $requiredIndicator ?></label>
-                <input type="text" id="name" name="name" value="<?= htmlspecialchars($employee['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required maxlength="255" autocomplete="name" class="mt-2 sapas-form-control" aria-describedby="name-help">
+                <input type="text" id="name" name="name" value="<?= htmlspecialchars($employee['name'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required maxlength="255" autocomplete="name" class="mt-2 sapas-form-control" aria-describedby="name-help name-live-feedback">
                 <p id="name-help" class="sapas-field-help"><?= htmlspecialchars($t('employees_module.name_help'), ENT_QUOTES, 'UTF-8') ?></p>
+                <p id="name-live-feedback" class="sapas-field-feedback text-rose-600 text-sm mt-1 hidden" aria-live="polite">Letters, spaces, hyphens, periods, and apostrophes are allowed. Numbers are not allowed.</p>
             </div>
             <div>
                 <label for="email" class="sapas-form-label"><?= htmlspecialchars($t('common.labels.email'), ENT_QUOTES, 'UTF-8') ?><?= $requiredIndicator ?></label>
@@ -249,7 +250,36 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
     <div class="sapas-form-action-row">
         <a href="<?= htmlspecialchars($cancelHref, ENT_QUOTES, 'UTF-8') ?>" class="sapas-btn sapas-btn-secondary"><?= htmlspecialchars($t('common.actions.cancel'), ENT_QUOTES, 'UTF-8') ?></a>
         <div class="sapas-operation-actions">
-            <button type="submit" class="sapas-btn sapas-btn-primary"><?= htmlspecialchars($submitLabel, ENT_QUOTES, 'UTF-8') ?></button>
+            <button type="submit" class="sapas-btn sapas-btn-primary" id="submit-btn"><?= htmlspecialchars($submitLabel, ENT_QUOTES, 'UTF-8') ?></button>
         </div>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const nameInput = document.getElementById('name');
+    const nameFeedback = document.getElementById('name-live-feedback');
+    const submitBtn = document.getElementById('submit-btn');
+
+    if (nameInput && nameFeedback && submitBtn) {
+        // Regex matching backend logic: /^[\p{L}\p{M} .\x{0027}\x{2019}-]+$/u
+        // JS equivalent using unicode property escapes:
+        const nameRegex = /^[\p{L}\p{M} .\u0027\u2019-]+$/u;
+
+        nameInput.addEventListener('input', () => {
+            const value = nameInput.value;
+            if (value.length > 0 && !nameRegex.test(value)) {
+                nameInput.classList.add('border-rose-300', 'text-rose-900', 'focus:border-rose-500', 'focus:ring-rose-500');
+                nameFeedback.classList.remove('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                nameInput.classList.remove('border-rose-300', 'text-rose-900', 'focus:border-rose-500', 'focus:ring-rose-500');
+                nameFeedback.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    }
+});
+</script>

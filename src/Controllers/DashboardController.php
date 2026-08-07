@@ -215,6 +215,19 @@ class DashboardController extends Controller
 
             'recentRecords' => $recentRecords,
 
+            'has100PercentAttendance' => (function() use ($userId) {
+                $analyticsService = new \App\Services\AnalyticsService(
+                    $this->employeeModel,
+                    $this->attendanceModel,
+                    $this->holidayModel,
+                    $this->leaveRequestModel,
+                    $this->attendancePolicy,
+                    $this->scheduleResolver
+                );
+                $data = $analyticsService->generate(['month' => date('Y-m'), 'employee_id' => $userId]);
+                return $data['employee_analytics'][0]['has_100_percent_attendance'] ?? false;
+            })(),
+
         ]);
     }
 
