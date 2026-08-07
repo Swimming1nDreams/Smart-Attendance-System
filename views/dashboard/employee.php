@@ -180,7 +180,7 @@ $summaryCards = [
                             </div>
                         </div>
 
-                        <?php if ((int) ($todayRecord['is_missing_check_out'] ?? 0) === 1 || $recordStatus === 'incomplete'): ?>
+                        <?php if ($recordStatus === 'incomplete'): ?>
                             <div class="mt-4 sapas-dashboard-note is-warning">
                                 <p class="text-sm leading-6 text-amber-800"><?= htmlspecialchars($t('attendance.missing_check_out'), ENT_QUOTES, 'UTF-8') ?></p>
                             </div>
