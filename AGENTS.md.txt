@@ -1,0 +1,39 @@
+# AGENTS.md
+
+## Project
+SAPAS — Smart Attendance and Performance Analytics System
+
+## Stack
+- PHP 8+
+- MySQL
+- PDO
+- server-rendered PHP views
+- Tailwind CSS
+- custom MVC
+- no framework
+
+## Non-negotiable rules
+- Do not migrate to Laravel, Symfony, React, or Vue unless explicitly asked.
+- Preserve custom MVC structure.
+- Prefer narrow, reviewable changes.
+- Do not widen scope.
+- Keep English/Myanmar layout safety.
+- Keep analytics truthful to available data.
+
+## Code responsibilities
+- Controllers: request flow only
+- Models: PDO/data access
+- Services: business/support logic
+- Views: presentation only
+
+## Testing
+- Run PHP lint on modified PHP files.
+- Run `php tests/run.php`.
+- Rebuild Tailwind when CSS changes.
+
+## Reporting
+Always report:
+1. files changed
+2. what changed
+3. checks run
+4. remaining notes

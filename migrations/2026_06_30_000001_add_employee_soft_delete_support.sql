@@ -1,0 +1,6 @@
+-- No-op migration retained for migration history.
+--
+-- The users.status column, idx_users_status index, and employee_profiles table
+-- are already created by 2026_06_30_000000_create_schema_v2.sql.
+-- Keeping this file non-destructive prevents duplicate column/index/table errors
+-- during fresh SAPAS installations while preserving the migration sequence.

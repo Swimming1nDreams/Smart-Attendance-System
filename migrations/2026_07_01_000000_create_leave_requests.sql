@@ -1,0 +1,31 @@
+-- Leave management foundation for SAPAS V1
+
+CREATE TABLE IF NOT EXISTS leave_requests (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id INT UNSIGNED NOT NULL,
+    leave_type ENUM('casual', 'medical', 'unpaid', 'other') NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    duration_days INT UNSIGNED NOT NULL,
+    reason TEXT DEFAULT NULL,
+    status ENUM('pending', 'approved', 'rejected', 'cancelled') NOT NULL DEFAULT 'pending',
+    reviewed_by INT UNSIGNED DEFAULT NULL,
+    reviewed_at TIMESTAMP NULL DEFAULT NULL,
+    review_note TEXT DEFAULT NULL,
+    cancelled_by INT UNSIGNED DEFAULT NULL,
+    cancelled_at TIMESTAMP NULL DEFAULT NULL,
+    cancel_reason TEXT DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_leave_requests_user_id (user_id),
+    KEY idx_leave_requests_status (status),
+    KEY idx_leave_requests_leave_type (leave_type),
+    KEY idx_leave_requests_start_date (start_date),
+    KEY idx_leave_requests_end_date (end_date),
+    KEY idx_leave_requests_user_range (user_id, start_date, end_date),
+    KEY idx_leave_requests_status_created_at (status, created_at),
+    CONSTRAINT fk_leave_requests_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_leave_requests_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES users (id) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_leave_requests_cancelled_by FOREIGN KEY (cancelled_by) REFERENCES users (id) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;

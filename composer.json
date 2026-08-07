@@ -1,0 +1,20 @@
+{
+    "name": "sapas/sapas",
+    "description": "SAPAS attendance and leave management application",
+    "type": "project",
+    "require": {
+        "dompdf/dompdf": "^3.1",
+        "php": ">=8.0",
+        "ext-mbstring": "*",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

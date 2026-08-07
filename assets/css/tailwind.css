@@ -1,0 +1,7215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --sapas-bg: #edf3f8;
+    --sapas-surface: #ffffff;
+    --sapas-surface-hero: #ffffff;
+    --sapas-surface-raised: #f7f9fc;
+    --sapas-surface-nested: #edf2f7;
+    --sapas-surface-analytics: #f3f8f7;
+    --sapas-surface-report: #f8fafc;
+    --sapas-surface-table: #ffffff;
+    --sapas-border: #d9e2ec;
+    --sapas-text: #111827;
+    --sapas-shell: #102e4a;
+    --sapas-brand: #1c5d8f;
+    --sapas-plum: #7c3aed;
+    --sapas-aura-blue: rgba(37, 99, 169, 0.10);
+    --sapas-aura-teal: rgba(15, 118, 110, 0.08);
+    --sapas-aura-plum: rgba(124, 58, 237, 0.07);
+  }
+
+  html {
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+    overflow-wrap: break-word;
+  }
+
+  body {
+    @apply bg-surface-page text-slate-900 antialiased;
+    font-family: theme('fontFamily.sans');
+  }
+
+  .sapas-app-body {
+    background:
+      linear-gradient(180deg, rgba(248, 250, 252, 0.96) 0%, rgba(237, 243, 248, 0.98) 48%, var(--sapas-bg) 100%);
+  }
+
+  :lang(my) body,
+  :lang(my) button,
+  :lang(my) input,
+  :lang(my) select,
+  :lang(my) textarea {
+    line-height: 1.75;
+  }
+
+  :lang(my) .sapas-brand-subtitle,
+  :lang(my) .sapas-login-eyebrow,
+  :lang(my) .sapas-dashboard-eyebrow,
+  :lang(my) .sapas-topbar-kicker,
+  :lang(my) .sapas-nav-group-label,
+  :lang(my) .sapas-dashboard-command-label {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  .grid,
+  .grid > * {
+    min-width: 0;
+  }
+
+  form.grid {
+    align-items: end;
+  }
+
+  .overflow-x-auto table th,
+  .overflow-x-auto table td {
+    min-width: 6rem;
+  }
+
+  a,
+  button,
+  label,
+  p,
+  span,
+  th,
+  td,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: anywhere;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-surface-canvas;
+  }
+}
+
+@layer components {
+  .sapas-app-shell {
+    @apply w-full max-w-none;
+    min-height: 100vh;
+  }
+
+  .sapas-shell-grid {
+    @apply flex flex-col lg:flex-row lg:items-start;
+  }
+
+  .sapas-main {
+    @apply min-w-0 flex-1;
+    overscroll-behavior: contain;
+  }
+
+  .sapas-content {
+    @apply min-w-0 space-y-5 px-4 pb-6 sm:px-6;
+  }
+
+  .sapas-material-hero {
+    @apply border border-white/80 shadow-sapas-hero;
+    background:
+      radial-gradient(circle at top right, rgba(124, 58, 237, 0.10), transparent 20rem),
+      radial-gradient(circle at bottom left, rgba(15, 118, 110, 0.08), transparent 18rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(251, 250, 247, 0.98) 48%, rgba(245, 247, 251, 0.94)),
+      var(--sapas-surface-hero);
+  }
+
+  .sapas-material-card {
+    @apply border border-slate-200/70 shadow-sapas-card;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(246, 248, 245, 0.97)),
+      var(--sapas-surface);
+  }
+
+  .sapas-material-nested {
+    @apply border border-slate-200/70 shadow-sapas-nested;
+    background:
+      linear-gradient(180deg, rgba(238, 242, 239, 0.98), rgba(255, 253, 249, 0.95)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-material-table {
+    @apply border border-slate-200/75 shadow-sapas-table;
+    background: var(--sapas-surface-table, #ffffff);
+  }
+
+  .sapas-sidebar,
+  .sapas-topbar,
+  .sapas-page-header,
+  .sapas-card,
+  .sapas-user-card,
+  .sapas-guest-card {
+    @apply border shadow-sapas-soft;
+  }
+
+  .sapas-sidebar,
+  .sapas-topbar,
+  .sapas-page-header {
+    @apply rounded-none;
+  }
+
+  .sapas-topbar,
+  .sapas-page-header {
+    @apply px-4 py-3 sm:px-5;
+  }
+
+  .sapas-sidebar {
+    @apply relative w-full border-0 p-5 text-white shadow-sapas-shell lg:sticky lg:top-0 lg:min-h-screen lg:w-64 lg:flex-none lg:self-start;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.58) transparent;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(56, 189, 248, 0.16), transparent 13rem),
+      radial-gradient(circle at 92% 90%, rgba(20, 184, 166, 0.12), transparent 15rem),
+      linear-gradient(180deg, #123b61 0%, var(--sapas-shell) 52%, #0c243b 100%);
+  }
+
+  .sapas-sidebar::-webkit-scrollbar {
+    width: 0.625rem;
+  }
+
+  .sapas-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sapas-sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.42);
+    background-clip: content-box;
+    border: 0.1875rem solid transparent;
+    border-radius: 9999px;
+  }
+
+  .sapas-sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(203, 213, 225, 0.58);
+  }
+
+  .sapas-sidebar-content {
+    @apply pb-2;
+  }
+
+  .sapas-topbar {
+    @apply sticky top-0 z-20 border-x-0 border-t-0 border-b border-slate-200/80 bg-white/95 px-4 py-3 shadow-sapas-soft backdrop-blur-xl sm:px-6;
+  }
+
+  .sapas-page-header {
+    @apply border-0 bg-transparent px-4 pb-5 pt-6 shadow-none sm:px-6;
+  }
+
+  .sapas-card,
+  .sapas-guest-card,
+  .sapas-workspace-card,
+  .sapas-dashboard-section,
+  .sapas-dashboard-primary-action,
+  .sapas-report-filter-panel,
+  .sapas-filter-panel,
+  .sapas-report-summary-card,
+  .sapas-chart-card,
+  .sapas-table-wrap,
+  .sapas-report-table-panel,
+  .sapas-empty-state {
+    @apply border-slate-200/65 shadow-sapas-card;
+    background: var(--sapas-surface);
+  }
+
+  .sapas-guest-card {
+    @apply w-full rounded-2xl px-6 py-7 sm:px-8;
+  }
+
+  .sapas-brand-lockup {
+    @apply flex min-w-0 flex-col items-start gap-1 rounded-2xl text-left transition-colors;
+  }
+
+  a.sapas-brand-lockup {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-canvas;
+  }
+
+  .sapas-brand-text {
+    @apply min-w-0 max-w-full space-y-1;
+  }
+
+  .sapas-brand-wordmark {
+    @apply block max-w-full text-balance text-xl font-semibold leading-tight tracking-normal text-slate-950;
+  }
+
+  .sapas-brand-subtitle {
+    @apply block max-w-full text-pretty text-xs font-medium uppercase tracking-[0.18em] text-slate-500;
+  }
+
+  .sapas-brand-lockup-guest {
+    @apply mx-auto items-center gap-2 text-center;
+  }
+
+  .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    @apply mx-auto max-w-xl text-3xl font-semibold leading-[1.08] text-slate-950 sm:text-4xl;
+  }
+
+  .sapas-brand-lockup-guest .sapas-brand-subtitle {
+    @apply mx-auto max-w-lg text-xs tracking-[0.18em] text-slate-500 sm:text-sm;
+  }
+
+  .sapas-brand-lockup-compact {
+    @apply gap-0.5;
+  }
+
+  .sapas-brand-lockup-compact .sapas-brand-wordmark {
+    @apply text-sm font-semibold leading-5;
+  }
+
+  .sapas-brand-lockup-compact .sapas-brand-subtitle {
+    @apply hidden;
+  }
+
+  .sapas-sidebar-brand .sapas-brand-lockup {
+    @apply items-start gap-1.5;
+  }
+
+  .sapas-sidebar-brand {
+    @apply border-b border-white/15 pb-4;
+  }
+
+  .sapas-sidebar .sapas-brand-wordmark {
+    @apply text-white;
+  }
+
+  .sapas-sidebar .sapas-brand-subtitle {
+    @apply text-slate-300;
+  }
+
+  .sapas-page-header h1 {
+    @apply tracking-normal text-slate-950;
+  }
+
+  .sapas-page-header-inner,
+  .sapas-topbar-inner {
+    @apply flex flex-col gap-4;
+  }
+
+  .sapas-page-header-inner {
+    @apply lg:flex-row lg:items-center lg:justify-between;
+  }
+
+  .sapas-topbar-inner {
+    @apply sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .sapas-topbar-left {
+    @apply flex min-w-0 items-start gap-3;
+  }
+
+  .sapas-topbar-mobile-brand {
+    @apply flex-none sm:hidden;
+  }
+
+  .sapas-page-header h1 {
+    @apply text-2xl font-semibold leading-tight sm:text-3xl;
+  }
+
+  .sapas-page-title-row {
+    @apply flex min-w-0 items-center gap-3;
+  }
+
+  .sapas-page-title-icon {
+    @apply inline-flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-brand-100 bg-white text-brand-700 shadow-sapas-soft;
+  }
+
+  .sapas-page-header-text p,
+  .sapas-helper-text {
+    @apply mt-2 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-topbar-actions,
+  .sapas-page-actions {
+    @apply flex min-w-0 flex-wrap items-center gap-3;
+  }
+
+  .sapas-topbar-actions > *,
+  .sapas-page-actions > * {
+    @apply min-w-0;
+  }
+
+  .sapas-topbar-kicker,
+  .sapas-user-card-role {
+    @apply text-xs font-semibold uppercase tracking-normal text-slate-500;
+  }
+
+  .sapas-topbar-name {
+    @apply mt-0.5 text-base font-semibold leading-6 text-slate-950;
+  }
+
+  .sapas-topbar-role {
+    @apply text-xs leading-5 text-slate-600;
+  }
+
+  .sapas-topbar-control {
+    @apply inline-flex min-h-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white/95 px-3 py-1.5 text-sm font-semibold leading-6 text-slate-700 shadow-sapas-soft transition-colors hover:border-brand-200 hover:bg-white hover:text-brand-700;
+  }
+
+  .sapas-topbar-icon-control {
+    @apply relative h-10 w-10 flex-none p-0;
+  }
+
+  .sapas-topbar-icon-control .sapas-notification-count {
+    @apply absolute -right-1.5 -top-1.5 min-h-5 min-w-5 px-1;
+  }
+
+  .sapas-language-switcher {
+    @apply inline-flex min-w-0 flex-none items-center gap-1 rounded-xl border border-slate-200/80 bg-surface-nested p-1 shadow-inner;
+  }
+
+  .sapas-language-switcher-icon {
+    @apply inline-flex h-8 w-8 flex-none items-center justify-center rounded-lg text-slate-500;
+  }
+
+  .sapas-language-options {
+    @apply inline-flex min-w-0 items-center gap-0.5;
+  }
+
+  .sapas-language-option {
+    @apply inline-flex min-h-8 min-w-10 max-w-full flex-none items-center justify-center whitespace-nowrap rounded-lg border border-transparent px-2.5 py-1 text-xs font-semibold leading-5 text-slate-600 transition-colors hover:bg-white hover:text-slate-950;
+  }
+
+  .sapas-language-option.is-active {
+    @apply border-slate-900 bg-slate-900 text-white shadow-sapas-soft hover:bg-slate-800 hover:text-white;
+  }
+
+  .sapas-notification-count {
+    @apply inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1.5 text-xs font-semibold text-white;
+  }
+
+  .sapas-icon {
+    @apply h-5 w-5 flex-none;
+  }
+
+  .sapas-action-icon {
+    @apply h-4 w-4 flex-none;
+  }
+
+  .sapas-nav-icon {
+    @apply h-5 w-5 flex-none text-slate-400 transition-colors;
+  }
+
+  .sapas-kpi-icon,
+  .sapas-card-icon,
+  .sapas-shortcut-icon,
+  .sapas-report-card-icon,
+  .sapas-empty-icon,
+  .sapas-notification-icon {
+    @apply inline-flex flex-none items-center justify-center rounded-xl border border-white/80 bg-surface-raised text-slate-600 shadow-sapas-soft;
+  }
+
+  .sapas-kpi-icon,
+  .sapas-card-icon,
+  .sapas-shortcut-icon,
+  .sapas-report-card-icon,
+  .sapas-notification-icon {
+    @apply h-10 w-10;
+  }
+
+  .sapas-empty-icon {
+    @apply mb-4 h-12 w-12 rounded-2xl border-slate-200 bg-white text-slate-500 shadow-sapas-soft;
+  }
+
+  .sapas-card-icon.is-brand,
+  .sapas-notification-icon.is-unread {
+    @apply border-brand-100 bg-brand-50 text-brand-700 shadow-sapas-soft;
+  }
+
+  .sapas-sidebar-nav {
+    @apply relative grow shrink-0 space-y-1;
+    --sapas-nav-pointer-y: 0px;
+    --sapas-nav-pointer-height: 2.75rem;
+    --sapas-nav-pointer-opacity: 0;
+  }
+
+  .sapas-sidebar-footer {
+    @apply mt-auto border-t border-white/10 pt-4;
+  }
+
+  .sapas-sidebar-logout-form {
+    @apply w-full;
+  }
+
+  .sapas-sidebar-logout {
+    @apply w-full cursor-pointer text-rose-100 hover:border-rose-200/20 hover:bg-rose-400/10 hover:text-white;
+  }
+
+  .sapas-sidebar-logout .sapas-nav-icon {
+    @apply text-rose-200;
+  }
+
+  .sapas-sidebar-nav::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -0.375rem;
+    z-index: 1;
+    width: 0.1875rem;
+    height: var(--sapas-nav-pointer-height);
+    border-radius: 9999px;
+    background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 55%, #2dd4bf 100%);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 16px rgba(56, 189, 248, 0.58);
+    opacity: var(--sapas-nav-pointer-opacity);
+    pointer-events: none;
+    transform: translate3d(0, var(--sapas-nav-pointer-y), 0);
+    transition:
+      transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 180ms ease,
+      opacity 140ms ease;
+  }
+
+  .sapas-nav-link {
+    @apply flex min-h-11 w-full items-center gap-3 whitespace-normal rounded-xl border border-transparent px-3 py-2 text-left text-sm font-medium leading-6 text-blue-50 transition-colors duration-150;
+  }
+
+  .sapas-nav-link:hover {
+    @apply border-white/10 bg-white/10 text-white;
+  }
+
+  .sapas-nav-link:hover .sapas-nav-icon,
+  .sapas-nav-link.is-active .sapas-nav-icon {
+    @apply text-brand-200;
+  }
+
+  .sapas-nav-link.is-active {
+    @apply border-white/15 bg-white/15 text-white shadow-sapas-soft;
+    box-shadow: 0 8px 20px -16px rgba(0, 0, 0, 0.7);
+  }
+
+  .sapas-user-card {
+    @apply flex min-w-0 items-center gap-3 rounded-xl border border-white/10 bg-white/10 p-3 shadow-sapas-soft;
+  }
+
+  .sapas-user-card-icon {
+    @apply inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-white/15 bg-white/10 text-sky-100;
+  }
+
+  .sapas-user-card-name {
+    @apply block truncate text-sm font-semibold leading-6 text-white;
+  }
+
+  .sapas-sidebar .sapas-user-card-role {
+    @apply block text-[0.68rem] text-sky-100/80;
+  }
+
+  .sapas-btn {
+    @apply inline-flex min-h-9 min-w-20 max-w-full flex-none items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-1.5 text-sm font-semibold leading-6 shadow-sapas-soft transition-all duration-150;
+  }
+
+  .sapas-btn-primary {
+    @apply border border-brand-500 bg-brand-600 text-white shadow-sapas-nested hover:-translate-y-px hover:bg-brand-700 hover:shadow-sapas-card;
+  }
+
+  .sapas-btn-secondary {
+    @apply border border-slate-200/80 bg-white/95 text-slate-700 hover:border-brand-100 hover:bg-white hover:text-brand-700;
+  }
+
+  .sapas-btn-success {
+    @apply border border-emerald-500 bg-emerald-600 text-white shadow-sapas-nested hover:bg-emerald-700;
+  }
+
+  .sapas-btn-danger {
+    @apply border border-rose-500 bg-rose-600 text-white shadow-sapas-nested hover:bg-rose-700;
+  }
+
+  .sapas-btn-danger-quiet {
+    @apply border border-rose-100 bg-white text-rose-700 shadow-none hover:border-rose-200 hover:bg-rose-50;
+  }
+
+  .sapas-badge {
+    @apply inline-flex min-h-7 min-w-16 max-w-full flex-none items-center justify-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold leading-5 shadow-sm;
+  }
+
+  .sapas-badge-success {
+    @apply border-emerald-100 bg-emerald-50 text-emerald-700;
+  }
+
+  .sapas-badge-warning {
+    @apply border-amber-100 bg-amber-50 text-amber-700;
+  }
+
+  .sapas-badge-danger {
+    @apply border-rose-100 bg-rose-50 text-rose-700;
+  }
+
+  .sapas-badge-info {
+    @apply border-sky-100 bg-sky-50 text-sky-700;
+  }
+
+  .sapas-badge-neutral {
+    @apply border-slate-200 bg-slate-100 text-slate-700;
+  }
+
+  .sapas-section-title {
+    @apply text-lg font-semibold text-slate-950;
+  }
+
+  .sapas-kpi-value {
+    @apply text-2xl font-semibold tracking-normal text-slate-950;
+  }
+
+  .sapas-dashboard-stack {
+    @apply space-y-5;
+  }
+
+  .sapas-dashboard-hero {
+    @apply relative overflow-hidden rounded-2xl border border-white/90 p-6 shadow-sapas-hero;
+    background:
+      radial-gradient(circle at top right, rgba(124, 58, 237, 0.14), transparent 19rem),
+      radial-gradient(circle at bottom left, rgba(15, 118, 110, 0.12), transparent 17rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(251, 250, 247, 0.98) 52%, rgba(238, 242, 255, 0.94)),
+      var(--sapas-surface-hero);
+  }
+
+  .sapas-dashboard-hero::after {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 top-0 h-1;
+    background: linear-gradient(90deg, #1c5d8f, #0f766e 58%, #d97706);
+  }
+
+  .sapas-dashboard-hero-command {
+    background:
+      radial-gradient(circle at top right, rgba(217, 119, 6, 0.10), transparent 20rem),
+      radial-gradient(circle at bottom left, rgba(15, 118, 110, 0.14), transparent 18rem),
+      linear-gradient(135deg, rgba(255, 253, 249, 0.99), rgba(248, 247, 243, 0.98) 48%, rgba(237, 245, 241, 0.95)),
+      var(--sapas-surface-hero);
+  }
+
+  .sapas-dashboard-hero-personal {
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 18rem),
+      radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.10), transparent 18rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(245, 247, 251, 0.98) 52%, rgba(236, 253, 245, 0.84)),
+      var(--sapas-surface-hero);
+  }
+
+  .sapas-dashboard-hero-content {
+    @apply relative space-y-6;
+  }
+
+  .sapas-dashboard-opening-grid {
+    @apply grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start;
+  }
+
+  .sapas-dashboard-opening-copy {
+    @apply min-w-0 max-w-3xl;
+  }
+
+  .sapas-dashboard-opening-actions {
+    @apply lg:col-span-2;
+  }
+
+  .sapas-dashboard-command-panel {
+    @apply grid gap-3 rounded-2xl border border-slate-200/65 p-4 shadow-sapas-card sm:grid-cols-3 lg:grid-cols-1;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 249, 0.96), rgba(239, 244, 241, 0.93)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-dashboard-command-stat {
+    @apply rounded-xl border border-slate-200/70 bg-white/80 p-3 shadow-sapas-soft;
+  }
+
+  .sapas-dashboard-command-label {
+    @apply text-xs font-semibold uppercase leading-5 tracking-normal text-slate-500;
+  }
+
+  .sapas-dashboard-command-value {
+    @apply mt-1 text-2xl font-semibold leading-tight;
+  }
+
+  .sapas-dashboard-personal-grid {
+    @apply grid gap-6 lg:grid-cols-5 lg:items-stretch;
+  }
+
+  .sapas-dashboard-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-normal text-slate-500;
+  }
+
+  .sapas-dashboard-date {
+    @apply mt-1 text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl;
+  }
+
+  .sapas-dashboard-grid {
+    @apply grid grid-cols-1 gap-6 xl:grid-cols-3;
+  }
+
+  .sapas-dashboard-insight-grid {
+    @apply grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.75fr)] xl:items-stretch;
+  }
+
+  .sapas-dashboard-insight-grid > .sapas-chart-card,
+  .sapas-dashboard-insight-grid > .sapas-dashboard-section {
+    @apply h-full;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sapas-dashboard-operational-grid {
+    @apply grid gap-4 xl:grid-cols-2 xl:items-stretch;
+  }
+
+  .sapas-dashboard-operational-grid > .sapas-dashboard-section {
+    @apply h-full;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sapas-dashboard-operational-grid .sapas-dashboard-list,
+  .sapas-dashboard-operational-grid .sapas-notification-list {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .sapas-dashboard-operational-grid .sapas-dashboard-list > *,
+  .sapas-dashboard-operational-grid .sapas-notification-list > * {
+    margin-top: 0;
+  }
+
+  .sapas-dashboard-operational-grid .sapas-dashboard-list-row,
+  .sapas-dashboard-operational-grid .sapas-notification-row {
+    min-height: 5rem;
+    padding: 1rem;
+  }
+
+  .sapas-dashboard-operational-grid .sapas-dashboard-table-empty {
+    @apply flex flex-1 items-center justify-center;
+    min-height: 10rem;
+  }
+
+  .sapas-dashboard-main {
+    @apply space-y-6 xl:col-span-2;
+  }
+
+  .sapas-dashboard-side {
+    @apply space-y-6;
+  }
+
+  .sapas-dashboard-kpi-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5;
+  }
+
+  .sapas-dashboard-kpi-grid-command {
+    @apply lg:grid-cols-7;
+  }
+
+  .sapas-dashboard-kpi-grid-personal {
+    @apply auto-rows-fr sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .sapas-dashboard-kpi-grid-personal .sapas-dashboard-kpi-card {
+    @apply h-full;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sapas-dashboard-kpi-grid-personal .sapas-dashboard-kpi-card.is-primary {
+    @apply lg:col-span-1;
+  }
+
+  .sapas-dashboard-kpi-grid-personal .sapas-dashboard-kpi-note {
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+
+  .sapas-dashboard-kpi-grid-admin .sapas-dashboard-kpi-card.is-primary {
+    @apply lg:col-span-1;
+  }
+
+  .sapas-dashboard-kpi-card {
+    @apply relative overflow-hidden rounded-2xl border border-slate-200/75 p-4 shadow-sapas-nested transition-all duration-150 hover:-translate-y-px hover:border-slate-300/80 hover:shadow-sapas-card;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(240, 244, 241, 0.97)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-dashboard-kpi-card::before {
+    content: "";
+    @apply absolute inset-x-0 top-0 h-1 bg-slate-300;
+  }
+
+  .sapas-dashboard-kpi-card.is-primary::before {
+    @apply bg-emerald-500;
+  }
+
+  .sapas-dashboard-kpi-card.is-attention::before {
+    @apply bg-amber-500;
+  }
+
+  .sapas-dashboard-kpi-card.is-secondary::before {
+    @apply bg-indigo-500;
+  }
+
+  .sapas-dashboard-kpi-card.is-primary {
+    @apply border-emerald-100 shadow-sapas-card lg:col-span-2;
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.10), transparent 10rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(236, 248, 242, 0.93)),
+      var(--sapas-surface);
+  }
+
+  .sapas-dashboard-kpi-card.is-attention {
+    @apply border-amber-100/80;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(255, 251, 235, 0.72)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-dashboard-kpi-card.is-secondary {
+    @apply border-plum-100 shadow-sapas-soft;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(250, 245, 255, 0.70)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-dashboard-kpi-heading,
+  .sapas-card-heading {
+    @apply flex min-w-0 items-center gap-3;
+  }
+
+  .sapas-dashboard-kpi-label {
+    @apply text-sm font-semibold leading-6 text-slate-600;
+  }
+
+  .sapas-dashboard-kpi-number {
+    @apply mt-2 text-3xl font-semibold leading-tight;
+  }
+
+  .sapas-dashboard-kpi-note {
+    @apply mt-2 text-xs leading-5 text-slate-500;
+  }
+
+  .sapas-dashboard-section {
+    @apply relative overflow-hidden rounded-2xl border border-slate-200/70 p-4 shadow-sapas-card sm:p-5;
+  }
+
+  .sapas-dashboard-section::before {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-brand-400/70 via-emerald-400/50 to-transparent;
+  }
+
+  .sapas-dashboard-section-priority {
+    @apply border-amber-100/80 shadow-sapas-card;
+    background:
+      radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 15rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(255, 251, 235, 0.44)),
+      var(--sapas-surface);
+  }
+
+  .sapas-dashboard-section-activity {
+    @apply border-emerald-100/70 shadow-sapas-card;
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.07), transparent 15rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(241, 247, 243, 0.96)),
+      var(--sapas-surface);
+  }
+
+  .sapas-dashboard-section-secondary {
+    @apply border-plum-100/70 shadow-sapas-soft;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(249, 245, 251, 0.95)),
+      var(--sapas-surface);
+  }
+
+  .sapas-dashboard-section-summary {
+    @apply shadow-sapas-card;
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.07), transparent 15rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(245, 247, 251, 0.96)),
+      var(--sapas-surface);
+  }
+
+  .sapas-dashboard-section-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .sapas-dashboard-section-title {
+    @apply text-xl font-semibold leading-tight text-slate-950;
+  }
+
+  .sapas-dashboard-section-copy {
+    @apply mt-1 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-dashboard-action-row {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .sapas-dashboard-action-row > * {
+    @apply min-w-0;
+  }
+
+  .sapas-dashboard-attention-grid {
+    @apply mt-6 grid gap-4 md:grid-cols-2;
+  }
+
+  .sapas-dashboard-attention-card {
+    @apply rounded-2xl border p-4 shadow-sapas-nested;
+  }
+
+  .sapas-dashboard-attention-card.is-warning {
+    @apply border-amber-200/90 bg-gradient-to-br from-amber-50 to-white;
+  }
+
+  .sapas-dashboard-attention-card.is-danger {
+    @apply border-rose-200/90 bg-gradient-to-br from-rose-50 to-white;
+  }
+
+  .sapas-dashboard-card-title {
+    @apply text-sm font-semibold leading-6 text-slate-800;
+  }
+
+  .sapas-dashboard-list {
+    @apply mt-4 space-y-3;
+  }
+
+  .sapas-dashboard-list-item {
+    @apply rounded-2xl border border-slate-200/75 bg-white/95 p-4 shadow-sapas-soft;
+  }
+
+  .sapas-dashboard-list-item-muted {
+    @apply rounded-2xl border border-slate-200/75 bg-surface-nested p-4 shadow-sapas-soft;
+  }
+
+  .sapas-dashboard-list-row {
+    @apply flex min-w-0 items-start gap-3 rounded-2xl border border-slate-200/75 bg-white/95 p-4 shadow-sapas-soft transition-colors hover:border-brand-100 hover:bg-white;
+  }
+
+  .sapas-dashboard-department-list {
+    @apply mt-3 flex-1 divide-y divide-slate-200/75 overflow-visible rounded-xl border border-slate-200/75 bg-white/90 shadow-sapas-soft;
+  }
+
+  .sapas-dashboard-department-row {
+    @apply rounded-none border-0 bg-transparent px-3 py-3 shadow-none;
+  }
+
+  .sapas-dashboard-department-row .sapas-badge {
+    @apply px-2 py-0.5 text-[0.7rem] leading-5 shadow-none;
+  }
+
+  .sapas-dashboard-department-row .sapas-chart-track {
+    @apply mt-3 h-2;
+  }
+
+  .sapas-dashboard-department-footer {
+    @apply mt-auto flex justify-end border-t border-slate-200/70 pt-3;
+  }
+
+  .sapas-dashboard-chart-card {
+    @apply border-emerald-100/80 p-4 shadow-sapas-card;
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 15rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(239, 247, 243, 0.97)),
+      var(--sapas-surface);
+  }
+
+  .sapas-dashboard-chart-card .sapas-line-chart {
+    @apply mt-3 rounded-xl px-3 pb-2 pt-3;
+  }
+
+  .sapas-dashboard-chart-card .sapas-line-chart svg {
+    @apply h-44 sm:h-48;
+  }
+
+  .sapas-dashboard-chart-card .sapas-line-chart-labels {
+    @apply mt-1 text-[0.7rem] leading-4;
+  }
+
+  .sapas-dashboard-chart-card .sapas-chart-legend {
+    @apply mt-2 gap-x-3 gap-y-1 pt-2;
+  }
+
+  .sapas-dashboard-chart-card .sapas-chart-legend-item {
+    @apply text-xs leading-5;
+  }
+
+  .sapas-dashboard-shortcut {
+    @apply flex min-w-0 items-start gap-3 rounded-2xl border border-white/75 p-4 shadow-sapas-nested transition-colors hover:border-brand-100 hover:bg-white;
+    background:
+      linear-gradient(180deg, rgba(247, 249, 252, 0.98), rgba(255, 255, 255, 0.98)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-dashboard-shortcut:hover .sapas-shortcut-icon,
+  .sapas-report-card:hover .sapas-report-card-icon {
+    @apply border-brand-100 bg-white text-brand-700;
+  }
+
+  .sapas-dashboard-shortcut-title {
+    @apply block font-semibold leading-6 text-slate-950;
+  }
+
+  .sapas-dashboard-shortcut-copy {
+    @apply mt-1 block text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-dashboard-status-panel {
+    @apply rounded-2xl border border-brand-100/90 p-5 shadow-sapas-card;
+    background:
+      radial-gradient(circle at top right, rgba(124, 58, 237, 0.10), transparent 12rem),
+      linear-gradient(135deg, rgba(238, 242, 255, 0.94), rgba(255, 255, 255, 0.97) 62%, rgba(245, 247, 251, 0.76)),
+      var(--sapas-surface);
+  }
+
+  .sapas-dashboard-status-grid {
+    @apply mt-4 grid gap-4 md:grid-cols-2;
+  }
+
+  .sapas-dashboard-primary-action {
+    @apply relative overflow-hidden rounded-2xl border border-white/90 bg-white p-6 shadow-sapas-card;
+  }
+
+  .sapas-dashboard-primary-action::before {
+    content: "";
+    @apply pointer-events-none absolute inset-y-0 left-0 w-1 bg-emerald-500;
+  }
+
+  .sapas-dashboard-action-panel {
+    background:
+      radial-gradient(circle at top left, rgba(15, 118, 110, 0.09), transparent 14rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(245, 247, 251, 0.96)),
+      var(--sapas-surface);
+  }
+
+  .sapas-workspace-stack {
+    @apply space-y-6;
+  }
+
+  .sapas-workspace-hero {
+    @apply rounded-2xl border border-white/80 p-6 shadow-sapas-hero;
+    background:
+      radial-gradient(circle at top right, rgba(124, 58, 237, 0.14), transparent 17rem),
+      radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.08), transparent 15rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(250, 245, 255, 0.96) 58%, rgba(245, 247, 251, 0.90)),
+      var(--sapas-surface-report);
+  }
+
+  .sapas-workspace-hero.sapas-report-hero {
+    @apply p-5;
+    background:
+      radial-gradient(circle at top right, rgba(124, 58, 237, 0.09), transparent 14rem),
+      radial-gradient(circle at bottom left, rgba(217, 119, 6, 0.07), transparent 14rem),
+      linear-gradient(135deg, rgba(255, 253, 249, 0.99), rgba(246, 241, 244, 0.96)),
+      var(--sapas-surface-report);
+  }
+
+  .sapas-report-hero .sapas-workspace-opening-grid {
+    @apply gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)] lg:items-center;
+  }
+
+  .sapas-report-hero .sapas-workspace-opening-panel {
+    @apply gap-2 p-2.5 shadow-sapas-nested;
+  }
+
+  .sapas-report-hero .sapas-workspace-opening-stat {
+    @apply p-2.5 shadow-none;
+  }
+
+  .sapas-report-hero .sapas-workspace-opening-stat-link {
+    @apply block cursor-pointer transition duration-200 ease-out;
+  }
+
+  .sapas-report-hero .sapas-workspace-opening-stat-link:hover {
+    @apply -translate-y-0.5 border-brand-300 bg-white shadow-sapas-soft;
+  }
+
+  .sapas-report-hero .sapas-workspace-opening-stat-link:focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2;
+  }
+
+  .sapas-report-hero .sapas-workspace-opening-stat-link:hover .sapas-report-meta-label,
+  .sapas-report-hero .sapas-workspace-opening-stat-link:focus-visible .sapas-report-meta-label {
+    @apply text-brand-700;
+  }
+
+  .sapas-report-hero .sapas-report-meta-action {
+    @apply flex items-center justify-between gap-3 text-brand-700;
+  }
+
+  .sapas-report-hero .sapas-report-meta-action .sapas-action-icon {
+    @apply transition-transform duration-200;
+  }
+
+  .sapas-report-hero .sapas-workspace-opening-stat-link:hover .sapas-report-meta-action .sapas-action-icon,
+  .sapas-report-hero .sapas-workspace-opening-stat-link:focus-visible .sapas-report-meta-action .sapas-action-icon {
+    @apply translate-x-1;
+  }
+
+  .sapas-report-hero .sapas-report-summary-value {
+    @apply mt-1 text-2xl;
+  }
+
+  .sapas-report-hero .sapas-report-meta-value {
+    @apply mt-0.5 text-base leading-6;
+  }
+
+  .sapas-workspace-hero.sapas-analytics-hero {
+    background:
+      radial-gradient(circle at top right, rgba(124, 58, 237, 0.09), transparent 17rem),
+      radial-gradient(circle at bottom left, rgba(15, 118, 110, 0.13), transparent 15rem),
+      linear-gradient(135deg, rgba(255, 253, 249, 0.99), rgba(237, 247, 242, 0.97) 58%, rgba(246, 241, 244, 0.93)),
+      var(--sapas-surface-analytics);
+  }
+
+  .sapas-workspace-opening-grid {
+    @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] lg:items-start;
+  }
+
+  .sapas-workspace-opening-grid .sapas-workspace-hero-main {
+    @apply lg:col-span-1;
+  }
+
+  .sapas-workspace-opening-panel {
+    @apply grid gap-3 rounded-2xl border border-slate-200/65 p-4 shadow-sapas-card sm:grid-cols-3 lg:grid-cols-1;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 249, 0.97), rgba(240, 244, 241, 0.95)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-workspace-opening-stat {
+    @apply rounded-xl border border-slate-200/75 bg-white/80 p-4 shadow-sapas-soft;
+  }
+
+  .sapas-workspace-opening-stat.is-primary {
+    @apply border-brand-100 bg-brand-50/80 shadow-sapas-nested;
+  }
+
+  .sapas-workspace-hero-grid {
+    @apply grid gap-6 lg:grid-cols-3 lg:items-start;
+  }
+
+  .sapas-workspace-hero-main {
+    @apply min-w-0 lg:col-span-2;
+  }
+
+  .sapas-workspace-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-normal text-slate-500;
+  }
+
+  .sapas-workspace-title {
+    @apply mt-1 text-2xl font-semibold leading-tight text-slate-950 sm:text-3xl;
+  }
+
+  .sapas-workspace-copy {
+    @apply mt-2 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-workspace-actions {
+    @apply flex flex-wrap items-center gap-3 lg:justify-end;
+  }
+
+  .sapas-workspace-actions > * {
+    @apply min-w-0;
+  }
+
+  .sapas-workspace-card {
+    @apply rounded-2xl p-6;
+  }
+
+  .sapas-workspace-card-header {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .sapas-workspace-card-title {
+    @apply text-xl font-semibold leading-tight text-slate-950;
+  }
+
+  .sapas-workspace-card-copy {
+    @apply mt-1 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-report-card-grid {
+    @apply grid auto-rows-fr gap-4 md:grid-cols-2;
+  }
+
+  .sapas-report-card {
+    @apply flex min-h-48 flex-col rounded-2xl border border-slate-200/65 p-5 shadow-sapas-nested transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-canvas;
+    height: 100%;
+    background:
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(246, 244, 241, 0.97)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-card.is-attendance {
+    @apply border-teal-200/80 hover:border-teal-300;
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 12rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(238, 248, 242, 0.94)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-card.is-employee {
+    @apply border-plum-200/80 hover:border-plum-400;
+    background:
+      radial-gradient(circle at top right, rgba(124, 58, 237, 0.07), transparent 11rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(250, 245, 255, 0.76)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-card.is-leave {
+    @apply border-indigo-200/80 hover:border-indigo-300;
+    background:
+      radial-gradient(circle at top right, rgba(79, 70, 229, 0.08), transparent 11rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(238, 242, 255, 0.78)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-card.is-exception {
+    @apply border-amber-100/90;
+    background:
+      radial-gradient(circle at top right, rgba(217, 119, 6, 0.08), transparent 11rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(255, 251, 235, 0.82)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-card.is-attendance .sapas-report-card-icon,
+  .sapas-report-card.is-attendance .sapas-report-card-action {
+    @apply border-teal-100 bg-teal-50 text-teal-700;
+  }
+
+  .sapas-report-card.is-employee .sapas-report-card-icon {
+    @apply border-plum-100 bg-plum-50 text-plum-700;
+  }
+
+  .sapas-report-card.is-leave .sapas-report-card-icon,
+  .sapas-report-card.is-leave .sapas-report-card-action {
+    @apply border-indigo-100 bg-indigo-50 text-indigo-700;
+  }
+
+  .sapas-report-card.is-exception .sapas-report-card-icon {
+    @apply border-amber-100 bg-amber-50 text-amber-700;
+  }
+
+  .sapas-report-card.is-employee .sapas-report-card-action {
+    @apply border-plum-100 bg-plum-50 text-plum-700;
+  }
+
+  .sapas-report-card.is-exception .sapas-report-card-action {
+    @apply border-amber-100 bg-amber-50 text-amber-700;
+  }
+
+  .sapas-report-card.is-selected {
+    @apply shadow-sapas-hero ring-2 ring-brand-200;
+  }
+
+  .sapas-report-card-title {
+    @apply text-lg font-semibold leading-7 text-slate-950;
+  }
+
+  .sapas-report-card-copy {
+    @apply mt-2 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-report-card-body {
+    @apply flex min-w-0 items-start gap-4;
+  }
+
+  .sapas-report-card-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sapas-report-card-footer {
+    @apply mt-auto flex justify-end pt-5;
+  }
+
+  .sapas-report-card-action {
+    @apply inline-flex min-h-9 min-w-20 flex-none items-center justify-center whitespace-nowrap rounded-full border px-3 py-1 text-sm font-semibold leading-6;
+  }
+
+  .sapas-report-card-action.is-selected-action {
+    @apply border-brand-600 bg-brand-600 text-white;
+  }
+
+  .sapas-report-filter-panel {
+    @apply rounded-2xl p-6;
+  }
+
+  .sapas-report-filter-grid {
+    @apply grid gap-4;
+  }
+
+  .sapas-department-filter-grid {
+    @apply grid max-w-3xl gap-4 sm:grid-cols-[minmax(0,1fr)_auto];
+  }
+
+  .sapas-report-filter-grid.is-four {
+    @apply lg:grid-cols-4;
+  }
+
+  .sapas-report-filter-grid.is-five {
+    @apply xl:grid-cols-5;
+  }
+
+  .sapas-report-active-filters {
+    @apply mt-4 rounded-2xl border border-slate-200/80 p-4 shadow-sapas-soft;
+    background:
+      linear-gradient(180deg, rgba(242, 245, 250, 0.98), rgba(255, 255, 255, 0.94)),
+      var(--sapas-surface-nested);
+  }
+
+  .sapas-report-summary-grid {
+    @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-5;
+  }
+
+  .sapas-report-summary-card {
+    @apply rounded-2xl p-4 shadow-sapas-nested;
+  }
+
+  .sapas-report-summary-label {
+    @apply text-sm font-semibold leading-6 text-slate-600;
+  }
+
+  .sapas-report-summary-value {
+    @apply mt-2 text-3xl font-semibold leading-tight;
+  }
+
+  .sapas-chart-grid {
+    @apply grid gap-4 lg:grid-cols-2;
+  }
+
+  .sapas-chart-card {
+    @apply rounded-2xl p-5 shadow-sapas-nested;
+  }
+
+  .sapas-chart-card-header {
+    @apply flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .sapas-chart-title {
+    @apply text-base font-semibold leading-7 text-slate-950;
+  }
+
+  .sapas-chart-copy {
+    @apply mt-1 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-chart-list {
+    @apply mt-5 space-y-4;
+  }
+
+  .sapas-chart-row {
+    @apply space-y-2;
+  }
+
+  .sapas-chart-row-meta {
+    @apply flex min-w-0 items-center justify-between gap-3 text-sm;
+  }
+
+  .sapas-chart-row-label {
+    @apply min-w-0 font-semibold leading-6 text-slate-700;
+  }
+
+  .sapas-chart-row-value {
+    @apply flex-none font-semibold leading-6 text-slate-950;
+  }
+
+  .sapas-chart-track {
+    @apply h-2.5 overflow-hidden rounded-full bg-slate-200/70;
+  }
+
+  .sapas-chart-bar {
+    @apply h-full rounded-full bg-brand-600;
+  }
+
+  .sapas-chart-bar.is-emerald {
+    @apply bg-emerald-500;
+  }
+
+  .sapas-chart-bar.is-amber {
+    @apply bg-amber-500;
+  }
+
+  .sapas-chart-bar.is-rose {
+    @apply bg-rose-500;
+  }
+
+  .sapas-chart-bar.is-sky {
+    @apply bg-sky-500;
+  }
+
+  .sapas-line-chart {
+    @apply mt-4 rounded-2xl border border-slate-200/75 bg-surface-raised/90 px-4 pb-3 pt-5 shadow-inner;
+  }
+
+  .sapas-line-chart svg {
+    @apply h-56 w-full overflow-visible sm:h-60;
+  }
+
+  .sapas-chart-axis {
+    @apply stroke-slate-300;
+    stroke-width: 1.25;
+  }
+
+  .sapas-chart-gridline {
+    @apply stroke-slate-200;
+    stroke-width: 1;
+  }
+
+  .sapas-line-series {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3.25;
+  }
+
+  .sapas-line-series.is-emerald {
+    @apply stroke-emerald-500;
+  }
+
+  .sapas-line-series.is-amber {
+    @apply stroke-amber-500;
+  }
+
+  .sapas-line-series.is-rose {
+    @apply stroke-rose-500;
+  }
+
+  .sapas-line-chart-labels {
+    @apply mt-2 grid gap-2 text-center text-xs font-semibold leading-5 text-slate-500;
+    grid-template-columns: repeat(var(--sapas-line-label-count, 7), minmax(0, 1fr));
+  }
+
+  .sapas-chart-stacked {
+    @apply mt-5 flex h-4 overflow-hidden rounded-full bg-slate-100;
+  }
+
+  .sapas-chart-segment {
+    @apply h-full min-w-0;
+  }
+
+  .sapas-chart-legend {
+    @apply mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-200/75 pt-3;
+  }
+
+  .sapas-chart-legend-item {
+    @apply inline-flex min-w-0 items-center gap-2 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-chart-dot {
+    @apply h-2.5 w-2.5 flex-none rounded-full bg-slate-400;
+  }
+
+  .sapas-chart-dot.is-emerald {
+    @apply bg-emerald-500;
+  }
+
+  .sapas-chart-dot.is-amber {
+    @apply bg-amber-500;
+  }
+
+  .sapas-chart-dot.is-rose {
+    @apply bg-rose-500;
+  }
+
+  .sapas-chart-dot.is-sky {
+    @apply bg-sky-500;
+  }
+
+  .sapas-analytics-overview {
+    @apply border-t border-slate-200/80 bg-white p-5 sm:p-6;
+  }
+
+  .sapas-analytics-section-heading {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .sapas-analytics-kpi-grid {
+    @apply mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .sapas-analytics-kpi {
+    @apply relative flex min-h-40 items-start gap-4 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sapas-nested transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sapas-card;
+  }
+
+  .sapas-analytics-kpi::before {
+    content: '';
+    @apply absolute inset-y-0 left-0 w-1;
+  }
+
+  .sapas-analytics-kpi.is-primary {
+    @apply border-emerald-100 bg-emerald-50/45;
+  }
+
+  .sapas-analytics-kpi.is-primary::before {
+    @apply bg-emerald-500;
+  }
+
+  .sapas-analytics-kpi.is-neutral::before {
+    @apply bg-brand-500;
+  }
+
+  .sapas-analytics-kpi.is-warning {
+    @apply border-amber-100 bg-amber-50/45;
+  }
+
+  .sapas-analytics-kpi.is-warning::before {
+    @apply bg-amber-500;
+  }
+
+  .sapas-analytics-kpi.is-danger {
+    @apply border-rose-100 bg-rose-50/45;
+  }
+
+  .sapas-analytics-kpi.is-danger::before {
+    @apply bg-rose-500;
+  }
+
+  .sapas-analytics-kpi-icon {
+    @apply inline-flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-white/90 bg-white text-brand-700 shadow-sapas-soft;
+  }
+
+  .sapas-analytics-kpi-icon .sapas-icon {
+    @apply h-5 w-5;
+  }
+
+  .sapas-analytics-kpi-value {
+    @apply mt-2 text-3xl font-bold leading-none tracking-tight text-slate-950;
+  }
+
+  .sapas-analytics-kpi-note {
+    @apply mt-3 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-analytics-metric-strip {
+    @apply mt-4 grid overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-50/80 shadow-sapas-nested sm:grid-cols-2 xl:grid-cols-5;
+  }
+
+  .sapas-analytics-metric-strip > div {
+    @apply flex min-w-0 items-center gap-3 border-b border-slate-200/80 px-4 py-3 last:border-b-0 sm:border-r xl:border-b-0;
+  }
+
+  .sapas-analytics-metric-strip > div:nth-child(2n) {
+    @apply sm:border-r-0 xl:border-r;
+  }
+
+  .sapas-analytics-metric-strip > div:last-child {
+    @apply xl:border-r-0;
+  }
+
+  .sapas-analytics-metric-icon {
+    @apply inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-white text-slate-500 shadow-sapas-soft;
+  }
+
+  .sapas-analytics-metric-icon .sapas-icon {
+    @apply h-4 w-4;
+  }
+
+  .sapas-analytics-metric-strip p {
+    @apply text-xs font-semibold leading-5 text-slate-500;
+  }
+
+  .sapas-analytics-metric-strip strong {
+    @apply block text-lg font-bold leading-6 text-slate-900;
+  }
+
+  .sapas-analytics-command-center {
+    @apply border-slate-200/80 shadow-sapas-hero;
+    background:
+      radial-gradient(circle at 92% 2%, rgba(14, 116, 144, 0.08), transparent 18rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(246, 249, 252, 0.98));
+  }
+
+  .sapas-analytics-office-grid {
+    @apply grid gap-5 p-5 sm:p-6 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)];
+  }
+
+  .sapas-analytics-visual-card {
+    @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sapas-nested transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sapas-card;
+  }
+
+  .sapas-analytics-visual-card.is-composition {
+    @apply border-emerald-100/90;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(240, 253, 250, 0.62));
+  }
+
+  .sapas-analytics-composition-layout {
+    @apply mt-6 grid items-center gap-6 sm:grid-cols-[11rem_minmax(0,1fr)] xl:grid-cols-1 2xl:grid-cols-[11rem_minmax(0,1fr)];
+  }
+
+  .sapas-analytics-donut {
+    @apply relative mx-auto grid h-44 w-44 place-items-center rounded-full shadow-sapas-card;
+    background: conic-gradient(
+      #10b981 0 var(--sapas-on-time),
+      #f59e0b var(--sapas-on-time) var(--sapas-late),
+      #f43f5e var(--sapas-late) var(--sapas-absent),
+      #0ea5e9 var(--sapas-absent) 100%
+    );
+  }
+
+  .sapas-analytics-donut::before {
+    content: '';
+    @apply absolute h-28 w-28 rounded-full border border-slate-100 bg-white shadow-inner;
+  }
+
+  .sapas-analytics-donut > div {
+    @apply relative z-10 flex max-w-24 flex-col items-center text-center;
+  }
+
+  .sapas-analytics-donut strong {
+    @apply text-3xl font-bold leading-none text-slate-950;
+  }
+
+  .sapas-analytics-donut span {
+    @apply mt-1 text-xs font-semibold leading-4 text-slate-500;
+  }
+
+  .sapas-analytics-composition-list {
+    @apply space-y-2;
+  }
+
+  .sapas-analytics-composition-list > div {
+    @apply grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-slate-200/70 bg-white/85 px-3 py-2.5 shadow-sapas-soft;
+  }
+
+  .sapas-analytics-composition-list p {
+    @apply flex min-w-0 items-baseline gap-2;
+  }
+
+  .sapas-analytics-composition-list strong {
+    @apply flex-none whitespace-nowrap text-base font-bold text-slate-950;
+  }
+
+  .sapas-analytics-composition-list p span {
+    @apply min-w-0 text-sm font-medium leading-5 text-slate-600;
+  }
+
+  .sapas-analytics-composition-list em {
+    @apply text-xs font-bold not-italic text-slate-500;
+  }
+
+  .sapas-analytics-target-note {
+    @apply inline-flex flex-none rounded-full bg-slate-100 px-3 py-1 text-xs font-bold leading-5 text-slate-600;
+  }
+
+  .sapas-analytics-ranking-list {
+    @apply mt-5 max-h-96 space-y-3 pr-2;
+  }
+
+  .sapas-analytics-scroll-region {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: rgba(100, 116, 139, 0.55) transparent;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+  }
+
+  .sapas-analytics-scroll-region:focus-visible {
+    @apply outline-none ring-2 ring-brand-400 ring-offset-2;
+  }
+
+  .sapas-analytics-scroll-region::-webkit-scrollbar {
+    width: 0.625rem;
+  }
+
+  .sapas-analytics-scroll-region::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .sapas-analytics-scroll-region::-webkit-scrollbar-thumb {
+    background-clip: content-box;
+    background-color: rgba(100, 116, 139, 0.48);
+    border: 0.125rem solid transparent;
+    border-radius: 9999px;
+  }
+
+  .sapas-analytics-scroll-region::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(71, 85, 105, 0.65);
+  }
+
+  .sapas-analytics-ranking-row {
+    @apply grid grid-cols-[2rem_minmax(0,1fr)] items-center gap-3;
+  }
+
+  .sapas-analytics-rank {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-500;
+  }
+
+  .sapas-analytics-ranking-track {
+    @apply relative mt-1.5 h-2.5 overflow-hidden rounded-full bg-slate-100;
+  }
+
+  .sapas-analytics-ranking-track::after {
+    content: '';
+    @apply absolute inset-y-0 left-[90%] w-px bg-slate-500/50;
+  }
+
+  .sapas-analytics-ranking-track.is-empty::after {
+    display: none;
+  }
+
+  .sapas-analytics-ranking-track > span {
+    @apply block h-full origin-left rounded-full;
+  }
+
+  .sapas-analytics-office-grid.is-animation-ready:not(.is-visible) .sapas-analytics-donut,
+  .sapas-analytics-office-grid.is-animation-ready:not(.is-visible) .sapas-analytics-composition-list > div,
+  .sapas-analytics-office-grid.is-animation-ready:not(.is-visible) .sapas-analytics-ranking-row {
+    opacity: 0;
+  }
+
+  .sapas-analytics-office-grid.is-animation-ready.is-visible .sapas-analytics-donut {
+    animation: sapas-analytics-donut-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .sapas-analytics-office-grid.is-animation-ready.is-visible .sapas-analytics-composition-list > div,
+  .sapas-analytics-office-grid.is-animation-ready.is-visible .sapas-analytics-ranking-row {
+    animation: sapas-analytics-row-enter 420ms ease-out both;
+  }
+
+  .sapas-analytics-office-grid.is-animation-ready.is-visible .sapas-analytics-ranking-track > span {
+    animation: sapas-analytics-bar-grow 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .sapas-analytics-composition-list > div:nth-child(2),
+  .sapas-analytics-ranking-row:nth-child(2),
+  .sapas-analytics-ranking-row:nth-child(2) .sapas-analytics-ranking-track > span { animation-delay: 60ms; }
+
+  .sapas-analytics-composition-list > div:nth-child(3),
+  .sapas-analytics-ranking-row:nth-child(3),
+  .sapas-analytics-ranking-row:nth-child(3) .sapas-analytics-ranking-track > span { animation-delay: 120ms; }
+
+  .sapas-analytics-composition-list > div:nth-child(4),
+  .sapas-analytics-ranking-row:nth-child(4),
+  .sapas-analytics-ranking-row:nth-child(4) .sapas-analytics-ranking-track > span { animation-delay: 180ms; }
+
+  .sapas-analytics-ranking-row:nth-child(5),
+  .sapas-analytics-ranking-row:nth-child(5) .sapas-analytics-ranking-track > span { animation-delay: 240ms; }
+
+  .sapas-analytics-ranking-row:nth-child(6),
+  .sapas-analytics-ranking-row:nth-child(6) .sapas-analytics-ranking-track > span { animation-delay: 300ms; }
+
+  .sapas-analytics-ranking-row:nth-child(7),
+  .sapas-analytics-ranking-row:nth-child(7) .sapas-analytics-ranking-track > span { animation-delay: 360ms; }
+
+  .sapas-analytics-ranking-row:nth-child(8),
+  .sapas-analytics-ranking-row:nth-child(8) .sapas-analytics-ranking-track > span { animation-delay: 420ms; }
+
+  .sapas-analytics-ranking-track > .is-emerald {
+    @apply bg-emerald-500;
+  }
+
+  .sapas-analytics-ranking-track > .is-amber {
+    @apply bg-amber-500;
+  }
+
+  .sapas-analytics-ranking-track > .is-rose {
+    @apply bg-rose-500;
+  }
+
+  .sapas-analytics-attention-panel {
+    @apply mx-5 mb-5 overflow-hidden rounded-2xl border border-amber-200/80 bg-amber-50/40 shadow-sapas-card sm:mx-6 sm:mb-6;
+  }
+
+  .sapas-analytics-attention-header {
+    @apply flex flex-col gap-3 border-b border-amber-200/70 px-5 py-4 sm:flex-row sm:items-start sm:justify-between;
+    background: linear-gradient(135deg, rgba(255, 251, 235, 0.96), rgba(255, 255, 255, 0.92));
+  }
+
+  .sapas-analytics-attention-count {
+    @apply inline-flex h-10 min-w-10 items-center justify-center rounded-xl bg-amber-500 px-3 text-lg font-bold text-white shadow-sapas-soft;
+  }
+
+  .sapas-analytics-attention-grid {
+    @apply grid max-h-[36rem] content-start gap-3 p-4 md:grid-cols-2 2xl:grid-cols-3;
+  }
+
+  .sapas-analytics-attention-card {
+    @apply rounded-xl border border-slate-200/80 bg-white p-4 shadow-sapas-soft transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-sapas-card;
+  }
+
+  .sapas-analytics-attention-card-head {
+    @apply flex min-w-0 items-center gap-3;
+  }
+
+  .sapas-analytics-attention-card-head strong {
+    @apply block truncate text-sm font-bold leading-5 text-slate-900;
+  }
+
+  .sapas-analytics-attention-card-head div > span {
+    @apply block truncate text-xs leading-5 text-slate-500;
+  }
+
+  .sapas-analytics-person-icon {
+    @apply inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-slate-100 text-slate-600;
+  }
+
+  .sapas-analytics-person-icon .sapas-icon {
+    @apply h-4 w-4;
+  }
+
+  .sapas-analytics-attention-signals {
+    @apply mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3 text-xs text-slate-600;
+  }
+
+  .sapas-analytics-attention-signals span {
+    @apply rounded-lg bg-slate-50 px-2.5 py-1.5;
+  }
+
+  .sapas-analytics-attention-signals strong {
+    @apply text-slate-900;
+  }
+
+  .sapas-analytics-data-gap {
+    @apply mt-3 border-t border-slate-100 pt-3 text-xs font-medium leading-5 text-slate-500;
+  }
+
+  .sapas-analytics-all-clear {
+    @apply m-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800;
+  }
+
+  .sapas-analytics-all-clear > span {
+    @apply inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-emerald-600 text-white;
+  }
+
+  .sapas-analytics-all-clear .sapas-icon {
+    @apply h-4 w-4;
+  }
+
+  .sapas-analytics-all-clear strong {
+    @apply text-sm font-bold;
+  }
+
+  .sapas-analytics-all-clear p {
+    @apply mt-1 text-sm leading-6 text-emerald-700;
+  }
+
+  .sapas-report-distribution-segment.is-emerald {
+    @apply bg-emerald-500;
+  }
+
+  .sapas-report-distribution-segment.is-rose {
+    @apply bg-rose-500;
+  }
+  .sapas-report-distribution-segment.is-amber {
+    @apply bg-amber-500;
+  }
+
+  .sapas-report-insight-panel {
+    @apply grid gap-5 rounded-2xl border border-emerald-100/70 p-6 shadow-sapas-card lg:grid-cols-[minmax(0,1fr)_minmax(22rem,30rem)] lg:items-start;
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 16rem),
+      linear-gradient(135deg, rgba(255, 253, 249, 0.99), rgba(239, 247, 243, 0.97)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-insight-panel-warning {
+    background:
+      radial-gradient(circle at top right, rgba(245, 158, 11, 0.10), transparent 16rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.99), rgba(255, 251, 235, 0.64)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-insight-stats {
+    @apply grid gap-3 sm:grid-cols-3 lg:grid-cols-1;
+  }
+
+  .sapas-report-insight-stat {
+    @apply rounded-2xl border border-slate-200/75 bg-white/80 p-4 shadow-sapas-nested;
+  }
+
+  .sapas-report-insight-stat.is-emerald {
+    @apply border-emerald-100 bg-emerald-50/80 text-emerald-800;
+  }
+
+  .sapas-report-insight-stat.is-amber {
+    @apply border-amber-100 bg-amber-50/80 text-amber-800;
+  }
+
+  .sapas-report-insight-stat.is-rose {
+    @apply border-rose-100 bg-rose-50/80 text-rose-800;
+  }
+
+  .sapas-report-visual-card {
+    @apply border-white/80 shadow-sapas-card;
+  }
+
+  .sapas-report-distribution {
+    @apply mt-5 flex h-4 overflow-hidden rounded-full bg-slate-200/70;
+  }
+
+  .sapas-report-distribution-segment {
+    @apply h-full min-w-0;
+  }
+
+  .sapas-report-meta-grid {
+    @apply grid gap-4 md:grid-cols-3;
+  }
+
+  .sapas-report-meta-label {
+    @apply text-sm font-semibold leading-6 text-slate-500;
+  }
+
+  .sapas-report-meta-value {
+    @apply mt-1 text-lg font-semibold leading-7 text-slate-950;
+  }
+
+  .sapas-report-table-panel {
+    @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sapas-card;
+  }
+
+  .sapas-analytics-panel {
+    @apply border-emerald-100/80;
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.09), transparent 18rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(237, 247, 242, 0.97)),
+      var(--sapas-surface-analytics);
+  }
+
+  .sapas-analytics-surface {
+    background:
+      radial-gradient(circle at top right, rgba(15, 118, 110, 0.07), transparent 16rem),
+      linear-gradient(180deg, rgba(255, 253, 249, 0.99), rgba(241, 247, 243, 0.97)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-table-header {
+    @apply border-b border-slate-200/80 p-6;
+    background: #ffffff;
+  }
+
+  .sapas-report-empty {
+    @apply relative overflow-hidden rounded-2xl border border-dashed border-slate-300/90 p-8 text-center text-slate-700;
+    background:
+      radial-gradient(circle at top right, rgba(238, 242, 255, 0.68), transparent 10rem),
+      radial-gradient(circle at bottom left, rgba(250, 245, 255, 0.66), transparent 9rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(247, 249, 252, 0.94)),
+      var(--sapas-surface);
+  }
+
+  .sapas-report-empty-title {
+    @apply text-lg font-semibold text-slate-950;
+  }
+
+  .sapas-report-empty-copy {
+    @apply mt-2 text-sm leading-6 text-slate-500;
+  }
+
+  .sapas-chip {
+    @apply inline-flex max-w-full flex-none items-center whitespace-nowrap rounded-full px-3 py-1 text-sm font-semibold leading-6;
+  }
+
+  .sapas-chip-muted {
+    @apply bg-white/95 text-slate-600 ring-1 ring-slate-200 shadow-sapas-soft;
+  }
+
+  .sapas-chip-info {
+    @apply bg-brand-50 text-brand-700 ring-1 ring-brand-100 shadow-sapas-soft;
+  }
+
+  .sapas-policy-center {
+    @apply text-slate-800;
+  }
+
+  .sapas-policy-command {
+    @apply flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sapas-card lg:flex-row lg:items-center lg:justify-between;
+    background:
+      linear-gradient(135deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 0.98)),
+      var(--sapas-surface);
+  }
+
+  .sapas-policy-command-main {
+    @apply max-w-3xl;
+  }
+
+  .sapas-policy-command-main h2,
+  .sapas-policy-flow-panel h2 {
+    @apply mt-1 text-2xl font-semibold leading-tight text-slate-950;
+  }
+
+  .sapas-policy-command-main p:last-child,
+  .sapas-policy-flow-panel > div:first-child > p:last-child {
+    @apply mt-2 text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-policy-command-actions {
+    @apply flex flex-wrap gap-2 lg:justify-end;
+  }
+
+  .sapas-policy-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.08em] text-brand-700;
+  }
+
+  .sapas-policy-nav-row {
+    @apply flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between;
+  }
+
+  .sapas-policy-workspace-nav {
+    @apply grid flex-1 gap-2 sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .sapas-policy-workspace-link {
+    @apply min-h-24 rounded-xl border border-slate-200 bg-white p-4 text-left text-sm text-slate-700 shadow-sapas-card transition;
+  }
+
+  .sapas-policy-workspace-link span {
+    @apply block text-sm font-semibold text-slate-950;
+  }
+
+  .sapas-policy-workspace-link small {
+    @apply mt-1 block text-xs leading-5 text-slate-500;
+  }
+
+  .sapas-policy-workspace-link:hover,
+  .sapas-policy-workspace-link:focus-visible {
+    @apply border-brand-200 bg-brand-50/60 text-brand-800 outline-none ring-2 ring-brand-200 ring-offset-2;
+  }
+
+  .sapas-policy-workspace-link.is-active {
+    @apply border-brand-300 bg-brand-50 text-brand-800 ring-1 ring-brand-200;
+    box-shadow: inset 3px 0 0 rgba(37, 99, 169, 0.68), 0 18px 42px -34px rgba(15, 42, 67, 0.48);
+  }
+
+  .sapas-policy-advanced {
+    @apply relative shrink-0;
+  }
+
+  .sapas-policy-flow-panel {
+    @apply rounded-xl border border-brand-100 bg-brand-50/80 p-5 shadow-sapas-card;
+  }
+
+  .sapas-policy-step-grid {
+    @apply mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .sapas-policy-step-card {
+    @apply rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sapas-soft transition;
+  }
+
+  .sapas-policy-step-card span {
+    @apply text-xs font-semibold uppercase tracking-[0.06em] text-brand-700;
+  }
+
+  .sapas-policy-step-card strong {
+    @apply mt-1 block text-sm font-semibold text-slate-950;
+  }
+
+  .sapas-policy-step-card small {
+    @apply mt-1 block text-xs leading-5 text-slate-500;
+  }
+
+  .sapas-policy-step-card:hover,
+  .sapas-policy-step-card:focus-visible {
+    @apply border-brand-200 bg-brand-50/70 outline-none ring-2 ring-brand-200 ring-offset-2;
+  }
+
+  .sapas-policy-step-card.is-active {
+    @apply border-brand-300 bg-white ring-1 ring-brand-200;
+  }
+
+  .sapas-policy-step-card.is-muted {
+    @apply pointer-events-none opacity-60;
+  }
+
+  .sapas-policy-state-panel {
+    @apply flex flex-col gap-4 rounded-xl border p-5 shadow-sapas-card lg:flex-row lg:items-center lg:justify-between;
+  }
+
+  .sapas-policy-state-panel.is-protected {
+    @apply border-amber-200 bg-amber-50/80;
+  }
+
+  .sapas-policy-state-panel.is-draft {
+    @apply border-emerald-200 bg-emerald-50/80;
+  }
+
+  .sapas-policy-state-copy {
+    @apply flex flex-col gap-4 lg:flex-row lg:items-start;
+  }
+
+  .sapas-policy-state-copy dl {
+    @apply grid gap-3 text-sm sm:grid-cols-2 lg:min-w-80;
+  }
+
+  .sapas-policy-state-copy dt {
+    @apply text-xs font-semibold uppercase tracking-[0.04em] text-slate-500;
+  }
+
+  .sapas-policy-state-copy dd {
+    @apply mt-1 font-semibold text-slate-950;
+  }
+
+  .sapas-policy-state-actions {
+    @apply flex flex-wrap gap-2 lg:justify-end;
+  }
+
+  .sapas-policy-section-panel {
+    @apply p-5;
+  }
+
+  .sapas-policy-section-heading {
+    @apply mb-4 flex flex-col gap-3 border-b border-slate-100 pb-4 lg:flex-row lg:items-start lg:justify-between;
+  }
+
+  .sapas-policy-day-grid {
+    @apply grid gap-4 xl:grid-cols-2;
+  }
+
+  .sapas-policy-day-card {
+    @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sapas-soft transition;
+  }
+
+  .sapas-policy-day-card.is-non-working {
+    @apply border-slate-200 bg-slate-50/80;
+  }
+
+  .sapas-policy-day-card.is-non-working .sapas-policy-day-details {
+    @apply hidden;
+  }
+
+  .sapas-policy-day-header {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .sapas-policy-day-header h3 {
+    @apply text-base font-semibold text-slate-950;
+  }
+
+  .sapas-policy-day-header p {
+    @apply mt-1 text-sm font-medium text-slate-500;
+  }
+
+  .sapas-policy-day-summary {
+    @apply mt-4 grid gap-3 sm:grid-cols-3;
+  }
+
+  .sapas-policy-day-summary div {
+    @apply rounded-lg border border-slate-200 bg-slate-50 px-3 py-2;
+  }
+
+  .sapas-policy-day-summary dt {
+    @apply text-xs font-semibold uppercase tracking-[0.04em] text-slate-500;
+  }
+
+  .sapas-policy-day-summary dd {
+    @apply mt-1 text-sm font-semibold text-slate-900;
+  }
+
+  .sapas-policy-day-details {
+    @apply mt-4 rounded-lg border border-slate-200 bg-slate-50/80 p-3;
+  }
+
+  .sapas-policy-day-details summary {
+    @apply cursor-pointer text-sm font-semibold text-brand-700;
+  }
+
+  .sapas-policy-day-editor {
+    @apply mt-3 grid gap-3 md:grid-cols-2;
+  }
+
+  .sapas-policy-day-editor label,
+  .sapas-policy-setting-field label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-[0.04em] text-slate-500;
+  }
+
+  .sapas-policy-switch-control,
+  .sapas-policy-toggle-card {
+    @apply relative flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 transition;
+  }
+
+  .sapas-policy-switch-control:hover,
+  .sapas-policy-toggle-card:hover {
+    @apply border-brand-200 bg-brand-50/50;
+  }
+
+  .sapas-policy-switch-control input,
+  .sapas-policy-switch-input {
+    @apply sr-only;
+  }
+
+  .sapas-policy-switch {
+    @apply relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-300 transition;
+  }
+
+  .sapas-policy-switch span {
+    @apply block h-5 w-5 rounded-full bg-white shadow-sm transition;
+    transform: translateX(0.125rem);
+  }
+
+  .sapas-policy-switch-control input:checked + .sapas-policy-switch,
+  .sapas-policy-switch-input:checked + .sapas-policy-switch {
+    @apply bg-brand-600;
+  }
+
+  .sapas-policy-switch-control input:checked + .sapas-policy-switch span,
+  .sapas-policy-switch-input:checked + .sapas-policy-switch span {
+    transform: translateX(1.375rem);
+  }
+
+  .sapas-policy-switch-control input:focus-visible + .sapas-policy-switch,
+  .sapas-policy-switch-input:focus-visible + .sapas-policy-switch {
+    @apply ring-2 ring-brand-500 ring-offset-2;
+  }
+
+  .sapas-policy-switch-control > span:last-child {
+    @apply text-sm font-semibold text-slate-800;
+  }
+
+  .sapas-policy-toggle-grid,
+  .sapas-policy-setting-grid {
+    @apply mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .sapas-policy-toggle-card {
+    @apply items-start;
+  }
+
+  .sapas-policy-toggle-text strong {
+    @apply block font-semibold text-slate-900;
+  }
+
+  .sapas-policy-toggle-text small {
+    @apply mt-1 block text-xs font-semibold text-slate-500;
+  }
+
+  .sapas-policy-switch-input:checked ~ .sapas-policy-toggle-text .sapas-policy-toggle-off,
+  .sapas-policy-switch-input:not(:checked) ~ .sapas-policy-toggle-text .sapas-policy-toggle-on {
+    @apply hidden;
+  }
+
+  .sapas-policy-setting-group {
+    @apply rounded-xl border border-slate-200 bg-slate-50/70 p-4;
+  }
+
+  .sapas-policy-setting-group legend {
+    @apply px-1 text-sm font-semibold text-slate-900;
+  }
+
+  .sapas-policy-setting-field {
+    @apply rounded-xl border border-slate-200 bg-white p-3;
+  }
+
+  .sapas-alert-warning {
+    @apply rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800;
+  }
+
+  .sapas-alert-info {
+    @apply rounded-2xl border border-brand-100 bg-brand-50 p-4 text-brand-800;
+  }
+
+  .sapas-alert-error {
+    @apply rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800;
+  }
+
+  .sapas-operation-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .sapas-operation-actions > * {
+    @apply min-w-0;
+  }
+
+  .sapas-operation-detail-grid {
+    @apply grid gap-4 md:grid-cols-2;
+  }
+
+  .sapas-operation-detail {
+    @apply rounded-2xl border border-slate-200/80 p-4 shadow-sapas-nested;
+    background:
+      linear-gradient(180deg, rgba(247, 249, 252, 0.97), rgba(255, 255, 255, 0.96)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-operation-label {
+    @apply text-sm font-semibold leading-6 text-slate-500;
+  }
+
+  .sapas-operation-value {
+    @apply mt-1 text-lg font-semibold leading-7 text-slate-950;
+  }
+
+  .sapas-pagination {
+    @apply flex flex-col gap-4 border-t border-slate-200/80 bg-slate-50/65 px-5 py-4 xl:flex-row xl:items-center xl:justify-between xl:px-6;
+  }
+
+  .sapas-pagination-meta {
+    @apply min-w-0;
+  }
+
+  .sapas-pagination-summary {
+    @apply text-sm font-medium text-slate-600;
+  }
+
+  .sapas-pagination-page-summary {
+    @apply mt-1 text-xs font-medium text-slate-400;
+  }
+
+  .sapas-pagination-controls {
+    @apply flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:justify-end;
+  }
+
+  .sapas-pagination-size-form {
+    @apply flex flex-none items-center gap-2;
+  }
+
+  .sapas-pagination-size-label {
+    @apply text-sm font-medium text-slate-600;
+  }
+
+  .sapas-pagination-size-select {
+    @apply h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm outline-none transition focus:border-brand-500 focus:ring-4 focus:ring-brand-100;
+  }
+
+  .sapas-pagination-list {
+    @apply flex max-w-full items-center gap-1.5 overflow-x-auto pb-1;
+    scrollbar-width: thin;
+  }
+
+  .sapas-pagination-link {
+    @apply inline-flex h-10 min-w-10 flex-none items-center justify-center rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-100;
+  }
+
+  .sapas-pagination-link.is-active {
+    @apply text-white;
+    border-color: #123b61;
+  }
+
+  .sapas-pagination-link.is-arrow {
+    @apply text-xl font-normal leading-none;
+  }
+
+  .sapas-pagination-link.is-disabled {
+    @apply cursor-not-allowed border-slate-200 bg-slate-100 text-slate-300 shadow-none;
+  }
+
+  .sapas-pagination-ellipsis {
+    @apply inline-flex h-10 min-w-6 flex-none items-center justify-center text-sm font-semibold text-slate-400;
+  }
+
+  .sapas-filter-panel {
+    @apply rounded-2xl p-5 shadow-sapas-table;
+  }
+
+  .sapas-table-wrap {
+    @apply overflow-x-auto rounded-2xl border border-slate-200/90 bg-surface-table shadow-sapas-table;
+    isolation: isolate;
+  }
+
+  .sapas-table-wrap table,
+  .sapas-report-table-panel table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .sapas-table-wrap table th {
+    @apply border-b border-slate-200/90 bg-slate-100/95 px-4 py-3 text-xs font-semibold uppercase tracking-[0.04em] text-slate-600;
+  }
+
+  .sapas-table-wrap table tbody tr,
+  .sapas-report-table-panel table tbody tr {
+    @apply transition-colors hover:bg-brand-50/50;
+  }
+
+  .sapas-table-wrap table tbody tr:nth-child(even),
+  .sapas-report-table-panel table tbody tr:nth-child(even) {
+    background-color: rgba(248, 250, 252, 0.72);
+  }
+
+  .sapas-report-table-panel table th {
+    @apply border-b border-slate-200/90 bg-slate-100/95 px-4 py-3 text-xs font-semibold uppercase tracking-[0.04em] text-slate-600;
+  }
+
+  .sapas-table-wrap table td,
+  .sapas-report-table-panel table td {
+    @apply border-b border-slate-100 px-4 py-3.5 align-middle;
+  }
+
+  .sapas-table-wrap table tbody tr:last-child td,
+  .sapas-report-table-panel table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .sapas-table-wrap table .sapas-btn,
+  .sapas-report-table-panel table .sapas-btn {
+    @apply min-h-8 min-w-20 px-3 py-1 text-xs leading-5;
+  }
+
+  .sapas-table-wrap table .sapas-badge,
+  .sapas-report-table-panel table .sapas-badge {
+    @apply min-h-6 px-2.5 py-0.5;
+  }
+
+  .sapas-table-wrap table .sapas-operation-actions,
+  .sapas-report-table-panel table .sapas-operation-actions {
+    @apply justify-end gap-2;
+  }
+
+  .sapas-table-wrap table .sapas-operation-actions > *,
+  .sapas-report-table-panel table .sapas-operation-actions > * {
+    @apply flex-none;
+  }
+
+  .sapas-table-wrap table .sapas-operation-actions form,
+  .sapas-report-table-panel table .sapas-operation-actions form {
+    @apply inline-flex;
+  }
+
+  .sapas-data-table-summary {
+    @apply border-b border-slate-200/80 bg-slate-50/70 py-4;
+  }
+
+  .sapas-data-table-summary-grid {
+    @apply gap-3;
+  }
+
+  .sapas-data-table-summary-grid > div {
+    @apply rounded-xl border border-slate-200/80 bg-white px-4 py-3;
+  }
+
+  .sapas-data-table-summary-grid .sapas-report-meta-label,
+  .sapas-data-table-summary-grid .text-sm.font-medium.text-slate-500 {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .sapas-data-table-summary-grid .sapas-report-meta-value,
+  .sapas-data-table-summary-grid .mt-1.text-lg.font-semibold.text-slate-900 {
+    margin-top: 0.25rem;
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+  }
+
+  .sapas-data-table-scroll {
+    @apply relative;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #f1f5f9;
+  }
+
+  .sapas-data-table-scroll::-webkit-scrollbar {
+    height: 0.625rem;
+  }
+
+  .sapas-data-table-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  .sapas-data-table-scroll::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border: 0.125rem solid #f1f5f9;
+    border-radius: 9999px;
+  }
+
+  .sapas-data-table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .sapas-attendance-table {
+    min-width: 72.75rem;
+  }
+
+  .sapas-analytics-table {
+    min-width: 77.5rem;
+  }
+
+  .sapas-leave-admin-table {
+    min-width: 74rem;
+  }
+
+  .sapas-leave-employee-table {
+    min-width: 61rem;
+  }
+
+  .sapas-employee-table {
+    min-width: 79rem;
+  }
+
+  .sapas-report-attendance-table {
+    min-width: 73rem;
+  }
+
+  .sapas-report-employee-attendance-table {
+    min-width: 59rem;
+  }
+
+  .sapas-report-leave-context-table {
+    min-width: 38rem;
+  }
+
+  .sapas-report-leave-table {
+    min-width: 74rem;
+  }
+
+  .sapas-report-exception-table {
+    min-width: 67rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee {
+    width: 15rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-department {
+    width: 10rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-position {
+    width: 11rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-role,
+  .sapas-employee-table .sapas-col-employee-status {
+    width: 7rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-verification {
+    width: 9.5rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-actions {
+    width: 18rem;
+  }
+
+  .sapas-employee-actions {
+    @apply flex flex-wrap items-center justify-start gap-2;
+  }
+
+  .sapas-employee-actions form {
+    @apply inline-flex;
+  }
+
+  .sapas-employee-actions .sapas-btn {
+    @apply min-w-0 justify-center px-3;
+  }
+
+  .sapas-employee-actions .sapas-btn-danger-quiet {
+    min-width: 0;
+  }
+
+  .sapas-employee-actions .sapas-chip {
+    @apply max-w-full text-center;
+  }
+
+  .sapas-masterdata-filter-panel {
+    @apply space-y-5;
+  }
+
+  .sapas-masterdata-search-form {
+    @apply mt-5 flex max-w-2xl flex-col gap-3 sm:flex-row sm:items-end;
+  }
+
+  .sapas-masterdata-search-form > div {
+    @apply sm:max-w-lg;
+  }
+
+  .sapas-masterdata-search-form .sapas-btn {
+    @apply sm:min-w-0;
+  }
+
+  .sapas-masterdata-table {
+    min-width: 42rem;
+  }
+
+  .sapas-department-table {
+    min-width: 58rem;
+  }
+
+  .sapas-department-table .sapas-col-master-name {
+    width: 15rem;
+  }
+
+  .sapas-department-table .sapas-col-master-description {
+    width: 29rem;
+  }
+
+  .sapas-department-table .sapas-col-master-actions {
+    width: 14rem;
+  }
+
+  .sapas-position-table {
+    min-width: 38rem;
+  }
+
+  .sapas-position-table .sapas-col-position-name {
+    width: 24rem;
+  }
+
+  .sapas-position-table .sapas-col-position-actions {
+    width: 14rem;
+  }
+
+  .sapas-holiday-admin-table {
+    min-width: 72rem;
+  }
+
+  .sapas-holiday-admin-table .sapas-col-holiday-name {
+    width: 14rem;
+  }
+
+  .sapas-holiday-admin-table .sapas-col-holiday-date {
+    width: 10rem;
+  }
+
+  .sapas-holiday-admin-table .sapas-col-holiday-status {
+    width: 8rem;
+  }
+
+  .sapas-holiday-admin-table .sapas-col-holiday-description {
+    width: 26rem;
+  }
+
+  .sapas-holiday-admin-table .sapas-col-holiday-actions {
+    width: 14rem;
+  }
+
+  .sapas-masterdata-name {
+    @apply min-w-0 truncate text-sm font-semibold text-slate-900;
+  }
+
+  .sapas-masterdata-description {
+    @apply overflow-hidden text-sm leading-5 text-slate-600;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .sapas-masterdata-date-cell {
+    @apply min-w-0 space-y-1 text-sm;
+  }
+
+  .sapas-masterdata-actions {
+    @apply flex flex-wrap items-center justify-start gap-2;
+  }
+
+  .sapas-masterdata-actions form {
+    @apply inline-flex;
+  }
+
+  .sapas-masterdata-actions .sapas-btn {
+    @apply min-w-0 justify-center px-3;
+  }
+
+  .sapas-masterdata-form-shell {
+    @apply mx-auto max-w-4xl space-y-5;
+  }
+
+  .sapas-masterdata-form-shell.is-narrow {
+    @apply max-w-2xl;
+  }
+
+  .sapas-masterdata-form-card {
+    @apply overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sapas-table;
+  }
+
+  .sapas-masterdata-form-header {
+    @apply border-b border-slate-200/80 bg-slate-50/70 px-5 py-5 sm:px-6;
+  }
+
+  .sapas-masterdata-form-body {
+    @apply px-5 py-5 sm:px-6 sm:py-6;
+  }
+
+  .sapas-masterdata-form-footer {
+    @apply flex flex-col gap-4 border-t border-slate-200/80 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6;
+  }
+
+  .sapas-masterdata-form-footer > p {
+    @apply max-w-2xl leading-5;
+  }
+
+  .sapas-masterdata-form-actions {
+    @apply flex flex-col-reverse gap-2 sm:flex-row sm:items-center;
+  }
+
+  .sapas-masterdata-form-actions .sapas-btn {
+    @apply w-full justify-center sm:w-auto sm:min-w-28;
+  }
+
+  .sapas-schedule-day-row {
+    @apply grid gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 md:grid-cols-[minmax(7.5rem,1fr)_repeat(8,minmax(5rem,0.65fr))];
+  }
+
+  .sapas-schedule-day-row.is-non-working {
+    @apply bg-slate-50/40 text-slate-500;
+  }
+
+  .sapas-schedule-day-name {
+    @apply flex min-w-0 items-center;
+  }
+
+  .sapas-work-schedule-table {
+    min-width: 72rem;
+  }
+
+  .sapas-btn:disabled {
+    @apply cursor-not-allowed opacity-55;
+  }
+
+  .sapas-audit-table {
+    min-width: 75rem;
+  }
+
+  .sapas-audit-table .sapas-col-audit-date {
+    width: 9.5rem;
+  }
+
+  .sapas-audit-table .sapas-col-audit-actor {
+    width: 11.5rem;
+  }
+
+  .sapas-audit-table .sapas-col-audit-action {
+    width: 12.5rem;
+  }
+
+  .sapas-audit-table .sapas-col-audit-target {
+    width: 9.5rem;
+  }
+
+  .sapas-audit-table .sapas-col-audit-description {
+    width: 17.5rem;
+  }
+
+  .sapas-audit-table .sapas-col-audit-ip {
+    width: 11rem;
+  }
+
+  .sapas-audit-table .sapas-col-audit-view {
+    width: 7.5rem;
+  }
+
+  .sapas-audit-date-cell,
+  .sapas-audit-target-cell {
+    @apply min-w-0 space-y-1;
+  }
+
+  .sapas-audit-date-value,
+  .sapas-audit-target-type {
+    @apply block truncate font-semibold text-slate-800;
+  }
+
+  .sapas-audit-time-value {
+    @apply block text-xs text-slate-500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sapas-audit-action-badge {
+    @apply inline-flex max-w-full items-center truncate rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700;
+  }
+
+  .sapas-audit-target-id {
+    @apply inline-flex w-fit rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sapas-audit-description {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #475569;
+    font-size: 0.875rem;
+    line-height: 1.35rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .sapas-audit-ip {
+    @apply block whitespace-nowrap text-xs text-slate-600;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sapas-audit-source-cell {
+    @apply min-w-0 space-y-1;
+  }
+
+  .sapas-audit-source-label {
+    @apply block truncate text-sm font-semibold text-slate-800;
+  }
+
+  .sapas-audit-source-agent {
+    @apply block truncate text-xs text-slate-500;
+  }
+
+  .sapas-audit-filter-grid > div {
+    min-width: 0;
+  }
+
+  .sapas-audit-filter-actions {
+    @apply flex flex-wrap items-end gap-2;
+  }
+
+  .sapas-data-table th,
+  .sapas-data-table td {
+    min-width: 0;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .sapas-data-table th {
+    @apply whitespace-nowrap px-3 py-2.5 text-left align-middle text-[0.7rem] font-bold uppercase tracking-[0.035em] text-slate-600;
+  }
+
+  .sapas-data-table td {
+    @apply px-3 py-2.5 text-left align-middle text-sm;
+  }
+
+  .sapas-data-table th,
+  .sapas-data-table td,
+  .sapas-data-table .text-right,
+  .sapas-data-table .text-center {
+    text-align: left;
+  }
+
+  .sapas-data-table .sapas-col-row-number {
+    width: 3.5rem;
+  }
+
+  .sapas-row-number {
+    @apply whitespace-nowrap text-sm font-medium text-slate-600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sapas-data-table tbody tr {
+    @apply bg-white;
+  }
+
+  .sapas-data-table tbody tr:nth-child(even) {
+    background-color: rgba(248, 250, 252, 0.72);
+  }
+
+  .sapas-data-table tbody tr:hover {
+    background-color: rgba(239, 246, 255, 0.78);
+  }
+
+  .sapas-data-table .sapas-col-date {
+    width: 7.25rem;
+  }
+
+  .sapas-data-table .sapas-col-employee {
+    width: 13.5rem;
+  }
+
+  .sapas-data-table .sapas-col-time {
+    width: 6rem;
+  }
+
+  .sapas-data-table .sapas-col-status {
+    width: 6.5rem;
+  }
+
+  .sapas-data-table .sapas-col-number {
+    width: 4.5rem;
+  }
+
+  .sapas-data-table .sapas-col-number-wide {
+    width: 6.5rem;
+  }
+
+  .sapas-data-table .sapas-col-duration {
+    width: 6.5rem;
+  }
+
+  .sapas-data-table .sapas-col-remarks {
+    width: 7.5rem;
+  }
+
+  .sapas-data-table .sapas-col-action {
+    width: 7.5rem;
+  }
+
+  .sapas-data-table .sapas-col-department,
+  .sapas-data-table .sapas-col-position {
+    width: 9rem;
+  }
+
+  .sapas-data-table .sapas-col-percent {
+    width: 6.5rem;
+  }
+
+  .sapas-data-table .sapas-col-hours {
+    width: 5rem;
+  }
+
+  .sapas-data-table .sapas-col-overtime {
+    width: 6.5rem;
+  }
+
+  .sapas-data-table .sapas-col-leave-type {
+    width: 8rem;
+  }
+
+  .sapas-data-table .sapas-col-leave-dates {
+    width: 14rem;
+  }
+
+  .sapas-data-table .sapas-col-leave-submitted {
+    width: 8.75rem;
+  }
+
+  .sapas-data-table .sapas-col-leave-step {
+    width: 10rem;
+  }
+
+  .sapas-data-table .sapas-col-leave-reason {
+    width: 17rem;
+  }
+
+  .sapas-data-table .sapas-col-leave-actions {
+    width: 13.5rem;
+  }
+
+  .sapas-data-table .sapas-col-report-leave {
+    width: 11rem;
+  }
+
+  .sapas-data-table .sapas-col-report-note {
+    width: 15rem;
+  }
+
+  .sapas-data-table .sapas-col-report-exception {
+    width: 7.5rem;
+  }
+
+  .sapas-attendance-table .sapas-col-number {
+    width: 5.5rem;
+  }
+
+  .sapas-date-cell,
+  .sapas-person-cell {
+    @apply min-w-0;
+  }
+
+  .sapas-date-cell {
+    @apply space-y-1;
+  }
+
+  .sapas-person-cell {
+    @apply space-y-1 text-left;
+  }
+
+  .sapas-person-cell-head {
+    @apply min-w-0;
+  }
+
+  .sapas-person-name {
+    @apply block min-w-0 truncate;
+  }
+
+  .sapas-person-code-inline {
+    @apply font-semibold text-slate-600;
+  }
+
+  .sapas-person-email,
+  .sapas-table-text-cell,
+  .sapas-table-remarks {
+    @apply truncate text-xs text-slate-500;
+  }
+
+  .sapas-table-text-cell {
+    @apply text-left text-sm text-slate-600;
+  }
+
+  .sapas-table-remarks {
+    display: -webkit-box;
+    white-space: normal;
+    overflow: hidden;
+    line-height: 1.35rem;
+    text-align: left;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .sapas-table-value-nowrap,
+  .sapas-table-number {
+    @apply whitespace-nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sapas-table-action {
+    @apply whitespace-nowrap text-left;
+  }
+
+  .sapas-data-table .sapas-table-action .sapas-btn {
+    @apply w-auto justify-center px-2.5;
+  }
+
+  .sapas-leave-type-chip {
+    @apply inline-flex max-w-full items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700;
+  }
+
+  .sapas-leave-date-cell {
+    @apply min-w-0 space-y-1.5;
+  }
+
+  .sapas-leave-date-range {
+    @apply flex items-center gap-1.5 whitespace-nowrap font-medium text-slate-800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sapas-leave-date-separator {
+    @apply text-slate-400;
+  }
+
+  .sapas-leave-guidance,
+  .sapas-leave-reason {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .sapas-leave-guidance {
+    @apply text-sm leading-5 text-slate-600;
+  }
+
+  .sapas-leave-reason {
+    @apply text-sm leading-5 text-slate-600;
+  }
+
+  .sapas-leave-actions {
+    @apply flex items-center justify-start gap-2 whitespace-nowrap;
+  }
+
+  .sapas-leave-actions form {
+    @apply inline-flex;
+  }
+
+  .sapas-leave-actions .sapas-btn {
+    @apply justify-center px-2.5;
+  }
+
+  .sapas-report-leave-contexts {
+    @apply flex flex-wrap items-center gap-1.5;
+  }
+
+  .sapas-modal-open {
+    overflow: hidden;
+  }
+
+  .sapas-confirmation-modal[hidden] {
+    display: none;
+  }
+
+  .sapas-confirmation-modal {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  }
+
+  .sapas-confirmation-backdrop {
+    @apply absolute inset-0 bg-slate-950/60 backdrop-blur-sm;
+  }
+
+  .sapas-confirmation-dialog {
+    @apply relative z-10 w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-sapas-hero sm:p-7;
+    max-height: calc(100vh - 2rem);
+  }
+
+  .sapas-confirmation-heading {
+    @apply flex min-w-0 items-start gap-4;
+  }
+
+  .sapas-confirmation-icon {
+    @apply inline-flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-700;
+  }
+
+  .sapas-confirmation-actions {
+    @apply mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end;
+  }
+
+  .sapas-confirmation-actions .sapas-btn {
+    @apply w-full sm:w-auto;
+  }
+
+  .sapas-confirmation-submit[data-tone="primary"] {
+    @apply border border-brand-600 bg-brand-600 text-white hover:bg-brand-700;
+  }
+
+  .sapas-confirmation-submit[data-tone="success"] {
+    @apply border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700;
+  }
+
+  .sapas-confirmation-submit[data-tone="danger"] {
+    @apply border border-rose-600 bg-rose-600 text-white hover:bg-rose-700;
+  }
+
+  .sapas-confirmation-submit[data-tone="warning"] {
+    @apply border border-amber-500 bg-amber-500 text-slate-950 hover:bg-amber-400;
+  }
+
+  .sapas-form-control {
+    @apply min-h-11 w-full rounded-xl border border-slate-300/90 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm transition-all focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+
+  .sapas-input-shell {
+    @apply relative;
+  }
+
+  .sapas-input-icon {
+    @apply pointer-events-none absolute inset-y-0 left-0 z-10 flex w-11 items-center justify-center text-slate-400;
+  }
+
+  .sapas-input-icon .sapas-icon {
+    @apply h-[1.125rem] w-[1.125rem];
+  }
+
+  .sapas-input-shell .sapas-form-control {
+    @apply pl-11;
+  }
+
+  .sapas-password-shell .sapas-form-control {
+    @apply pl-3 pr-12;
+  }
+
+  .sapas-form-section {
+    @apply rounded-xl border border-slate-200/80 bg-white p-4 shadow-sapas-nested;
+  }
+
+  .sapas-form-section-header {
+    @apply mb-4 border-b border-slate-100 pb-3;
+  }
+
+  .sapas-form-section-header h2 {
+    @apply text-base font-semibold text-slate-900;
+  }
+
+  .sapas-form-section-header p {
+    @apply mt-1 text-sm text-slate-500;
+  }
+
+  .sapas-form-grid {
+    @apply grid gap-4 md:grid-cols-2;
+  }
+
+  .sapas-form-label {
+    @apply flex flex-wrap items-center gap-2 text-sm font-medium text-slate-700;
+  }
+
+  .sapas-required-indicator {
+    @apply rounded-md border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-rose-700;
+  }
+
+  .sapas-field-help {
+    @apply mt-1.5 text-xs leading-5 text-slate-500;
+  }
+
+  .sapas-toggle-row {
+    @apply flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700;
+  }
+
+  .sapas-toggle-row input {
+    @apply mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-600;
+  }
+
+  .sapas-toggle-row strong {
+    @apply block font-semibold text-slate-800;
+  }
+
+  .sapas-toggle-row small {
+    @apply mt-0.5 block text-xs leading-5 text-slate-500;
+  }
+
+  .sapas-form-action-row {
+    @apply flex flex-col-reverse gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-sapas-nested sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .sapas-empty-state {
+    @apply relative overflow-hidden rounded-2xl border border-dashed border-slate-300/90 p-8 text-center text-slate-600;
+  }
+
+  .sapas-flash {
+    @apply max-w-full rounded-2xl border p-4 text-sm font-medium leading-6 shadow-sapas-card;
+  }
+
+  .sapas-flash-success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+  }
+
+  .sapas-flash-error {
+    @apply border-rose-200 bg-rose-50 text-rose-800;
+  }
+
+  .sapas-guest-body {
+    @apply bg-slate-100 text-slate-900;
+    min-height: 100svh;
+  }
+
+  .sapas-guest-shell {
+    @apply flex items-center justify-center;
+    min-height: 100svh;
+    background:
+      radial-gradient(circle at 12% 10%, rgba(28, 93, 143, 0.10), transparent 24rem),
+      radial-gradient(circle at 88% 84%, rgba(15, 118, 110, 0.09), transparent 22rem),
+      linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(232, 238, 244, 1)),
+      var(--sapas-bg);
+  }
+
+  .sapas-guest-frame {
+    @apply grid w-full max-w-6xl gap-4 lg:grid-cols-[minmax(22rem,0.88fr)_minmax(0,1.12fr)] lg:items-stretch;
+  }
+
+  .sapas-guest-frame.is-single-panel {
+    @apply max-w-xl;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sapas-guest-form-panel {
+    @apply flex min-w-0 flex-col justify-center rounded-2xl border border-white/90 bg-white/90 p-5 shadow-sapas-hero backdrop-blur-xl sm:p-6 lg:p-7;
+  }
+
+  .sapas-guest-header {
+    @apply mx-auto w-full max-w-md space-y-3 text-left;
+  }
+
+  .sapas-guest-form-panel .sapas-brand-lockup-guest {
+    @apply mx-0 items-start text-left;
+  }
+
+  .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-wordmark,
+  .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-subtitle {
+    @apply mx-0;
+  }
+
+  .sapas-guest-description {
+    @apply max-w-md text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-guest-language {
+    @apply mb-4 flex items-center;
+  }
+
+  .sapas-guest-form-panel .sapas-guest-card {
+    @apply mx-auto mt-5 max-w-md border-slate-200/70 bg-white shadow-sapas-card;
+  }
+
+  .sapas-guest-footer {
+    @apply mx-auto mt-4 w-full max-w-md text-sm text-slate-500;
+  }
+
+  .sapas-login-card-header {
+    @apply mb-5 space-y-1 border-b border-slate-100 pb-4;
+  }
+
+  .sapas-login-card-header h1 {
+    @apply text-xl font-semibold leading-tight text-slate-950;
+  }
+
+  .sapas-login-card-header p {
+    @apply text-sm leading-6 text-slate-500;
+  }
+
+  .sapas-guest-form-panel .sapas-form-control {
+    @apply border-slate-200/90 bg-slate-50/90 shadow-sm transition-colors focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100;
+  }
+
+  .sapas-guest-form-panel .sapas-form-control:-webkit-autofill,
+  .sapas-guest-form-panel .sapas-form-control:-webkit-autofill:hover,
+  .sapas-guest-form-panel .sapas-form-control:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px rgb(248 250 252) inset;
+    -webkit-text-fill-color: rgb(15 23 42);
+    caret-color: rgb(15 23 42);
+  }
+
+  .sapas-guest-visual {
+    @apply relative hidden overflow-hidden rounded-2xl border border-slate-800/80 p-6 text-white shadow-sapas-shell lg:flex;
+    background:
+      radial-gradient(circle at 82% 18%, rgba(56, 189, 248, 0.20), transparent 17rem),
+      radial-gradient(circle at 14% 88%, rgba(20, 184, 166, 0.18), transparent 16rem),
+      radial-gradient(circle at 88% 88%, rgba(245, 158, 11, 0.10), transparent 14rem),
+      linear-gradient(145deg, #102e4a, #0f2740 54%, #14283a);
+  }
+
+  .sapas-guest-visual::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0 opacity-70;
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 3.5rem 3.5rem;
+    mask-image: linear-gradient(180deg, black, transparent 78%);
+  }
+
+  .sapas-guest-visual::after {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 bottom-0 h-20;
+    background: linear-gradient(180deg, transparent, rgba(15, 23, 42, 0.72));
+  }
+
+  .sapas-guest-visual-inner {
+    @apply relative z-10 flex min-h-[30rem] w-full flex-col justify-center;
+  }
+
+  .sapas-guest-visual-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.16em] text-sky-100;
+  }
+
+  .sapas-guest-visual-title {
+    @apply mt-3 max-w-xl text-2xl font-semibold leading-snug text-white;
+  }
+
+  .sapas-guest-overview-intro {
+    @apply mt-3 max-w-xl text-sm leading-6 text-slate-200;
+  }
+
+  .sapas-guest-overview-grid {
+    @apply mt-5 grid gap-3 sm:grid-cols-2;
+  }
+
+  .sapas-guest-overview-card {
+    @apply grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-xl border border-white/15 bg-white/10 p-3.5 text-white shadow-sapas-soft backdrop-blur-sm;
+  }
+
+  .sapas-guest-overview-card strong {
+    @apply block text-sm font-semibold leading-6 text-white;
+  }
+
+  .sapas-guest-overview-card p {
+    @apply mt-1 text-xs leading-5 text-slate-300;
+  }
+
+  .sapas-guest-feature-icon {
+    @apply inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-white/15 bg-white/10 text-sky-200 shadow-sapas-soft;
+  }
+
+  .sapas-guest-feature-icon.is-emerald {
+    @apply text-emerald-200;
+  }
+
+  .sapas-guest-feature-icon.is-amber {
+    @apply text-amber-200;
+  }
+
+  .sapas-guest-feature-icon.is-indigo {
+    @apply text-indigo-200;
+  }
+
+  .sapas-guest-feature-icon.is-slate {
+    @apply text-slate-200;
+  }
+
+  .sapas-guest-product-card {
+    @apply mt-6 rounded-2xl border border-white/15 bg-white/95 p-4 text-slate-900 shadow-sapas-hero;
+  }
+
+  .sapas-guest-product-toolbar {
+    @apply flex items-center gap-2 border-b border-slate-200/80 pb-3;
+  }
+
+  .sapas-guest-product-toolbar span {
+    @apply h-2.5 w-2.5 rounded-full bg-slate-300;
+  }
+
+  .sapas-guest-product-toolbar span:first-child {
+    @apply bg-rose-300;
+  }
+
+  .sapas-guest-product-toolbar span:nth-child(2) {
+    @apply bg-amber-300;
+  }
+
+  .sapas-guest-product-toolbar span:nth-child(3) {
+    @apply bg-emerald-300;
+  }
+
+  .sapas-guest-preview-window {
+    @apply mt-4 grid min-h-56 overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50/90 shadow-inner;
+    grid-template-columns: 5rem minmax(0, 1fr);
+  }
+
+  .sapas-guest-preview-sidebar {
+    @apply flex flex-col gap-3 border-r border-slate-200/80 bg-slate-900/95 p-3;
+  }
+
+  .sapas-guest-preview-sidebar span {
+    @apply h-8 rounded-lg bg-white/10;
+  }
+
+  .sapas-guest-preview-sidebar span:first-child {
+    @apply bg-indigo-300/30;
+  }
+
+  .sapas-guest-preview-main {
+    @apply grid content-start gap-3 p-4;
+  }
+
+  .sapas-guest-preview-row {
+    @apply grid grid-cols-[minmax(0,1fr)_4rem_4rem] gap-3 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sapas-soft;
+  }
+
+  .sapas-guest-preview-row.is-header {
+    @apply grid-cols-[minmax(0,1fr)_5rem] bg-indigo-50/70;
+  }
+
+  .sapas-guest-preview-row span {
+    @apply h-2.5 rounded-full bg-slate-200;
+  }
+
+  .sapas-guest-preview-row span:first-child {
+    @apply bg-slate-300;
+  }
+
+  .sapas-guest-preview-row.is-header span:first-child {
+    @apply bg-brand-200;
+  }
+
+  .sapas-guest-visual-grid {
+    @apply mt-4 grid gap-3 sm:grid-cols-2;
+  }
+
+  .sapas-guest-capability-card {
+    @apply rounded-2xl border border-white/20 bg-white/95 p-4 text-slate-900 shadow-sapas-card;
+  }
+
+  .sapas-guest-capability-card.is-wide {
+    @apply sm:col-span-2;
+  }
+
+  .sapas-guest-capability-card strong {
+    @apply mt-3 block text-sm font-semibold leading-6 text-slate-950;
+  }
+
+  .sapas-guest-capability-card > span:not(.sapas-guest-card-mark) {
+    @apply mt-3 block h-2 w-4/5 rounded-full bg-slate-200;
+  }
+
+  .sapas-guest-card-mark {
+    @apply block h-9 w-9 rounded-xl bg-brand-100 ring-1 ring-brand-200;
+  }
+
+  .sapas-guest-card-mark.is-brand,
+  .sapas-guest-card-mark.is-indigo {
+    @apply bg-brand-100 ring-brand-200;
+  }
+
+  .sapas-guest-card-mark.is-emerald {
+    @apply bg-emerald-100 ring-emerald-200;
+  }
+
+  .sapas-guest-card-mark.is-amber {
+    @apply bg-amber-100 ring-amber-200;
+  }
+
+  .sapas-guest-card-mark.is-sky {
+    @apply bg-sky-100 ring-sky-200;
+  }
+
+  .sapas-guest-card-mark.is-slate {
+    @apply bg-slate-100 ring-slate-200;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-form-panel {
+    @apply p-5 sm:p-6;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-header {
+    @apply space-y-2;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-brand-lockup-guest {
+    @apply gap-1;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-brand-lockup-guest .sapas-brand-subtitle {
+    @apply text-[0.6875rem] sm:text-xs;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-description {
+    @apply leading-5;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-language {
+    @apply mb-3;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-card {
+    @apply mt-4 py-5 sm:px-7;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-footer {
+    @apply mt-3 text-xs;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-login-card-header {
+    @apply mb-4 pb-3;
+  }
+
+  .sapas-guest-visual.is-compact {
+    @apply p-7;
+  }
+
+  .sapas-guest-visual.is-compact .sapas-guest-visual-inner {
+    min-height: 26rem;
+  }
+
+  .sapas-guest-visual.is-compact .sapas-guest-visual-title {
+    @apply mt-3 max-w-lg text-3xl leading-tight;
+  }
+
+  .sapas-guest-visual.is-compact .sapas-guest-overview-intro {
+    @apply mt-4 max-w-lg text-sm leading-6;
+  }
+
+  .sapas-dashboard-mini-card {
+    @apply rounded-2xl border border-white/75 p-4 shadow-sapas-nested;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(242, 245, 250, 0.95)),
+      var(--sapas-surface-raised);
+  }
+
+  .sapas-dashboard-support-panel {
+    @apply rounded-2xl border border-slate-200/80 p-5 shadow-sapas-card;
+    background:
+      linear-gradient(180deg, rgba(247, 249, 252, 0.97), rgba(255, 255, 255, 0.96)),
+      var(--sapas-surface);
+  }
+
+  .sapas-dashboard-note {
+    @apply rounded-xl border p-3 shadow-sapas-soft;
+  }
+
+  .sapas-dashboard-note.is-warning {
+    @apply border-amber-200 bg-amber-50 text-amber-800;
+  }
+
+  .sapas-dashboard-note.is-info {
+    @apply border-sky-200 bg-white text-sky-700;
+  }
+
+  .sapas-dashboard-table-empty {
+    @apply rounded-2xl border border-dashed border-slate-300/90 bg-white/90 px-6 py-10 text-center shadow-sapas-soft;
+  }
+
+  .sapas-notification-list {
+    @apply mt-5 space-y-3;
+  }
+
+  .sapas-notification-row {
+    @apply flex min-w-0 items-start gap-3 rounded-xl border border-slate-200/75 bg-white/95 p-3.5 shadow-sapas-soft transition-colors hover:border-brand-100 hover:bg-white;
+  }
+
+  .sapas-notification-row.is-unread {
+    @apply border-brand-100 bg-brand-50/70;
+  }
+
+  .sapas-notification-icon {
+    @apply h-9 w-9;
+  }
+
+  .sapas-meta-text {
+    @apply flex-none text-xs font-medium leading-5 text-slate-500;
+  }
+
+  /* Shared interaction theme: clear hierarchy, layered surfaces, and restrained motion. */
+  @keyframes sapas-dialog-enter {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 0.75rem, 0) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  @keyframes sapas-feedback-enter {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -0.375rem, 0);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes sapas-analytics-donut-enter {
+    from {
+      opacity: 0;
+      transform: scale(0.82) rotate(-18deg);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+  }
+
+  @keyframes sapas-analytics-row-enter {
+    from {
+      opacity: 0;
+      transform: translateY(0.35rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes sapas-analytics-bar-grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  .sapas-topbar {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94)),
+      var(--sapas-surface);
+    box-shadow: 0 10px 30px -24px rgba(15, 42, 67, 0.48), 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+  }
+
+  .sapas-page-title-icon {
+    background:
+      radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.98), transparent 44%),
+      linear-gradient(145deg, #ffffff, #eef6ff);
+    box-shadow: 0 12px 26px -18px rgba(37, 99, 169, 0.62), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  }
+
+  .sapas-btn {
+    @apply relative isolate min-h-10 overflow-hidden rounded-[0.875rem] border px-4 py-2;
+    letter-spacing: -0.005em;
+    transform: translate3d(0, 0, 0);
+    transition:
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .sapas-btn::before {
+    content: "";
+    @apply pointer-events-none absolute inset-x-px top-px h-1/2 rounded-[0.8rem];
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent);
+    opacity: 0.55;
+  }
+
+  .sapas-btn-spotlight {
+    --sapas-button-x: 50%;
+    --sapas-button-y: 50%;
+    --sapas-button-glow: 0;
+    --sapas-button-glow-color: rgba(255, 255, 255, 0.28);
+  }
+
+  .sapas-btn-spotlight::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0;
+    background: radial-gradient(
+      circle 5rem at var(--sapas-button-x) var(--sapas-button-y),
+      var(--sapas-button-glow-color),
+      transparent 70%
+    );
+    opacity: var(--sapas-button-glow);
+    transition: opacity 160ms ease;
+  }
+
+  .sapas-btn:hover {
+    transform: translate3d(0, -0.125rem, 0);
+  }
+
+  .sapas-btn:active {
+    transform: translate3d(0, 0, 0) scale(0.985);
+  }
+
+  .sapas-btn:disabled,
+  .sapas-btn[aria-disabled="true"] {
+    cursor: not-allowed;
+    box-shadow: none;
+    filter: saturate(0.7);
+    opacity: 0.55;
+    transform: none;
+  }
+
+  .sapas-btn-primary,
+  .sapas-confirmation-submit[data-tone="primary"] {
+    @apply border-brand-600 text-white;
+    background: linear-gradient(135deg, #2b6db6 0%, #174f91 55%, #123f77 100%);
+    box-shadow: 0 13px 24px -16px rgba(18, 63, 119, 0.82), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+
+  .sapas-btn-primary:hover,
+  .sapas-confirmation-submit[data-tone="primary"]:hover {
+    @apply border-brand-700;
+    background: linear-gradient(135deg, #2563a9 0%, #123f77 72%, #0b274b 100%);
+    box-shadow: 0 17px 30px -17px rgba(18, 63, 119, 0.88), 0 1px 0 rgba(255, 255, 255, 0.22) inset;
+  }
+
+  .sapas-btn-secondary {
+    --sapas-button-glow-color: rgba(37, 99, 169, 0.14);
+    @apply border-slate-200 text-slate-700;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(244, 247, 251, 0.96));
+    box-shadow: 0 9px 20px -16px rgba(15, 42, 67, 0.6), 0 1px 0 rgba(255, 255, 255, 0.95) inset;
+  }
+
+  .sapas-btn-secondary:hover {
+    @apply border-brand-200 text-brand-700;
+    background: linear-gradient(180deg, #ffffff, #f1f7ff);
+    box-shadow: 0 14px 24px -17px rgba(37, 99, 169, 0.55), 0 1px 0 #ffffff inset;
+  }
+
+  .sapas-btn-success,
+  .sapas-confirmation-submit[data-tone="success"] {
+    @apply border-emerald-600 text-white;
+    background: linear-gradient(135deg, #10a779, #047857 72%, #065f46);
+    box-shadow: 0 13px 24px -16px rgba(4, 120, 87, 0.74), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+
+  .sapas-btn-success:hover,
+  .sapas-confirmation-submit[data-tone="success"]:hover {
+    background: linear-gradient(135deg, #059669, #047857 68%, #064e3b);
+    box-shadow: 0 17px 30px -17px rgba(4, 120, 87, 0.82), 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  }
+
+  .sapas-btn-danger,
+  .sapas-confirmation-submit[data-tone="danger"] {
+    @apply border-rose-600 text-white;
+    background: linear-gradient(135deg, #ef3d67, #be123c 72%, #9f1239);
+    box-shadow: 0 13px 24px -16px rgba(190, 18, 60, 0.72), 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+  }
+
+  .sapas-btn-danger:hover,
+  .sapas-confirmation-submit[data-tone="danger"]:hover {
+    background: linear-gradient(135deg, #e11d48, #be123c 68%, #881337);
+    box-shadow: 0 17px 30px -17px rgba(190, 18, 60, 0.8), 0 1px 0 rgba(255, 255, 255, 0.18) inset;
+  }
+
+  .sapas-btn-danger-quiet {
+    --sapas-button-glow-color: rgba(225, 29, 72, 0.12);
+    @apply border-rose-200 text-rose-700;
+    background: linear-gradient(180deg, #ffffff, #fff5f7);
+  }
+
+  .sapas-btn-danger-quiet:hover {
+    @apply border-rose-300 bg-rose-50;
+    box-shadow: 0 12px 22px -18px rgba(190, 18, 60, 0.58);
+  }
+
+  .sapas-confirmation-submit[data-tone="warning"] {
+    --sapas-button-glow-color: rgba(255, 255, 255, 0.32);
+    @apply border-amber-500 text-slate-950;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b 68%, #d97706);
+    box-shadow: 0 13px 24px -16px rgba(217, 119, 6, 0.68), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
+  }
+
+  .sapas-topbar-control,
+  .sapas-language-option,
+  .sapas-pagination-link {
+    transition:
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .sapas-topbar-control:hover,
+  .sapas-language-option:hover,
+  .sapas-pagination-link:hover {
+    transform: translate3d(0, -0.0625rem, 0);
+    box-shadow: 0 10px 20px -16px rgba(15, 42, 67, 0.65);
+  }
+
+  .sapas-language-switcher {
+    @apply border-slate-200/90;
+    background: linear-gradient(180deg, rgba(241, 245, 249, 0.96), rgba(226, 232, 240, 0.72));
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.92) inset, 0 8px 20px -18px rgba(15, 42, 67, 0.6);
+  }
+
+  .sapas-language-option.is-active {
+    background: linear-gradient(135deg, #172033, #0b1220);
+    box-shadow: 0 10px 20px -15px rgba(11, 18, 32, 0.8), 0 1px 0 rgba(255, 255, 255, 0.14) inset;
+  }
+
+  .sapas-pagination-link.is-active {
+    background: linear-gradient(135deg, #17466f 0%, var(--sapas-shell) 58%, #0c243b 100%);
+    box-shadow: 0 12px 22px -15px rgba(12, 36, 59, 0.78), 0 1px 0 rgba(255, 255, 255, 0.16) inset;
+  }
+
+  .sapas-pagination-link.is-active:hover {
+    border-color: #0c243b;
+    background: linear-gradient(135deg, #123b61 0%, #0e2942 62%, #081d30 100%);
+  }
+
+  .sapas-pagination-link:not(.is-active):not(.is-disabled):hover {
+    border-color: #b7cadb;
+    background: #edf4fa;
+    color: var(--sapas-shell);
+  }
+
+  .sapas-pagination-link.is-disabled:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .sapas-form-control {
+    @apply border-slate-300/80 bg-white/95;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.94) inset, 0 7px 18px -17px rgba(15, 42, 67, 0.65);
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .sapas-form-control:hover {
+    @apply border-slate-400/80 bg-white;
+  }
+
+  .sapas-form-control:focus {
+    @apply border-brand-400 bg-white ring-4 ring-brand-100/70;
+    box-shadow: 0 12px 26px -20px rgba(37, 99, 169, 0.72), 0 1px 0 #ffffff inset;
+  }
+
+  .sapas-workspace-card,
+  .sapas-dashboard-section,
+  .sapas-filter-panel,
+  .sapas-report-filter-panel,
+  .sapas-chart-card,
+  .sapas-table-wrap,
+  .sapas-report-table-panel {
+    box-shadow: 0 18px 42px -34px rgba(15, 42, 67, 0.48), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  }
+
+  .sapas-table-wrap table th,
+  .sapas-report-table-panel table th {
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.99), rgba(238, 242, 247, 0.96));
+  }
+
+  .sapas-table-wrap table tbody tr,
+  .sapas-report-table-panel table tbody tr {
+    transition: background-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .sapas-table-wrap table tbody tr:hover,
+  .sapas-report-table-panel table tbody tr:hover {
+    background-color: rgba(239, 246, 255, 0.76);
+    box-shadow: inset 3px 0 0 rgba(37, 99, 169, 0.54);
+  }
+
+  .sapas-dashboard-kpi-card,
+  .sapas-analytics-kpi,
+  .sapas-analytics-visual-card,
+  .sapas-dashboard-attention-card,
+  .sapas-dashboard-shortcut,
+  .sapas-report-card,
+  .sapas-dashboard-list-row,
+  .sapas-notification-row {
+    transition:
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 220ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .sapas-card-icon,
+  .sapas-kpi-icon,
+  .sapas-analytics-kpi-icon,
+  .sapas-shortcut-icon,
+  .sapas-report-card-icon,
+  .sapas-notification-icon {
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+  }
+
+  .sapas-confirmation-backdrop {
+    animation: sapas-feedback-enter 180ms ease-out both;
+  }
+
+  .sapas-confirmation-dialog {
+    animation: sapas-dialog-enter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .sapas-flash {
+    animation: sapas-feedback-enter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .sapas-data-table-scroll.is-scrollable {
+    @apply outline-none;
+    scrollbar-gutter: stable;
+  }
+
+  .sapas-data-table-scroll.is-scrollable:focus-visible {
+    @apply ring-2 ring-brand-500 ring-offset-2 ring-offset-surface-canvas;
+    border-radius: 0.75rem;
+  }
+
+  .sapas-access-denied-panel {
+    @apply flex max-w-3xl flex-col gap-5 rounded-2xl border border-rose-200 bg-white p-6 shadow-sapas-card sm:flex-row sm:items-start sm:p-8;
+  }
+
+  .sapas-access-denied-icon {
+    @apply inline-flex h-12 w-12 flex-none items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-700;
+  }
+
+  .sapas-access-denied-title {
+    @apply text-xl font-semibold leading-tight text-slate-950;
+  }
+
+  .sapas-access-denied-copy {
+    @apply mt-2 max-w-2xl text-sm leading-6 text-slate-600;
+  }
+
+  .sapas-access-denied-actions {
+    @apply mt-5 flex flex-wrap items-center gap-3;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .sapas-dashboard-kpi-card:hover,
+    .sapas-analytics-kpi:hover,
+    .sapas-analytics-visual-card:hover,
+    .sapas-dashboard-attention-card:hover,
+    .sapas-dashboard-shortcut:hover,
+    .sapas-report-card:hover,
+    .sapas-dashboard-list-row:hover,
+    .sapas-notification-row:hover {
+      transform: translate3d(0, -0.1875rem, 0);
+      box-shadow: 0 22px 38px -27px rgba(15, 42, 67, 0.48), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    }
+
+    .sapas-dashboard-attention-card.is-warning:hover {
+      @apply border-amber-300;
+      background: linear-gradient(135deg, rgba(255, 251, 235, 0.98), rgba(255, 255, 255, 0.99));
+    }
+
+    .sapas-dashboard-attention-card.is-danger:hover {
+      @apply border-rose-300;
+      background: linear-gradient(135deg, rgba(255, 241, 242, 0.98), rgba(255, 255, 255, 0.99));
+    }
+
+    .sapas-dashboard-kpi-card:hover .sapas-kpi-icon,
+    .sapas-analytics-kpi:hover .sapas-analytics-kpi-icon,
+    .sapas-dashboard-shortcut:hover .sapas-shortcut-icon,
+    .sapas-report-card:hover .sapas-report-card-icon,
+    .sapas-notification-row:hover .sapas-notification-icon {
+      transform: translate3d(0, -0.125rem, 0) rotate(-2deg) scale(1.04);
+    }
+  }
+}
+
+@layer utilities {
+  .sapas-wrap-anywhere {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 639px) {
+  .sapas-page-actions,
+  .sapas-dashboard-action-row,
+  .sapas-workspace-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .sapas-page-actions > *,
+  .sapas-workspace-actions > *,
+  .sapas-page-actions > .sapas-btn,
+  .sapas-page-actions form .sapas-btn,
+  .sapas-workspace-actions .sapas-btn {
+    width: auto;
+    max-width: 100%;
+  }
+
+  .sapas-dashboard-action-row > *,
+  .sapas-dashboard-action-row .sapas-btn {
+    width: 100%;
+  }
+
+  .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    font-size: 2rem;
+    line-height: 1.12;
+  }
+
+  .sapas-brand-lockup-guest .sapas-brand-subtitle,
+  .sapas-guest-description {
+    @apply text-sm leading-6;
+  }
+
+  .sapas-brand-lockup-compact .sapas-brand-wordmark {
+    @apply text-base leading-6;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sapas-app-body {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .sapas-app-shell,
+  .sapas-shell-grid {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .sapas-shell-grid {
+    overflow: hidden;
+  }
+
+  .sapas-sidebar,
+  .sapas-main {
+    height: 100vh;
+    max-height: 100vh;
+    min-height: 0;
+  }
+
+  .sapas-sidebar {
+    position: relative;
+    top: auto;
+  }
+
+  .sapas-main {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.125rem;
+    scrollbar-gutter: stable;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sapas-sidebar-nav::before {
+    transition: none;
+  }
+
+  .sapas-btn,
+  .sapas-topbar-control,
+  .sapas-language-option,
+  .sapas-pagination-link,
+  .sapas-form-control,
+  .sapas-dashboard-kpi-card,
+  .sapas-analytics-kpi,
+  .sapas-analytics-visual-card,
+  .sapas-dashboard-attention-card,
+  .sapas-dashboard-shortcut,
+  .sapas-report-card,
+  .sapas-dashboard-list-row,
+  .sapas-notification-row,
+  .sapas-card-icon,
+  .sapas-kpi-icon,
+  .sapas-analytics-kpi-icon,
+  .sapas-shortcut-icon,
+  .sapas-report-card-icon,
+  .sapas-notification-icon {
+    transition: none;
+  }
+
+  .sapas-confirmation-backdrop,
+  .sapas-confirmation-dialog,
+  .sapas-flash,
+  .sapas-analytics-donut,
+  .sapas-analytics-composition-list > div,
+  .sapas-analytics-ranking-row,
+  .sapas-analytics-ranking-track > span {
+    animation: none;
+  }
+
+  .sapas-analytics-office-grid.is-animation-ready:not(.is-visible) .sapas-analytics-donut,
+  .sapas-analytics-office-grid.is-animation-ready:not(.is-visible) .sapas-analytics-composition-list > div,
+  .sapas-analytics-office-grid.is-animation-ready:not(.is-visible) .sapas-analytics-ranking-row {
+    opacity: 1;
+  }
+
+  .sapas-btn-spotlight::after {
+    opacity: 0;
+  }
+
+  .sapas-btn:hover,
+  .sapas-btn:active,
+  .sapas-topbar-control:hover,
+  .sapas-language-option:hover,
+  .sapas-pagination-link:hover,
+  .sapas-dashboard-kpi-card:hover,
+  .sapas-analytics-kpi:hover,
+  .sapas-analytics-visual-card:hover,
+  .sapas-dashboard-attention-card:hover,
+  .sapas-dashboard-shortcut:hover,
+  .sapas-report-card:hover,
+  .sapas-dashboard-list-row:hover,
+  .sapas-notification-row:hover,
+  .sapas-dashboard-kpi-card:hover .sapas-kpi-icon,
+  .sapas-analytics-kpi:hover .sapas-analytics-kpi-icon,
+  .sapas-dashboard-shortcut:hover .sapas-shortcut-icon,
+  .sapas-report-card:hover .sapas-report-card-icon,
+  .sapas-notification-row:hover .sapas-notification-icon {
+    transform: none;
+  }
+}
+
+/* Phase 4 Lite: focused product shell and shared presentation refinements. */
+@layer components {
+  .sapas-skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 100;
+    transform: translateY(-6rem);
+    border-radius: 0.5rem;
+    background: #ffffff;
+    color: #0b2742;
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(11, 39, 66, 0.18);
+    transition: transform 160ms ease;
+  }
+
+  .sapas-skip-link:focus {
+    transform: translateY(0);
+  }
+
+  .sapas-app-body {
+    background: #f4f7fa;
+  }
+
+  .sapas-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: min(17rem, calc(100vw - 3rem));
+    height: 100svh;
+    max-height: none;
+    padding: 1.25rem 1rem;
+    border: 0;
+    border-radius: 0;
+    background: linear-gradient(180deg, #123a63 0%, #0b2742 100%);
+    box-shadow: 16px 0 36px rgba(11, 39, 66, 0.18);
+    transform: translateX(-105%);
+    transition: transform 180ms ease;
+  }
+
+  .sapas-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .sapas-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(11, 39, 66, 0.52);
+  }
+
+  .sapas-sidebar-backdrop[hidden] {
+    display: none;
+  }
+
+  .sapas-sidebar-content {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    padding-bottom: 1rem;
+  }
+
+  .sapas-sidebar-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .sapas-sidebar-brand {
+    min-width: 0;
+    flex: 1;
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .sapas-sidebar-close,
+  .sapas-mobile-menu-button {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 0.625rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
+
+  .sapas-mobile-menu-button {
+    border-color: #dde4ec;
+    background: #ffffff;
+    color: #123a63;
+  }
+
+  .sapas-user-card {
+    margin-top: 1.25rem;
+    border-radius: 0.625rem;
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: none;
+  }
+
+  .sapas-sidebar-nav {
+    margin-top: 1.25rem;
+  }
+
+  .sapas-nav-group + .sapas-nav-group {
+    margin-top: 1.25rem;
+  }
+
+  .sapas-nav-group-label {
+    margin: 0 0 0.375rem 0.75rem;
+    color: #9fb6ca;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  .sapas-nav-group-links {
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  .sapas-nav-link {
+    min-height: 2.5rem;
+    border-radius: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    color: #dbe8f2;
+  }
+
+  .sapas-nav-link.is-active {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.13);
+    box-shadow: none;
+  }
+
+  .sapas-sidebar-nav::before {
+    left: -0.125rem;
+    width: 0.1875rem;
+    background: #62a8f5;
+    box-shadow: none;
+  }
+
+  .sapas-main {
+    width: 100%;
+  }
+
+  .sapas-topbar {
+    z-index: 30;
+    border-color: rgba(255, 255, 255, 0.12);
+    background: linear-gradient(180deg, #123a63 0%, #0b2742 100%);
+    color: #ffffff;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 8px 24px -20px rgba(11, 39, 66, 0.72);
+    backdrop-filter: none;
+  }
+
+  .sapas-topbar .sapas-topbar-kicker {
+    color: #9fb6ca;
+  }
+
+  .sapas-topbar .sapas-topbar-name {
+    color: #ffffff;
+  }
+
+  .sapas-topbar .sapas-topbar-control {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.09);
+    color: #ffffff;
+    box-shadow: none;
+  }
+
+  .sapas-topbar .sapas-topbar-control:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
+
+  .sapas-topbar .sapas-language-switcher {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+  }
+
+  .sapas-topbar .sapas-language-switcher-icon,
+  .sapas-topbar .sapas-language-option {
+    color: #dbe8f2;
+  }
+
+  .sapas-topbar .sapas-language-option:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
+
+  .sapas-topbar .sapas-language-option.is-active {
+    border-color: #ffffff;
+    background: #ffffff;
+    color: #123a63;
+    box-shadow: none;
+  }
+
+  .sapas-topbar .sapas-mobile-menu-button {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.09);
+    color: #ffffff;
+  }
+
+  .sapas-topbar-inner,
+  .sapas-page-header-inner,
+  .sapas-content {
+    width: 100%;
+    max-width: 96rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .sapas-topbar-left {
+    align-items: center;
+  }
+
+  .sapas-topbar-context {
+    min-width: 0;
+  }
+
+  .sapas-topbar-context .sapas-topbar-name {
+    max-width: 24rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sapas-topbar-user {
+    display: none;
+    min-width: 0;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0 0.25rem;
+  }
+
+  .sapas-topbar-user-avatar {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
+
+  .sapas-topbar-user strong,
+  .sapas-topbar-user small {
+    display: block;
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sapas-topbar-user strong {
+    color: #ffffff;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .sapas-topbar-user small {
+    color: #b9ccdc;
+    font-size: 0.6875rem;
+    line-height: 1rem;
+  }
+
+  .sapas-page-header {
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .sapas-page-header h1 {
+    color: #172231;
+    font-size: clamp(1.5rem, 2vw, 1.875rem);
+  }
+
+  .sapas-content {
+    padding-bottom: 2rem;
+  }
+
+  .sapas-main > .sapas-flash {
+    width: calc(100% - 2rem);
+    max-width: calc(96rem - 2rem);
+    margin: 0 auto 1rem;
+  }
+
+  .sapas-flash {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-radius: 0.625rem;
+    box-shadow: none;
+  }
+
+  .sapas-flash-dismiss {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    color: currentColor;
+  }
+
+  .sapas-card,
+  .sapas-workspace-card,
+  .sapas-dashboard-section,
+  .sapas-dashboard-primary-action,
+  .sapas-report-filter-panel,
+  .sapas-filter-panel,
+  .sapas-report-summary-card,
+  .sapas-chart-card,
+  .sapas-table-wrap,
+  .sapas-report-table-panel,
+  .sapas-empty-state,
+  .sapas-dashboard-kpi-card,
+  .sapas-analytics-kpi,
+  .sapas-analytics-visual-card,
+  .sapas-report-card {
+    border-color: #dde4ec;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    box-shadow: 0 8px 24px -22px rgba(11, 39, 66, 0.5);
+  }
+
+  .sapas-dashboard-hero,
+  .sapas-workspace-hero,
+  .sapas-material-hero {
+    border-color: #dde4ec;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    box-shadow: 0 10px 28px -24px rgba(11, 39, 66, 0.58);
+  }
+
+  .sapas-dashboard-hero::after {
+    height: 0.1875rem;
+    background: linear-gradient(90deg, #123a63, #2f80ed 65%, #16875b);
+  }
+
+  .sapas-dashboard-command-panel,
+  .sapas-workspace-opening-panel,
+  .sapas-dashboard-mini-card,
+  .sapas-dashboard-status-panel,
+  .sapas-report-insight-panel,
+  .sapas-analytics-attention-panel {
+    border-color: #dde4ec;
+    border-radius: 0.75rem;
+    background: #eef3f7;
+    box-shadow: none;
+  }
+
+  .sapas-btn,
+  .sapas-topbar-control,
+  .sapas-language-switcher,
+  .sapas-language-option,
+  .sapas-form-control,
+  .sapas-badge,
+  .sapas-chip {
+    border-radius: 0.625rem;
+  }
+
+  .sapas-btn {
+    min-height: 2.5rem;
+    box-shadow: none;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .sapas-btn-primary {
+    border-color: #1f6fc7;
+    background: #2f80ed;
+  }
+
+  .sapas-btn-primary:hover {
+    background: #1f6fc7;
+  }
+
+  .sapas-form-control {
+    min-height: 2.75rem;
+    border-color: #cbd6e2;
+    border-radius: 0.625rem;
+    box-shadow: none;
+  }
+
+  .sapas-form-control:disabled,
+  .sapas-form-control[readonly] {
+    cursor: not-allowed;
+    background: #eef3f7;
+    color: #657386;
+  }
+
+  .sapas-table-wrap,
+  .sapas-report-table-panel,
+  .sapas-analytics-panel {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .sapas-table-wrap > [class~="overflow-x-auto"],
+  .sapas-report-table-panel > [class~="overflow-x-auto"],
+  .sapas-analytics-panel > [class~="overflow-x-auto"] {
+    overscroll-behavior-inline: contain;
+  }
+
+  .sapas-table-wrap table th,
+  .sapas-report-table-panel table th {
+    background: #eef3f7;
+    color: #445469;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+  }
+
+  .sapas-table-wrap table td,
+  .sapas-report-table-panel table td {
+    border-color: #e8edf2;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .sapas-report-table-panel .sapas-data-table th,
+  .sapas-report-table-panel .sapas-data-table td {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .sapas-empty-state,
+  .sapas-report-empty,
+  .sapas-dashboard-table-empty {
+    border-radius: 0.75rem;
+    background: #f8fafc;
+    box-shadow: none;
+  }
+
+  .sapas-guest-shell {
+    background: #eef3f7;
+  }
+
+  .sapas-guest-frame {
+    max-width: 70rem;
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid #d6e0e9;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    box-shadow: 0 24px 60px -40px rgba(11, 39, 66, 0.58);
+  }
+
+  .sapas-guest-form-panel {
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .sapas-guest-form-panel .sapas-guest-card {
+    border: 0;
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+    box-shadow: none;
+  }
+
+  .sapas-guest-visual {
+    border: 0;
+    border-radius: 0;
+    background: linear-gradient(145deg, #123a63, #0b2742);
+    box-shadow: none;
+  }
+
+  .sapas-guest-visual::before {
+    opacity: 0.34;
+  }
+
+  .sapas-guest-overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sapas-guest-overview-card {
+    border-radius: 0.625rem;
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .sapas-input-shell .sapas-form-control {
+    padding-right: 3rem;
+  }
+
+  .sapas-password-toggle {
+    position: absolute;
+    inset: 0 0 0 auto;
+    z-index: 10;
+    display: inline-flex;
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 0.625rem 0.625rem 0;
+    color: #657386;
+  }
+
+  .sapas-password-toggle:hover {
+    color: #123a63;
+  }
+
+  .sapas-password-toggle .sapas-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .sapas-login-security {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    color: #657386;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+
+  .sapas-dashboard-action-panel {
+    border-left: 0.25rem solid #2f80ed;
+    background: #ffffff;
+  }
+
+  .sapas-dashboard-action-panel .sapas-btn-success,
+  .sapas-dashboard-action-panel .sapas-btn-danger {
+    min-height: 3rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .sapas-analytics-command-center {
+    order: 3;
+  }
+
+  .sapas-analytics-hero {
+    order: 1;
+    background: #ffffff;
+  }
+
+  .sapas-report-hero {
+    background: #ffffff;
+  }
+
+  .sapas-workspace-stack > .sapas-analytics-panel {
+    order: 2;
+  }
+
+  .sapas-workspace-stack > .sapas-analytics-panel:last-child {
+    order: 4;
+  }
+
+  .sapas-workspace-stack:has(> .sapas-analytics-command-center) {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .sapas-workspace-stack:has(> .sapas-analytics-command-center) > * {
+    margin-top: 0;
+  }
+
+  /* Professional sign-in workspace: concise form, compact product context, and predictable spacing. */
+  .sapas-guest-frame.is-focused-login {
+    position: relative;
+    max-width: 68rem;
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid #cfd9e4;
+    border-radius: 1.25rem;
+    background: #ffffff;
+    box-shadow: 0 32px 80px -48px rgba(11, 39, 66, 0.72);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+    position: relative;
+    order: 2;
+    min-height: 35rem;
+    justify-content: center;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    padding: 2rem 2.25rem;
+    box-shadow: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+    order: 1;
+    min-height: 35rem;
+    border: 0;
+    border-radius: 0;
+    padding: 2rem;
+    background:
+      radial-gradient(circle at 82% 12%, rgba(56, 189, 248, 0.20), transparent 18rem),
+      radial-gradient(circle at 10% 92%, rgba(20, 184, 166, 0.18), transparent 17rem),
+      linear-gradient(145deg, #153f68 0%, #0f3152 50%, #0b2742 100%);
+    box-shadow: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-inner {
+    min-height: 0;
+    justify-content: center;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-kicker {
+    color: #bae6fd;
+    letter-spacing: 0.13em;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-title {
+    margin-top: 0.75rem;
+    max-width: 27rem;
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-intro {
+    margin-top: 0.875rem;
+    max-width: 27rem;
+    color: #d8e6f3;
+    line-height: 1.55rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-grid {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card {
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0;
+    background: transparent;
+    padding: 0.9rem 0;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card strong {
+    font-size: 0.875rem;
+    line-height: 1.35rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card p {
+    margin-top: 0.125rem;
+    color: #c7d8e8;
+    line-height: 1.15rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-feature-icon {
+    height: 2.25rem;
+    width: 2.25rem;
+    border-radius: 0.65rem;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-language {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.75rem;
+    z-index: 2;
+    margin: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-header {
+    max-width: 28rem;
+    padding-right: 8.25rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest {
+    gap: 0.2rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    font-size: 1.55rem;
+    line-height: 1.9rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-subtitle {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-description {
+    margin-top: 0.35rem;
+    max-width: 25rem;
+    color: #64748b;
+    line-height: 1.35rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-card {
+    margin-top: 1.6rem;
+    max-width: 28rem;
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-card-header {
+    margin-bottom: 1.25rem;
+    border: 0;
+    padding-bottom: 0;
+  }
+
+  .sapas-login-eyebrow {
+    color: #1c5d8f;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1.15rem;
+    text-transform: uppercase;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-card-header h1 {
+    margin-top: 0.25rem;
+    font-size: 1.75rem;
+    line-height: 2.1rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-card-header p:last-child {
+    margin-top: 0.35rem;
+    color: #64748b;
+    line-height: 1.35rem;
+  }
+
+  .sapas-guest-frame.is-focused-login #loginForm {
+    gap: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login #loginForm > * + * {
+    margin-top: 1rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-input-shell {
+    border-radius: 0.75rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-form-control {
+    min-height: 3.1rem;
+    border-color: #cbd5e1;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-form-control:hover {
+    border-color: #94a3b8;
+    background: #ffffff;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-form-control:focus {
+    border-color: #2c76ac;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(44, 118, 172, 0.12);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-security {
+    border: 1px solid #dbe5ef;
+    border-radius: 0.75rem;
+    background: #f5f8fb;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .sapas-login-submit {
+    min-height: 3.1rem;
+    border-color: #123a63;
+    border-radius: 0.75rem;
+    background: #123a63;
+    box-shadow: 0 14px 26px -20px rgba(18, 58, 99, 0.9);
+  }
+
+  .sapas-login-submit:hover {
+    border-color: #0b2742;
+    background: #0b2742;
+  }
+
+  .sapas-login-help {
+    margin-top: 1rem;
+    text-align: left;
+    color: #64748b;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-footer {
+    margin-top: 1.25rem;
+    max-width: 28rem;
+    text-align: left;
+  }
+
+  @media (min-width: 1024px) {
+    .sapas-guest-frame.is-focused-login {
+      grid-template-columns: minmax(22rem, 0.88fr) minmax(28rem, 1.12fr);
+    }
+  }
+
+  /* Match the department preview to the existing chart card instead of enlarging the chart. */
+  .sapas-dashboard-insight-grid {
+    align-items: stretch;
+  }
+
+  .sapas-dashboard-insight-grid > .sapas-chart-card,
+  .sapas-dashboard-insight-grid > .sapas-dashboard-section {
+    height: 100%;
+    align-self: stretch;
+  }
+
+  .sapas-dashboard-department-panel {
+    padding: 1rem;
+  }
+
+  .sapas-dashboard-department-panel .sapas-dashboard-section-copy {
+    line-height: 1.35rem;
+  }
+
+  .sapas-dashboard-department-panel .sapas-dashboard-department-list {
+    margin-top: 0.75rem;
+  }
+
+  .sapas-dashboard-department-panel .sapas-dashboard-department-row {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .sapas-dashboard-department-panel .sapas-dashboard-department-row p:first-child {
+    line-height: 1.25rem;
+  }
+
+  .sapas-dashboard-department-panel .sapas-dashboard-department-row p.mt-1 {
+    margin-top: 0.15rem;
+    line-height: 1.1rem;
+  }
+
+  .sapas-dashboard-department-panel .sapas-dashboard-department-row .sapas-chart-track {
+    margin-top: 0.5rem;
+    height: 0.375rem;
+  }
+
+  .sapas-dashboard-department-panel .sapas-dashboard-department-footer {
+    margin-top: auto;
+    padding-top: 0.75rem;
+  }
+
+  /* First-impression polish: login, dashboard, and the dashboard shell only. */
+  .sapas-guest-body {
+    background:
+      linear-gradient(135deg, #f8fbfe 0%, #eef4f9 46%, #e7eff7 100%);
+  }
+
+  .sapas-guest-frame.is-focused-login {
+    max-width: 70rem;
+    border-color: #d8e2ec;
+    box-shadow: 0 30px 70px -48px rgba(11, 39, 66, 0.76);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+    order: 1;
+    background:
+      linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+    order: 2;
+    background:
+      linear-gradient(145deg, #153f68 0%, #103554 52%, #0b2742 100%);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual::before,
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual::after {
+    display: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-kicker {
+    color: #b9d7ee;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-title {
+    color: #ffffff;
+    letter-spacing: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-card {
+    width: 100%;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-wordmark,
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-subtitle {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-card-header h1 {
+    color: #0f172a;
+    font-size: 1.85rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-input-shell:focus-within {
+    box-shadow: 0 0 0 3px rgba(44, 118, 172, 0.14);
+  }
+
+  .sapas-password-toggle {
+    border-radius: 0.625rem;
+    color: #64748b;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .sapas-password-toggle:hover,
+  .sapas-password-toggle:focus-visible {
+    background: #eaf2f8;
+    color: #123a63;
+  }
+
+  .sapas-login-security {
+    color: #475569;
+  }
+
+  .sapas-shell-grid {
+    background: transparent;
+  }
+
+  .sapas-sidebar {
+    background: linear-gradient(180deg, #123a63 0%, #0d3152 54%, #0b2742 100%);
+  }
+
+  .sapas-sidebar-brand {
+    padding-bottom: 1rem;
+  }
+
+  .sapas-sidebar .sapas-brand-wordmark {
+    font-size: 1.05rem;
+    line-height: 1.35rem;
+  }
+
+  .sapas-sidebar .sapas-brand-subtitle {
+    color: #b9ccdc;
+    font-size: 0.68rem;
+  }
+
+  .sapas-nav-group-label {
+    color: #aac0d3;
+  }
+
+  .sapas-nav-link {
+    gap: 0.7rem;
+  }
+
+  .sapas-nav-link.is-active {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 3px 0 0 #7dd3fc;
+  }
+
+  .sapas-nav-link:focus-visible {
+    outline: 2px solid #bae6fd;
+    outline-offset: 2px;
+  }
+
+  .sapas-topbar {
+    background: linear-gradient(180deg, #123a63 0%, #0b2742 100%);
+  }
+
+  .sapas-topbar-inner {
+    min-height: 3.25rem;
+  }
+
+  .sapas-topbar-context .sapas-topbar-name {
+    font-weight: 700;
+  }
+
+  .sapas-topbar-user {
+    border-left: 1px solid rgba(255, 255, 255, 0.14);
+    padding-left: 0.875rem;
+  }
+
+  .sapas-page-header {
+    padding-top: 1.35rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .sapas-page-header h1 {
+    font-size: 1.875rem;
+  }
+
+  .sapas-dashboard-stack {
+    gap: 1.25rem;
+  }
+
+  .sapas-dashboard-hero-command {
+    border-color: #dbe5ef;
+    background:
+      linear-gradient(135deg, #ffffff 0%, #f7fafc 54%, #edf4f8 100%);
+  }
+
+  .sapas-dashboard-hero-command::after {
+    background: linear-gradient(90deg, #123a63, #2c76ac 70%, #16875b);
+  }
+
+  .sapas-dashboard-eyebrow {
+    color: #2c5f86;
+    font-size: 0.72rem;
+  }
+
+  .sapas-dashboard-date {
+    max-width: 42rem;
+    font-size: 2rem;
+    letter-spacing: 0;
+  }
+
+  .sapas-dashboard-command-panel {
+    background: #f4f8fb;
+  }
+
+  .sapas-dashboard-command-stat {
+    border-color: #dbe5ef;
+    box-shadow: none;
+  }
+
+  .sapas-dashboard-kpi-grid {
+    align-items: stretch;
+  }
+
+  .sapas-dashboard-kpi-card {
+    min-height: 9.5rem;
+    border-radius: 0.875rem;
+    background: #ffffff;
+    box-shadow: 0 10px 26px -22px rgba(11, 39, 66, 0.55);
+  }
+
+  .sapas-dashboard-kpi-card:hover {
+    transform: none;
+  }
+
+  .sapas-dashboard-kpi-card.is-primary,
+  .sapas-dashboard-kpi-card.is-attention,
+  .sapas-dashboard-kpi-card.is-secondary {
+    background: #ffffff;
+  }
+
+  .sapas-dashboard-kpi-card.is-secondary {
+    border-color: #dbeafe;
+  }
+
+  .sapas-dashboard-kpi-card.is-secondary::before {
+    background: #2c76ac;
+  }
+
+  .sapas-dashboard-kpi-label {
+    color: #475569;
+  }
+
+  .sapas-dashboard-kpi-number {
+    font-size: 1.875rem;
+  }
+
+  .sapas-dashboard-section,
+  .sapas-chart-card {
+    border-radius: 0.875rem;
+  }
+
+  .sapas-dashboard-section::before {
+    background: #dbeafe;
+  }
+
+  .sapas-dashboard-table-empty {
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
+  }
+
+  :lang(my) .sapas-guest-frame.is-focused-login .sapas-login-card-header h1,
+  :lang(my) .sapas-dashboard-date,
+  :lang(my) .sapas-page-header h1 {
+    line-height: 1.45;
+  }
+
+  @media (min-width: 1024px) {
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+      order: 2;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+      order: 1;
+    }
+  }
+
+
+  /* Compact operational controls: reserve wide buttons for true page-level primary actions. */
+  .sapas-report-filter-grid .sapas-btn,
+  .sapas-masterdata-search-form .sapas-btn,
+  .sapas-audit-filter-actions .sapas-btn {
+    min-width: 0;
+    width: auto;
+  }
+
+  .sapas-audit-search-field {
+    max-width: 30rem;
+  }
+
+  .sapas-table-action .sapas-btn,
+  .sapas-employee-actions .sapas-btn,
+  .sapas-masterdata-actions .sapas-btn {
+    min-height: 2rem;
+    min-width: 0;
+    width: auto;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+
+  .sapas-employee-actions,
+  .sapas-masterdata-actions {
+    align-items: center;
+  }
+
+  .sapas-notifications-panel {
+    overflow: hidden;
+    border: 1px solid #d9e2ec;
+    border-radius: 0.875rem;
+    background: #ffffff;
+    box-shadow: 0 10px 26px -24px rgba(15, 42, 67, 0.48);
+  }
+
+  .sapas-notifications-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 0.875rem 1rem;
+  }
+
+  .sapas-notifications-summary-label {
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .sapas-notifications-summary-value {
+    margin-top: 0.125rem;
+    color: #0f172a;
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+
+  .sapas-notifications-unread-summary {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    background: #eff6ff;
+    padding: 0.35rem 0.65rem;
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .sapas-notifications-unread-dot,
+  .sapas-notification-unread-marker {
+    width: 0.45rem;
+    height: 0.45rem;
+    flex: none;
+    border-radius: 999px;
+    background: #2563eb;
+  }
+
+  .sapas-notifications-panel .sapas-notification-list {
+    margin-top: 0;
+    display: grid;
+    gap: 0;
+    padding: 0;
+  }
+
+  .sapas-notifications-panel .sapas-notification-row {
+    display: flex;
+    gap: 0.875rem;
+    border: 0;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
+    background: #ffffff;
+    padding: 1rem;
+    box-shadow: none;
+  }
+
+  .sapas-notifications-panel .sapas-notification-row:last-child {
+    border-bottom: 0;
+  }
+
+  .sapas-notifications-panel .sapas-notification-row.is-unread {
+    background: #f8fbff;
+    box-shadow: inset 3px 0 0 #2f80ed;
+  }
+
+  .sapas-notifications-panel .sapas-notification-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: none;
+    border: 1px solid #dbe4ee;
+    border-radius: 0.625rem;
+    background: #f8fafc;
+    color: #64748b;
+  }
+
+  .sapas-notifications-panel .sapas-notification-icon.is-unread {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #2563eb;
+  }
+
+  .sapas-notification-content {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .sapas-notification-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .sapas-notification-title {
+    overflow: hidden;
+    color: #0f172a;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.35rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sapas-notification-message {
+    margin-top: 0.25rem;
+    color: #64748b;
+    font-size: 0.8125rem;
+    line-height: 1.3rem;
+  }
+
+  .sapas-notification-time {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: flex-end;
+    color: #64748b;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.1rem;
+    white-space: nowrap;
+  }
+
+  .sapas-notification-footer {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .sapas-notification-status {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: #f8fafc;
+    padding: 0.2rem 0.5rem;
+    color: #64748b;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  .sapas-notification-status.is-unread {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .sapas-notification-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .sapas-notification-actions form {
+    display: inline-flex;
+  }
+
+  .sapas-notification-actions .sapas-btn {
+    min-height: 2rem;
+    min-width: 0;
+    width: auto;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+
+  .sapas-notifications-empty-icon {
+    margin: 0 auto 0.75rem;
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dbe4ee;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+    color: #64748b;
+  }
+
+}
+
+@media (min-width: 1024px) and (max-height: 800px) {
+  .sapas-guest-frame.is-compact-visual .sapas-guest-form-panel {
+    padding-top: 1.125rem;
+    padding-bottom: 1.125rem;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-language {
+    margin-bottom: 0.5rem;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-card {
+    margin-top: 0.75rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-login-card-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.625rem;
+  }
+
+  .sapas-guest-frame.is-compact-visual .sapas-guest-footer {
+    margin-top: 0.625rem;
+  }
+
+  .sapas-guest-visual.is-compact .sapas-guest-visual-inner {
+    min-height: 24rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel,
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+    min-height: 31rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+    padding-top: 1.35rem;
+    padding-bottom: 1.35rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-card {
+    margin-top: 1rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-card-header {
+    margin-bottom: 0.9rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-grid {
+    margin-top: 1rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sapas-topbar-user {
+    display: flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sapas-sidebar {
+    position: relative;
+    inset: auto;
+    z-index: auto;
+    width: 17rem;
+    flex: 0 0 17rem;
+    height: 100vh;
+    transform: none;
+    box-shadow: 8px 0 24px -22px rgba(11, 39, 66, 0.72);
+  }
+
+  .sapas-sidebar-close,
+  .sapas-mobile-menu-button,
+  .sapas-sidebar-backdrop {
+    display: none !important;
+  }
+
+  .sapas-guest-visual {
+    order: 1;
+  }
+
+  .sapas-guest-form-panel {
+    order: 2;
+  }
+}
+
+@media (max-width: 639px) {
+  body.sapas-drawer-open {
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .sapas-topbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .sapas-topbar-inner {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .sapas-topbar-left {
+    flex: 1;
+  }
+
+  .sapas-topbar-context,
+  .sapas-topbar-user,
+  .sapas-topbar-control-label,
+  .sapas-language-switcher-icon,
+  .sapas-topbar-mobile-brand {
+    display: none;
+  }
+
+  .sapas-topbar-actions {
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 0.375rem;
+  }
+
+  .sapas-topbar-actions > *,
+  .sapas-topbar-actions > .sapas-btn,
+  .sapas-topbar-actions > .sapas-topbar-control,
+  .sapas-topbar-actions form .sapas-btn,
+  .sapas-topbar-actions form .sapas-topbar-control {
+    width: auto;
+  }
+
+  .sapas-topbar-control,
+  .sapas-topbar-actions .sapas-btn {
+    min-width: 2.5rem;
+    width: 2.5rem;
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+
+  .sapas-language-switcher {
+    padding: 0.1875rem;
+  }
+
+  .sapas-language-option {
+    min-width: 2.25rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .sapas-page-header,
+  .sapas-content {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .sapas-page-header-inner {
+    gap: 0.75rem;
+  }
+
+  .sapas-dashboard-hero,
+  .sapas-workspace-hero,
+  .sapas-workspace-card,
+  .sapas-dashboard-section,
+  .sapas-dashboard-primary-action,
+  .sapas-report-filter-panel,
+  .sapas-report-table-panel,
+  .sapas-chart-card {
+    padding: 1rem;
+  }
+
+  .sapas-guest-shell {
+    align-items: flex-start;
+  }
+
+  .sapas-guest-frame {
+    border-radius: 0.75rem;
+  }
+
+  .sapas-guest-form-panel {
+    padding: 1.25rem;
+  }
+
+  .sapas-guest-frame.is-focused-login {
+    width: 100%;
+    border-radius: 0.875rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+    min-height: auto;
+    padding: 1.25rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-language {
+    position: static;
+    justify-content: flex-end;
+    margin-bottom: 1.25rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-header {
+    padding-right: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-card {
+    margin-top: 1.5rem;
+  }
+
+  .sapas-notifications-summary,
+  .sapas-notification-heading,
+  .sapas-notification-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sapas-notification-time {
+    align-items: flex-start;
+  }
+
+  .sapas-notification-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+}
+
+@layer components {
+  /* Add/Edit Employee: immediate, accessible field feedback. */
+  .sapas-form-control.is-invalid {
+    border-color: #e11d48;
+    background-color: #fff7f9;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.10);
+  }
+
+  .sapas-form-control.is-valid {
+    border-color: #059669;
+    background-color: #f7fffb;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.08);
+  }
+
+  .sapas-field-feedback {
+    min-height: 1.25rem;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .sapas-field-feedback.is-error {
+    color: #be123c;
+  }
+
+  .sapas-field-feedback.is-success {
+    color: #047857;
+  }
+
+  .sapas-live-rule-list {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.55rem;
+    color: #64748b;
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .sapas-live-rule-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+
+  .sapas-live-rule-list li::before {
+    content: "•";
+    width: 1rem;
+    flex: 0 0 1rem;
+    text-align: center;
+    font-weight: 800;
+  }
+
+  .sapas-live-rule-list li.is-valid {
+    color: #047857;
+  }
+
+  .sapas-live-rule-list li.is-valid::before {
+    content: "✓";
+  }
+
+  .sapas-live-rule-list li.is-invalid {
+    color: #be123c;
+  }
+
+  .sapas-live-rule-list li.is-invalid::before {
+    content: "!";
+  }
+
+  /* Analytics: compact period heading with three equal summary cards. */
+  .sapas-analytics-summary {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid #dce5ee;
+    border-radius: 0.875rem;
+    background: #ffffff;
+    padding: 1.25rem;
+    box-shadow: 0 12px 32px -28px rgba(15, 42, 67, 0.55);
+  }
+
+  .sapas-analytics-summary-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+  }
+
+  .sapas-analytics-summary-title {
+    margin-top: 0.2rem;
+    color: #0f172a;
+    font-size: clamp(1.45rem, 2vw, 2rem);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .sapas-analytics-summary-copy {
+    max-width: 45rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .sapas-analytics-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .sapas-analytics-summary-card {
+    display: flex;
+    min-height: 7.5rem;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid #dde5ee;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+    padding: 1rem;
+  }
+
+  .sapas-analytics-summary-card.is-primary {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+  }
+
+  .sapas-analytics-summary-value {
+    margin-top: 0.5rem;
+    font-size: 2rem;
+    font-weight: 750;
+    line-height: 1;
+  }
+
+  .sapas-analytics-summary-message {
+    margin-top: 0.5rem;
+    color: #172033;
+    font-size: 1rem;
+    font-weight: 650;
+    line-height: 1.45;
+  }
+
+  body:has(.sapas-analytics-workspace) .sapas-page-header {
+    padding-top: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  body:has(.sapas-analytics-workspace) .sapas-page-header-text p {
+    display: none;
+  }
+
+  body:has(.sapas-analytics-workspace) .sapas-content {
+    padding-bottom: 1.25rem;
+  }
+
+  body:has(.sapas-analytics-workspace) .sapas-main,
+  body:has(.sapas-analytics-workspace) .sapas-sidebar,
+  .sapas-analytics-workspace .sapas-analytics-scroll-region,
+  .sapas-analytics-workspace .sapas-data-table-scroll {
+    scrollbar-width: none;
+  }
+
+  body:has(.sapas-analytics-workspace) .sapas-main::-webkit-scrollbar,
+  body:has(.sapas-analytics-workspace) .sapas-sidebar::-webkit-scrollbar,
+  .sapas-analytics-workspace .sapas-analytics-scroll-region::-webkit-scrollbar,
+  .sapas-analytics-workspace .sapas-data-table-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  .sapas-analytics-workspace {
+    gap: 1rem;
+  }
+
+  .sapas-analytics-summary {
+    gap: 0.85rem;
+    border-color: #d8e2ec;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 10px 28px -26px rgba(11, 39, 66, 0.54);
+  }
+
+  .sapas-analytics-summary-header {
+    align-items: center;
+  }
+
+  .sapas-analytics-summary-title {
+    font-size: clamp(1.35rem, 1.65vw, 1.75rem);
+  }
+
+  .sapas-analytics-summary-copy {
+    max-width: 43rem;
+    font-size: 0.875rem;
+  }
+
+  .sapas-analytics-summary-grid {
+    gap: 0.75rem;
+  }
+
+  .sapas-analytics-summary-card {
+    min-height: 5.75rem;
+    border-color: #dbe5ef;
+    padding: 0.9rem 1rem;
+  }
+
+  .sapas-analytics-summary-value {
+    font-size: 1.75rem;
+  }
+
+  .sapas-analytics-summary-message {
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .sapas-analytics-filter-panel > .sapas-report-table-header {
+    padding: 1.1rem 1.35rem 1rem;
+  }
+
+  .sapas-analytics-filter-panel .sapas-workspace-card-title {
+    font-size: 1.15rem;
+  }
+
+  .sapas-analytics-filter-panel .sapas-workspace-card-copy {
+    margin-top: 0.25rem;
+    line-height: 1.45;
+  }
+
+  .sapas-analytics-filter-panel .sapas-report-filter-grid {
+    gap: 0.85rem;
+    margin-top: 1rem;
+  }
+
+  .sapas-analytics-filter-panel .sapas-form-control {
+    min-height: 2.6rem;
+  }
+
+  .sapas-analytics-filter-panel .sapas-report-active-filters {
+    margin-top: 1rem;
+    border-radius: 0.75rem;
+    padding: 0.85rem 1rem;
+    box-shadow: none;
+  }
+
+  .sapas-analytics-filter-panel .sapas-analytics-overview {
+    border-top: 1px solid #e6edf4;
+    padding-top: 1rem;
+  }
+
+  .sapas-analytics-workspace .sapas-analytics-ranking-list {
+    padding-right: 0;
+  }
+
+  .sapas-analytics-workspace .sapas-analytics-scroll-region {
+    scrollbar-gutter: auto;
+  }
+
+  .sapas-analytics-workspace .sapas-data-table-scroll {
+    scrollbar-gutter: auto;
+  }
+
+  /* Quiet scroll surfaces: scrolling still works with mouse, keyboard and touch. */
+  .sapas-main,
+  .sapas-sidebar,
+  .sapas-data-table-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .sapas-main::-webkit-scrollbar,
+  .sapas-sidebar::-webkit-scrollbar,
+  .sapas-data-table-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  /* Overtime Review: grouped information instead of a cramped 14-column grid. */
+  .sapas-overtime-panel {
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .sapas-overtime-desktop-table {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .sapas-overtime-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .sapas-overtime-table th,
+  .sapas-overtime-table td {
+    padding: 0.85rem 0.75rem;
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+  }
+
+  .sapas-overtime-table th {
+    color: #64748b;
+    font-size: 0.68rem;
+    letter-spacing: 0.045em;
+    line-height: 1.25;
+    text-transform: uppercase;
+    white-space: normal;
+  }
+
+  .sapas-overtime-table th:nth-child(1) { width: 9%; }
+  .sapas-overtime-table th:nth-child(2) { width: 18%; }
+  .sapas-overtime-table th:nth-child(3) { width: 15%; }
+  .sapas-overtime-table th:nth-child(4) { width: 25%; }
+  .sapas-overtime-table th:nth-child(5) { width: 9%; }
+  .sapas-overtime-table th:nth-child(6) { width: 14%; }
+  .sapas-overtime-table th:nth-child(7) { width: 10%; }
+
+  .sapas-overtime-table tbody tr {
+    transition: background-color 140ms ease;
+  }
+
+  .sapas-overtime-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .sapas-overtime-date-cell strong,
+  .sapas-overtime-total-cell strong {
+    color: #0f172a;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .sapas-overtime-total-cell strong {
+    display: inline-flex;
+    min-width: 3.5rem;
+    justify-content: center;
+    border-radius: 0.6rem;
+    background: #eff6ff;
+    padding: 0.45rem 0.6rem;
+    color: #1d4f91;
+  }
+
+  .sapas-overtime-employee,
+  .sapas-overtime-context,
+  .sapas-overtime-review-state {
+    display: grid;
+    min-width: 0;
+    gap: 0.3rem;
+  }
+
+  .sapas-overtime-employee strong {
+    color: #172033;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .sapas-overtime-employee small,
+  .sapas-overtime-context small,
+  .sapas-overtime-review-state small {
+    color: #64748b;
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .sapas-overtime-context .sapas-badge,
+  .sapas-overtime-review-state .sapas-badge {
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .sapas-overtime-breakdown {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .sapas-overtime-breakdown > div {
+    min-width: 0;
+    border: 1px solid #e6edf4;
+    border-radius: 0.5rem;
+    background: #fbfdff;
+    padding: 0.42rem 0.5rem;
+  }
+
+  .sapas-overtime-breakdown dt {
+    color: #718096;
+    font-size: 0.62rem;
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  .sapas-overtime-breakdown dd {
+    margin-top: 0.12rem;
+    color: #172033;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .sapas-overtime-table .sapas-table-action .sapas-btn {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+    white-space: normal;
+  }
+
+  .sapas-overtime-mobile-list {
+    display: none;
+  }
+
+  .sapas-overtime-mobile-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.8rem;
+    background: #ffffff;
+    padding: 0.9rem;
+    box-shadow: 0 8px 22px -22px rgba(15, 23, 42, 0.55);
+  }
+
+  .sapas-overtime-mobile-head,
+  .sapas-overtime-mobile-footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .sapas-overtime-mobile-head p {
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 650;
+  }
+
+  .sapas-overtime-mobile-head h3 {
+    margin-top: 0.2rem;
+    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .sapas-overtime-mobile-head small,
+  .sapas-overtime-mobile-context {
+    color: #64748b;
+    font-size: 0.75rem;
+  }
+
+  .sapas-overtime-mobile-head > strong {
+    flex: 0 0 auto;
+    border-radius: 0.6rem;
+    background: #eff6ff;
+    padding: 0.45rem 0.6rem;
+    color: #1d4f91;
+    font-size: 0.9rem;
+  }
+
+  .sapas-overtime-mobile-context {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.7rem;
+  }
+
+  .sapas-overtime-mobile-card .sapas-overtime-breakdown {
+    margin-top: 0.75rem;
+  }
+
+  .sapas-overtime-mobile-footer {
+    align-items: center;
+    margin-top: 0.8rem;
+    border-top: 1px solid #eef2f7;
+    padding-top: 0.8rem;
+  }
+
+  /* Workforce Policy Center overview: one cohesive card and clean metric strip. */
+  .sapas-policy-overview-actions {
+    max-width: none;
+    flex-wrap: nowrap;
+  }
+
+  .sapas-policy-overview-actions .sapas-btn {
+    min-width: 0;
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .sapas-policy-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 0.9rem;
+  }
+
+  .sapas-policy-kpi-item {
+    min-width: 0;
+    padding: 0.2rem 1rem;
+  }
+
+  .sapas-policy-kpi-item + .sapas-policy-kpi-item {
+    border-left: 1px solid #e2e8f0;
+  }
+
+  .sapas-policy-kpi-item dt {
+    color: #64748b;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+
+  .sapas-policy-kpi-item dd {
+    margin-top: 0.3rem;
+    color: #0f172a;
+    font-size: 1.5rem;
+    font-weight: 750;
+    line-height: 1;
+  }
+
+  @media (max-width: 1000px) {
+    .sapas-overtime-desktop-table {
+      display: none;
+    }
+
+    .sapas-overtime-mobile-list {
+      display: grid;
+      gap: 0.75rem;
+      padding: 0.85rem;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .sapas-policy-overview-actions {
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sapas-policy-kpi-strip {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.7rem;
+    }
+
+    .sapas-policy-kpi-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 0.65rem;
+      background: #f8fafc;
+      padding: 0.75rem 0.85rem;
+    }
+
+    .sapas-policy-kpi-item + .sapas-policy-kpi-item {
+      border-left: 1px solid #e2e8f0;
+    }
+  }
+
+  /* Workforce Policy Center: one clean header, compact navigation and summaries. */
+  .sapas-policy-nav-row {
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid #dce5ee;
+    border-radius: 0.8rem;
+    background: #ffffff;
+    padding: 0.45rem;
+    box-shadow: none;
+  }
+
+  .sapas-policy-workspace-nav {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .sapas-policy-workspace-link {
+    min-height: 0;
+    border: 1px solid transparent;
+    border-radius: 0.6rem;
+    background: transparent;
+    padding: 0.65rem 0.9rem;
+    color: #475569;
+    font-size: 0.86rem;
+    box-shadow: none;
+  }
+
+  .sapas-policy-workspace-link span {
+    display: block;
+    color: inherit;
+    font-size: 0.86rem;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  .sapas-policy-workspace-link:hover,
+  .sapas-policy-workspace-link:focus-visible {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4f91;
+    outline: none;
+    box-shadow: none;
+  }
+
+  .sapas-policy-workspace-link.is-active {
+    border-color: #93c5fd;
+    background: #2563a9;
+    color: #ffffff;
+    box-shadow: none;
+  }
+
+  .sapas-policy-advanced {
+    flex: 0 0 auto;
+  }
+
+  .sapas-policy-overview-card {
+    padding: 1.15rem;
+  }
+
+  .sapas-policy-overview-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+  }
+
+  .sapas-policy-overview-actions {
+    display: flex;
+    max-width: 31rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .sapas-policy-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+
+  .sapas-policy-overview-stat {
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+    background: #f8fafc;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .sapas-policy-flow-panel {
+    padding: 1rem;
+  }
+
+  .sapas-policy-flow-panel h2 {
+    font-size: 1.15rem;
+  }
+
+  .sapas-policy-step-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin-top: 0.8rem;
+  }
+
+  .sapas-policy-step-card {
+    min-height: 0;
+    border-radius: 0.65rem;
+    padding: 0.7rem 0.8rem;
+    box-shadow: none;
+  }
+
+  .sapas-policy-step-card strong {
+    margin-top: 0.15rem;
+  }
+
+  .sapas-policy-step-card small {
+    display: none;
+  }
+
+  .sapas-policy-review-panel {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .sapas-policy-review-heading h2 {
+    margin-top: 0.2rem;
+    color: #0f172a;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .sapas-policy-review-heading p:last-child {
+    margin-top: 0.25rem;
+    color: #64748b;
+    font-size: 0.88rem;
+  }
+
+  .sapas-policy-review-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .sapas-policy-review-meta > div {
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+    background: #f8fafc;
+    padding: 0.7rem 0.8rem;
+  }
+
+  .sapas-policy-review-meta dt,
+  .sapas-policy-review-date label {
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+  }
+
+  .sapas-policy-review-meta dd {
+    margin-top: 0.25rem;
+    color: #172033;
+    font-size: 0.88rem;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  .sapas-policy-review-schedule {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.7rem;
+  }
+
+  .sapas-policy-review-schedule .sapas-data-table th,
+  .sapas-policy-review-schedule .sapas-data-table td {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .sapas-policy-review-rules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .sapas-policy-review-rules article {
+    border: 1px solid #dce5ee;
+    border-radius: 0.7rem;
+    background: #ffffff;
+    padding: 0.9rem;
+  }
+
+  .sapas-policy-review-rules h3 {
+    color: #172033;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .sapas-policy-review-rules ul {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+  }
+
+  .sapas-policy-review-rules li {
+    display: flex;
+    gap: 0.45rem;
+    color: #475569;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .sapas-policy-review-rules li::before {
+    content: "•";
+    color: #2563a9;
+    font-weight: 800;
+  }
+
+  .sapas-policy-assignment-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border: 1px solid #dbeafe;
+    border-radius: 0.7rem;
+    background: #eff6ff;
+    padding: 0.8rem 0.9rem;
+    color: #334155;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .sapas-policy-assignment-note strong {
+    flex: 0 0 auto;
+    color: #1e3a5f;
+  }
+
+  .sapas-policy-review-actions {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.8rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+  }
+
+  .sapas-policy-review-date {
+    min-width: min(100%, 15rem);
+  }
+
+  .sapas-policy-review-date .sapas-form-control {
+    margin-top: 0.35rem;
+  }
+
+  @media (max-width: 900px) {
+    .sapas-analytics-summary-header,
+    .sapas-policy-overview-head,
+    .sapas-policy-review-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .sapas-analytics-summary-grid,
+    .sapas-policy-overview-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sapas-policy-review-meta,
+    .sapas-policy-step-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sapas-policy-overview-actions {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sapas-analytics-summary {
+      padding: 1rem;
+    }
+
+    .sapas-analytics-summary-grid,
+    .sapas-policy-overview-grid,
+    .sapas-policy-review-meta,
+    .sapas-policy-review-rules,
+    .sapas-policy-step-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sapas-policy-nav-row {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .sapas-policy-workspace-nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sapas-policy-workspace-link span {
+      white-space: normal;
+    }
+
+    .sapas-policy-advanced summary {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .sapas-policy-review-actions .sapas-operation-actions,
+    .sapas-policy-review-actions .sapas-btn {
+      width: 100%;
+    }
+
+    .sapas-policy-assignment-note {
+      flex-direction: column;
+    }
+  }
+}
+
+
+@layer components {
+  /* Login simplification 2026-08-04: reduce promotional copy and keep the form dominant. */
+  .sapas-guest-body {
+    background: #edf3f8;
+  }
+
+  .sapas-guest-frame.is-focused-login {
+    width: min(100%, 64rem);
+    max-width: 64rem;
+    min-height: 0;
+    border: 1px solid #d5e0ea;
+    border-radius: 1rem;
+    box-shadow: 0 24px 60px -42px rgba(11, 39, 66, 0.72);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+    min-height: 31rem;
+    padding: 2rem 2.5rem;
+    background: #ffffff;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+    min-height: 31rem;
+    padding: 2.5rem 2.25rem;
+    background: #123a63;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-inner {
+    justify-content: center;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-kicker {
+    color: #c8dcee;
+    font-size: 0.7rem;
+    letter-spacing: 0.11em;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-title {
+    margin-top: 0.75rem;
+    max-width: 22rem;
+    font-size: 1.8rem;
+    line-height: 1.32;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-grid {
+    margin-top: 2rem;
+    gap: 0.65rem;
+    border: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.055);
+    padding: 0.65rem 0.75rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card strong {
+    font-size: 0.875rem;
+    line-height: 1.3rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-feature-icon {
+    height: 2rem;
+    width: 2rem;
+    flex: 0 0 2rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-language {
+    top: 1.5rem;
+    right: 1.75rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-header {
+    max-width: 28rem;
+    padding-right: 7rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    font-size: 1.5rem;
+    line-height: 1.85rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-card {
+    margin-top: 2rem;
+    max-width: 28rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-card-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-card-header h1 {
+    margin-top: 0;
+    font-size: 1.8rem;
+    line-height: 2.15rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-card-header p:last-child {
+    margin-top: 0.35rem;
+    max-width: 24rem;
+  }
+
+  .sapas-guest-frame.is-focused-login #loginForm > * + * {
+    margin-top: 0.9rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-form-control,
+  .sapas-login-submit {
+    min-height: 3rem;
+  }
+
+  .sapas-login-help {
+    margin-top: 0.85rem;
+    text-align: left;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-footer {
+    margin-top: 1rem;
+    font-size: 0.72rem;
+  }
+
+  @media (min-width: 1024px) {
+    .sapas-guest-frame.is-focused-login {
+      grid-template-columns: minmax(19rem, 0.76fr) minmax(30rem, 1.24fr);
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+      order: 2;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+      order: 1;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .sapas-guest-shell {
+      align-items: center;
+    }
+
+    .sapas-guest-frame.is-focused-login {
+      max-width: 32rem;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+      display: none;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+      order: 1;
+      min-height: auto;
+      padding: 1.5rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-language {
+      position: static;
+      margin-bottom: 1.25rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-header {
+      padding-right: 0;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-card {
+      margin-top: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sapas-guest-shell {
+      padding: 0.75rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+      padding: 1.25rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-login-card-header h1 {
+      font-size: 1.55rem;
+      line-height: 1.95rem;
+    }
+  }
+
+  :lang(my) .sapas-guest-frame.is-focused-login .sapas-guest-visual-title {
+    font-size: 1.65rem;
+    line-height: 1.55;
+  }
+
+  :lang(my) .sapas-guest-frame.is-focused-login .sapas-login-card-header h1 {
+    font-size: 1.65rem;
+    line-height: 1.55;
+  }
+}
+
+@layer components {
+  /* UI/UX Polish Sprint 1: shared brand, shell clarity, dashboard rhythm, and employee-form guidance. */
+  .sapas-brand-lockup {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 0.75rem;
+  }
+
+  .sapas-brand-mark {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #b9d4e8;
+    border-radius: 0.75rem;
+    background: #123a63;
+    color: #ffffff;
+    box-shadow: 0 10px 24px -18px rgba(11, 39, 66, 0.8);
+  }
+
+  .sapas-brand-mark span {
+    font-size: 1rem;
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .sapas-brand-text {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .sapas-brand-wordmark,
+  .sapas-brand-subtitle {
+    letter-spacing: 0;
+  }
+
+  .sapas-brand-lockup-guest {
+    margin-left: 0;
+    margin-right: 0;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .sapas-brand-lockup-guest .sapas-brand-mark {
+    width: 3rem;
+    height: 3rem;
+    flex-basis: 3rem;
+    border-color: #a8c9e1;
+  }
+
+  .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    margin-left: 0;
+    margin-right: 0;
+    font-size: 1.55rem;
+    line-height: 1.8rem;
+  }
+
+  .sapas-sidebar-brand {
+    padding-bottom: 1.125rem;
+  }
+
+  .sapas-sidebar-brand .sapas-brand-lockup {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .sapas-sidebar .sapas-brand-mark {
+    border-color: rgba(255, 255, 255, 0.28);
+    background: #ffffff;
+    color: #123a63;
+    box-shadow: none;
+  }
+
+  .sapas-sidebar .sapas-brand-subtitle {
+    font-size: 0.72rem;
+    line-height: 1.1rem;
+    text-transform: none;
+  }
+
+  .sapas-brand-lockup-compact {
+    gap: 0.5rem;
+  }
+
+  .sapas-brand-lockup-compact .sapas-brand-mark {
+    width: 2rem;
+    height: 2rem;
+    flex-basis: 2rem;
+    border-radius: 0.5rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-description {
+    max-width: 27rem;
+    margin-top: 0.55rem;
+    color: #526477;
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.4rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-card {
+    border: 1px solid #e0e8f0;
+    border-radius: 0.875rem;
+    background: #ffffff;
+    box-shadow: 0 18px 38px -34px rgba(11, 39, 66, 0.72);
+  }
+
+  .sapas-nav-link {
+    position: relative;
+    gap: 0.625rem;
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+
+  .sapas-nav-icon {
+    width: 2rem;
+    height: 2rem;
+    padding: 0.375rem;
+    border-radius: 0.5rem;
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  .sapas-nav-link.is-active {
+    border-color: rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.17);
+    box-shadow: inset 3px 0 0 #7dd3fc, 0 10px 24px -20px rgba(0, 0, 0, 0.9);
+  }
+
+  .sapas-nav-link.is-active::after {
+    content: "";
+    position: absolute;
+    right: 0.75rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: #7dd3fc;
+    box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.12);
+  }
+
+  .sapas-nav-link.is-active .sapas-nav-icon {
+    background: rgba(255, 255, 255, 0.14);
+    color: #d9f1ff;
+  }
+
+  body:has(.sapas-dashboard-stack) .sapas-page-header {
+    border-bottom: 1px solid #dce5ee;
+    background: rgba(255, 255, 255, 0.62);
+  }
+
+  body:has(.sapas-dashboard-stack) .sapas-page-header-text p {
+    max-width: 52rem;
+  }
+
+  .sapas-dashboard-kpi-grid {
+    align-items: stretch;
+  }
+
+  .sapas-dashboard-kpi-card {
+    height: 100%;
+  }
+
+  .sapas-dashboard-kpi-heading {
+    min-height: 2.5rem;
+  }
+
+  .sapas-dashboard-kpi-note {
+    margin-top: auto;
+    padding-top: 0.75rem;
+  }
+
+  .sapas-dashboard-section-header {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #edf1f5;
+    padding-bottom: 0.875rem;
+  }
+
+  .sapas-dashboard-table-empty {
+    display: flex;
+    min-height: 9rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .sapas-dashboard-table-empty .sapas-empty-icon {
+    margin-bottom: 0.75rem;
+  }
+
+  .sapas-employee-form {
+    max-width: 76rem;
+  }
+
+  .sapas-employee-form .sapas-form-section {
+    border-color: #dce5ee;
+    padding: 1.25rem;
+    box-shadow: 0 12px 30px -28px rgba(15, 42, 67, 0.7);
+  }
+
+  .sapas-employee-form .sapas-form-section-header {
+    margin-bottom: 1.125rem;
+    padding-bottom: 0.875rem;
+  }
+
+  .sapas-employee-form .sapas-form-section-header h2 {
+    font-size: 1.05rem;
+    color: #0f2f4d;
+  }
+
+  .sapas-employee-form .sapas-form-grid {
+    column-gap: 1.25rem;
+    row-gap: 1.125rem;
+  }
+
+  .sapas-employee-form .sapas-form-grid > div {
+    min-width: 0;
+  }
+
+  .sapas-form-required-note {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid #cfe0ec;
+    border-radius: 0.75rem;
+    background: #f4f8fb;
+    padding: 0.7rem 0.85rem;
+    color: #40566b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.35rem;
+  }
+
+  .sapas-form-required-note-icon,
+  .sapas-form-error-icon {
+    display: inline-flex;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+  }
+
+  .sapas-form-required-note-icon {
+    border: 1px solid #b9d4e8;
+    background: #ffffff;
+    color: #1f668f;
+  }
+
+  .sapas-form-error-summary {
+    margin-bottom: 1rem;
+    border-radius: 0.875rem;
+  }
+
+  .sapas-form-error-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .sapas-form-error-icon {
+    border: 1px solid #fecdd3;
+    background: #ffffff;
+    color: #be123c;
+  }
+
+  .sapas-form-error-summary ul {
+    margin-left: 2.75rem;
+    line-height: 1.5rem;
+  }
+
+  .sapas-employee-form .sapas-form-label {
+    color: #334155;
+    font-weight: 650;
+  }
+
+  .sapas-employee-form .sapas-field-help {
+    margin-top: 0.45rem;
+    color: #64748b;
+  }
+
+  .sapas-field-feedback:empty {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  .sapas-employee-form .sapas-live-rule-list {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.625rem;
+    background: #f8fafc;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .sapas-employee-form .sapas-form-control:user-invalid:not(:focus) {
+    border-color: #fda4af;
+  }
+
+  .sapas-employee-form .sapas-form-action-row {
+    border-color: #dce5ee;
+    padding: 0.875rem 1rem;
+  }
+
+  :lang(my) .sapas-brand-subtitle {
+    line-height: 1.45;
+    text-transform: none;
+  }
+
+  /* Seminar cleanup: keep login identity clear and give attendance metrics room. */
+  .sapas-guest-frame.is-focused-login .sapas-guest-header {
+    padding-right: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-description {
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  :lang(my) .sapas-guest-frame.is-focused-login .sapas-guest-description {
+    font-size: 0.78rem;
+  }
+
+  .sapas-attendance-table {
+    min-width: 82rem;
+  }
+
+  .sapas-attendance-table .sapas-col-attendance-late {
+    width: 8rem;
+  }
+
+  .sapas-attendance-table .sapas-col-attendance-work-duration {
+    width: 8rem;
+  }
+
+  @media (max-width: 639px) {
+    .sapas-guest-frame.is-focused-login .sapas-guest-description {
+      white-space: normal;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-mark {
+      width: 2.5rem;
+      height: 2.5rem;
+      flex-basis: 2.5rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-wordmark {
+      font-size: 1.35rem;
+      line-height: 1.6rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-card {
+      padding: 1.25rem;
+      box-shadow: none;
+    }
+
+    .sapas-employee-form .sapas-form-section {
+      padding: 1rem;
+    }
+
+    .sapas-form-error-summary ul {
+      margin-left: 0;
+    }
+  }
+}
+
+@layer components {
+  /* UI/UX Polish Sprint 2: operational table, filter, badge, action, and empty-state consistency. */
+  .sapas-filter-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .sapas-polish-filter-panel,
+  .sapas-report-filter-panel,
+  .sapas-report-table-header {
+    max-width: 100%;
+  }
+
+  .sapas-polish-filter-grid {
+    align-items: end;
+  }
+
+  .sapas-polish-filter-grid > div {
+    min-width: 0;
+  }
+
+  .sapas-filter-actions,
+  .sapas-export-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sapas-filter-actions .sapas-btn,
+  .sapas-export-actions .sapas-btn {
+    min-height: 2.5rem;
+    width: auto;
+  }
+
+  .sapas-filter-reset {
+    flex: none;
+  }
+
+  .sapas-polish-table-scroll {
+    max-width: 100%;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sapas-report-table-panel .sapas-data-table thead th,
+  .sapas-overtime-table thead th {
+    border-bottom: 1px solid #cbd5e1;
+    background: #eef3f7;
+    color: #334155;
+  }
+
+  .sapas-data-table tbody tr:focus-within,
+  .sapas-overtime-table tbody tr:focus-within {
+    background: #eff6ff;
+    box-shadow: inset 3px 0 0 #2f80ed;
+  }
+
+  .sapas-table-action .sapas-btn,
+  .sapas-employee-actions .sapas-btn,
+  .sapas-leave-actions .sapas-btn,
+  .sapas-overtime-table .sapas-table-action .sapas-btn {
+    min-height: 2.25rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
+
+  .sapas-employee-actions,
+  .sapas-leave-actions {
+    gap: 0.375rem;
+  }
+
+  .sapas-badge {
+    gap: 0.375rem;
+    min-height: 1.75rem;
+    padding: 0.25rem 0.625rem;
+    border-width: 1px;
+    box-shadow: none;
+  }
+
+  .sapas-badge-success::before,
+  .sapas-badge-warning::before,
+  .sapas-badge-danger::before,
+  .sapas-badge-info::before,
+  .sapas-badge-neutral::before {
+    content: "";
+    width: 0.375rem;
+    height: 0.375rem;
+    flex: none;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.58;
+  }
+
+  .sapas-polish-empty-state {
+    min-height: 10rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .sapas-polish-empty-state .sapas-report-empty-title {
+    color: #1e293b;
+    font-size: 1rem;
+    letter-spacing: 0;
+  }
+
+  .sapas-polish-empty-state .sapas-report-empty-copy {
+    max-width: 38rem;
+    margin-top: 0.5rem;
+  }
+
+  :lang(my) .sapas-filter-actions .sapas-btn,
+  :lang(my) .sapas-export-actions .sapas-btn,
+  :lang(my) .sapas-table-action .sapas-btn {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.45;
+  }
+
+  @media (max-width: 639px) {
+    .sapas-filter-actions {
+      width: 100%;
+    }
+
+    .sapas-filter-actions .sapas-btn {
+      flex: 1 1 8rem;
+    }
+
+    .sapas-export-actions {
+      width: 100%;
+    }
+
+    .sapas-export-actions .sapas-btn {
+      flex: 1 1 9rem;
+    }
+
+    .sapas-polish-empty-state {
+      min-height: 8.5rem;
+      padding: 1.5rem 1rem;
+    }
+  }
+}

@@ -1,0 +1,97 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './public/**/*.php',
+    './src/**/*.php',
+    './views/**/*.php',
+    './lang/**/*.php',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#2563a9',
+          600: '#174f91',
+          700: '#123f77',
+          800: '#103563',
+          900: '#0b274b',
+        },
+        ink: {
+          DEFAULT: '#111827',
+          navy: '#0b1220',
+          slate: '#172033',
+          muted: '#475569',
+          soft: '#64748b',
+          mist: '#94a3b8',
+        },
+        plum: {
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          400: '#a855f7',
+          500: '#8b5cf6',
+          600: '#7c3aed',
+          700: '#6d28d9',
+          800: '#4c1d95',
+        },
+        accent: {
+          teal: '#0f766e',
+          emerald: '#059669',
+          amber: '#d97706',
+          rose: '#e11d48',
+          coral: '#f43f5e',
+          cyan: '#0891b2',
+        },
+        surface: {
+          canvas: '#f4f7fb',
+          page: '#f4f7fb',
+          shell: '#0b376d',
+          hero: '#ffffff',
+          mist: '#f8fafc',
+          card: '#ffffff',
+          raised: '#f8fafc',
+          nested: '#f1f5f9',
+          table: '#ffffff',
+          analytics: '#f3f8f7',
+          report: '#f8fafc',
+        },
+      },
+      boxShadow: {
+        'sapas-shell': '12px 0 34px -24px rgba(15, 42, 67, 0.62)',
+        'sapas-hero': '0 24px 54px -38px rgba(15, 42, 67, 0.42), 0 2px 8px rgba(15, 23, 42, 0.05)',
+        'sapas-card': '0 16px 34px -26px rgba(15, 42, 67, 0.34), 0 3px 10px rgba(15, 23, 42, 0.05)',
+        'sapas-nested': '0 10px 24px -20px rgba(15, 42, 67, 0.30), 0 2px 7px rgba(15, 23, 42, 0.04)',
+        'sapas-soft': '0 5px 14px -10px rgba(15, 42, 67, 0.24), 0 1px 3px rgba(15, 23, 42, 0.05)',
+        'sapas-table': '0 14px 30px -26px rgba(15, 42, 67, 0.30), 0 2px 7px rgba(15, 23, 42, 0.04)',
+      },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(0.35rem)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.45s ease-out both',
+      },
+      fontFamily: {
+        sans: [
+          'Inter',
+          'Segoe UI',
+          'Noto Sans Myanmar',
+          'Myanmar Text',
+          'Pyidaungsu',
+          'Tahoma',
+          'Geneva',
+          'Verdana',
+          'sans-serif',
+        ],
+      },
+    },
+  },
+  plugins: [],
+};

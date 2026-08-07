@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    ['name' => 'New Year Holiday', 'date' => '2026-01-01', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'New Year Holiday', 'date' => '2026-01-02', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Independence Day', 'date' => '2026-01-04', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Union Day Holiday', 'date' => '2026-02-12', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Union Day Holiday', 'date' => '2026-02-13', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Chinese New Year Holiday', 'date' => '2026-02-16', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Chinese New Year Holiday', 'date' => '2026-02-17', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => "Peasants' Day and Full Moon Day of Tabaung", 'date' => '2026-03-02', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Armed Forces Day', 'date' => '2026-03-27', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-11', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-12', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-13', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-14', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-15', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-16', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-17', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-18', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thingyan Holiday', 'date' => '2026-04-19', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Full Moon Day of Kasong', 'date' => '2026-04-30', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Labour Day', 'date' => '2026-05-01', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Eid Al Adha Day', 'date' => '2026-05-28', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Company Wellness Day', 'date' => '2026-07-02', 'description' => 'Company holiday: office closed for the scheduled wellness observance.'],
+    ['name' => 'Company Foundation Day', 'date' => '2026-07-17', 'description' => 'Company holiday: office closed for the annual foundation observance.'],
+    ['name' => "Martyrs' Day", 'date' => '2026-07-19', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Full Moon Day of Waso', 'date' => '2026-07-29', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thadingyut Holiday', 'date' => '2026-10-25', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thadingyut Holiday', 'date' => '2026-10-26', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Thadingyut Holiday', 'date' => '2026-10-27', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Tazaungdaing Holiday', 'date' => '2026-11-23', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Tazaungdaing Holiday', 'date' => '2026-11-24', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'National Day', 'date' => '2026-12-04', 'description' => 'Official Myanmar public holiday for 2026.'],
+    ['name' => 'Christmas Day', 'date' => '2026-12-25', 'description' => 'Official Myanmar public holiday for 2026.'],
+];
