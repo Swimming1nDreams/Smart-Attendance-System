@@ -18,29 +18,61 @@ date_default_timezone_set($appTimezone);
 
 $pdo = (new Database($settings))->getConnection();
 
-function getOrCreateDepartment(PDO $pdo): int {
-    $stmt = $pdo->query("SELECT id FROM departments LIMIT 1");
+$scenarios = [
+    'ADMIN' => ['name' => 'Thiri Mon', 'email' => 'thiri.mon@silveroakhr.com', 'old_email' => 'admin@example.com', 'role' => 'admin', 'dept' => 'Human Resources', 'pos' => 'HR Manager', 'staff_code' => 'EMP031'],
+    'A' => ['name' => 'Aung Min Khant', 'email' => 'aung.min.khant@silveroakhr.com', 'old_email' => 'emp_a_ontime@example.com', 'role' => 'employee', 'dept' => 'Customer Support', 'pos' => 'Customer Support Representative', 'staff_code' => 'EMP032'],
+    'B' => ['name' => 'Su Myat Noe', 'email' => 'su.myat.noe@silveroakhr.com', 'old_email' => 'emp_b_late@example.com', 'role' => 'employee', 'dept' => 'Customer Support', 'pos' => 'Senior Customer Support Representative', 'staff_code' => 'EMP033'],
+    'C' => ['name' => 'Thant Zin Oo', 'email' => 'thant.zin.oo@silveroakhr.com', 'old_email' => 'emp_c_absent@example.com', 'role' => 'employee', 'dept' => 'Operations', 'pos' => 'Operations Coordinator', 'staff_code' => 'EMP034'],
+    'D' => ['name' => 'May Thu Aung', 'email' => 'may.thu.aung@silveroakhr.com', 'old_email' => 'emp_d_incomplete@example.com', 'role' => 'employee', 'dept' => 'Operations', 'pos' => 'Operations Assistant', 'staff_code' => 'EMP035'],
+    'E' => ['name' => 'Htet Naing Win', 'email' => 'htet.naing.win@silveroakhr.com', 'old_email' => 'emp_e_leave@example.com', 'role' => 'employee', 'dept' => 'Information Technology', 'pos' => 'IT Support Specialist', 'staff_code' => 'EMP036'],
+    'F' => ['name' => 'Ei Ei Phyu', 'email' => 'ei.ei.phyu@silveroakhr.com', 'old_email' => 'emp_f_livelate@example.com', 'role' => 'employee', 'dept' => 'Customer Support', 'pos' => 'Customer Support Specialist', 'staff_code' => 'EMP037'],
+    'G' => ['name' => 'Kaung Htet Zaw', 'email' => 'kaung.htet.zaw@silveroakhr.com', 'old_email' => 'emp_g_liveontime@example.com', 'role' => 'employee', 'dept' => 'Information Technology', 'pos' => 'System Support Officer', 'staff_code' => 'EMP038'],
+];
+
+function getOrCreateDepartment(PDO $pdo, string $name): int {
+    $stmt = $pdo->prepare("SELECT id FROM departments WHERE name = ?");
+    $stmt->execute([$name]);
     $id = $stmt->fetchColumn();
     if ($id) return (int) $id;
     
-    $pdo->exec("INSERT INTO departments (name, description) VALUES ('Demo Department', 'Demo Dept')");
+    $pdo->prepare("INSERT INTO departments (name) VALUES (?)")->execute([$name]);
     return (int) $pdo->lastInsertId();
 }
 
-function getOrCreateUser(PDO $pdo, string $name, string $email, string $role, int $departmentId, string $staffCode): int {
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$email]);
+function getOrCreatePosition(PDO $pdo, string $name): int {
+    $stmt = $pdo->prepare("SELECT id FROM positions WHERE name = ?");
+    $stmt->execute([$name]);
     $id = $stmt->fetchColumn();
+    if ($id) return (int) $id;
+    
+    $pdo->prepare("INSERT INTO positions (name) VALUES (?)")->execute([$name]);
+    return (int) $pdo->lastInsertId();
+}
+
+function getOrCreateUser(PDO $pdo, array $scenario): int {
+    $deptId = getOrCreateDepartment($pdo, $scenario['dept']);
+    $posId = getOrCreatePosition($pdo, $scenario['pos']);
+    
+    // Check new email
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->execute([$scenario['email']]);
+    $id = $stmt->fetchColumn();
+    
+    if (!$id) {
+        // Check old email
+        $stmt->execute([$scenario['old_email']]);
+        $id = $stmt->fetchColumn();
+    }
     
     $password = password_hash('password123', PASSWORD_DEFAULT);
     if ($id) {
-        $stmt = $pdo->prepare("UPDATE users SET name = ?, role = ?, status = 'active', expected_daily_work_hours = 8.00, staff_code = ? WHERE id = ?");
-        $stmt->execute([$name, $role, $staffCode, $id]);
+        $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, role = ?, status = 'active', expected_daily_work_hours = 8.00, staff_code = ?, department_id = ?, position_id = ? WHERE id = ?");
+        $stmt->execute([$scenario['name'], $scenario['email'], $scenario['role'], $scenario['staff_code'], $deptId, $posId, $id]);
         return (int) $id;
     }
     
-    $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, department_id, staff_code, status, expected_daily_work_hours, created_at) VALUES (?, ?, ?, ?, ?, ?, 'active', 8.00, NOW())");
-    $stmt->execute([$name, $email, $password, $role, $departmentId, $staffCode]);
+    $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, department_id, position_id, staff_code, status, expected_daily_work_hours, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 8.00, NOW())");
+    $stmt->execute([$scenario['name'], $scenario['email'], $password, $scenario['role'], $deptId, $posId, $scenario['staff_code']]);
     
     $userId = (int) $pdo->lastInsertId();
     $pdo->prepare("INSERT INTO employee_profiles (user_id) VALUES (?)")->execute([$userId]);
@@ -95,7 +127,7 @@ function createLeaveRequest(PDO $pdo, int $userId, string $date): void {
 }
 
 function assignLiveDemoSchedule(PDO $pdo, array $userIds, string $todayDateStr, string $startTime, string $endTime): bool {
-    $templateName = "Demo Live Shift";
+    $templateName = "Live Shift";
     $stmt = $pdo->prepare("SELECT id FROM work_schedule_templates WHERE name = ?");
     $stmt->execute([$templateName]);
     $templateId = $stmt->fetchColumn();
@@ -108,9 +140,11 @@ function assignLiveDemoSchedule(PDO $pdo, array $userIds, string $todayDateStr, 
         $pdo->prepare("DELETE FROM work_schedule_days WHERE work_schedule_template_id = ?")->execute([$templateId]);
     }
     
+    // Live shift is Mon-Sat
     for ($i = 1; $i <= 7; $i++) {
-        $stmt = $pdo->prepare("INSERT INTO work_schedule_days (work_schedule_template_id, day_of_week, is_working_day, start_time, end_time, expected_minutes, grace_minutes) VALUES (?, ?, 1, ?, ?, 480, 15)");
-        $stmt->execute([$templateId, $i, $startTime, $endTime]);
+        $isWork = $i <= 6;
+        $stmt = $pdo->prepare("INSERT INTO work_schedule_days (work_schedule_template_id, day_of_week, is_working_day, start_time, end_time, expected_minutes, grace_minutes) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$templateId, $i, $isWork ? 1 : 0, $isWork ? $startTime : null, $isWork ? $endTime : null, $isWork ? 540 : 0, $isWork ? 15 : 0]);
     }
     
     foreach ($userIds as $userId) {
@@ -121,20 +155,15 @@ function assignLiveDemoSchedule(PDO $pdo, array $userIds, string $todayDateStr, 
     return true;
 }
 
-// Ensure base dependencies exist
-$departmentId = getOrCreateDepartment($pdo);
-
-// Admin Account
-$adminId = getOrCreateUser($pdo, 'Admin Demo', 'admin@example.com', 'admin', $departmentId, 'ADM-001');
-
-// Demo Employees
-$empA = getOrCreateUser($pdo, 'A. On-time Employee', 'emp_a_ontime@example.com', 'employee', $departmentId, 'EMP-A');
-$empB = getOrCreateUser($pdo, 'B. Late Employee', 'emp_b_late@example.com', 'employee', $departmentId, 'EMP-B');
-$empC = getOrCreateUser($pdo, 'C. Absent Employee', 'emp_c_absent@example.com', 'employee', $departmentId, 'EMP-C');
-$empD = getOrCreateUser($pdo, 'D. Incomplete Employee', 'emp_d_incomplete@example.com', 'employee', $departmentId, 'EMP-D');
-$empE = getOrCreateUser($pdo, 'E. Leave Employee', 'emp_e_leave@example.com', 'employee', $departmentId, 'EMP-E');
-$empF = getOrCreateUser($pdo, 'F. Live Late Employee', 'emp_f_livelate@example.com', 'employee', $departmentId, 'EMP-F');
-$empG = getOrCreateUser($pdo, 'G. Live Checked-In Employee', 'emp_g_liveontime@example.com', 'employee', $departmentId, 'EMP-G');
+// Users
+$adminId = getOrCreateUser($pdo, $scenarios['ADMIN']);
+$empA = getOrCreateUser($pdo, $scenarios['A']);
+$empB = getOrCreateUser($pdo, $scenarios['B']);
+$empC = getOrCreateUser($pdo, $scenarios['C']);
+$empD = getOrCreateUser($pdo, $scenarios['D']);
+$empE = getOrCreateUser($pdo, $scenarios['E']);
+$empF = getOrCreateUser($pdo, $scenarios['F']);
+$empG = getOrCreateUser($pdo, $scenarios['G']);
 
 // Calculate working days for the month up to yesterday
 $now = new DateTimeImmutable('now');
@@ -176,7 +205,7 @@ $empGClockIn = $startDateTime->modify('+5 minutes')->format('H:i:s');
 $empFClockIn = $startDateTime->modify('+30 minutes')->format('H:i:s');
 
 // Assign Live Demo Schedule to F and G
-assignLiveDemoSchedule($pdo, [$empF, $empG], $todayDateStr, $startTimeStr, $endTimeStr);
+assignLiveDemoSchedule($pdo, [$empF, $empG], '2020-01-01', $startTimeStr, $endTimeStr);
 
 // ----------------------------------------------------------------------------
 // A. 100% On-time Employee
@@ -251,12 +280,6 @@ echo "- Live Today Date: " . $todayDateStr . " (Day of Week: " . $todayDayOfWeek
 echo "- Was Today Made Working via Demo Policy? Yes\n\n";
 echo "Login Credentials (All use password: password123)\n";
 echo "--------------------------------------------------\n";
-echo "Admin: admin@example.com\n";
-echo "Emp A (100% On-time): emp_a_ontime@example.com\n";
-echo "Emp B (100% With Late): emp_b_late@example.com\n";
-echo "Emp C (Derived Absent): emp_c_absent@example.com\n";
-echo "Emp D (Incomplete): emp_d_incomplete@example.com\n";
-echo "Emp E (Approved Leave): emp_e_leave@example.com\n";
-echo "Emp F (Live Late): emp_f_livelate@example.com\n";
-echo "Emp G (Live Checked-In): emp_g_liveontime@example.com\n";
-
+foreach ($scenarios as $s) {
+    echo "{$s['name']}: {$s['email']}\n";
+}
