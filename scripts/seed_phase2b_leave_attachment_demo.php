@@ -34,19 +34,27 @@ try {
         }
     }
 
+    $demoReason = 'SAPAS Phase 2B Demo - Medical checkup';
+    $demoOriginalName = 'medical_certificate.pdf';
+
     // 1. Find existing demo records
-    // Identify by: user_id = emp_e_leave, leave_type = medical, reason = Medical checkup
-    $stmt = $db->prepare("SELECT lr.id, lra.id as attachment_id, lra.file_path
+    // Identify by: user_id = emp_e_leave, leave_type = medical,
+    // AND (reason = Canonical OR (reason = 'Medical checkup' AND original_name = 'medical_certificate.pdf'))
+    $stmt = $db->prepare("SELECT lr.id, lra.id as attachment_id, lra.file_path, lr.reason
                           FROM leave_requests lr
                           LEFT JOIN leave_request_attachments lra ON lr.id = lra.leave_request_id
-                          WHERE lr.user_id = ? AND lr.leave_type = 'medical' AND lr.reason = 'Medical checkup'
+                          WHERE lr.user_id = ? AND lr.leave_type = 'medical'
+                            AND (
+                                (lr.reason = ?)
+                                OR
+                                (lr.reason = 'Medical checkup' AND lra.original_name = ?)
+                            )
                           ORDER BY lr.id DESC");
-    $stmt->execute([$empD]);
+    $stmt->execute([$empD, $demoReason, $demoOriginalName]);
     $existingRecords = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (count($existingRecords) > 0) {
         $validRecord = array_shift($existingRecords); // Keep the first (newest) record
-
 
         // Remove duplicates
         foreach ($existingRecords as $duplicate) {
@@ -65,7 +73,14 @@ try {
             echo "Removed duplicate demo record #{$duplicate['id']}\n";
         }
 
-        // Check if valid record has physical file
+        // Upgrade legacy record if necessary
+        if ($validRecord['reason'] === 'Medical checkup') {
+            $updStmt = $db->prepare("UPDATE leave_requests SET reason = ? WHERE id = ?");
+            $updStmt->execute([$demoReason, $validRecord['id']]);
+            echo "Upgraded legacy demo record #{$validRecord['id']} to canonical demo reason.\n";
+        }
+
+        // Check if valid record has attachment row and physical file
         if ($validRecord['attachment_id'] && $validRecord['file_path']) {
             $physicalPath = $storageBaseDir . '/' . $validRecord['file_path'];
             if (!file_exists($physicalPath)) {
@@ -87,7 +102,7 @@ try {
             $stmt->execute([
                 $validRecord['id'],
                 'leave_attachments/' . $sampleFileName,
-                'medical_certificate.pdf',
+                $demoOriginalName,
                 'application/pdf',
                 filesize($sampleFilePath)
             ]);
@@ -101,19 +116,19 @@ try {
         echo "Created sample medical certificate: $sampleFileName\n";
 
         $today = date('Y-m-d');
-        $stmt = $db->prepare("INSERT INTO leave_requests (user_id, leave_type, start_date, end_date, duration_days, status, reason) VALUES (?, 'medical', ?, ?, 1, 'pending', 'Medical checkup')");
-        $stmt->execute([$empD, $today, $today]);
+        $stmt = $db->prepare("INSERT INTO leave_requests (user_id, leave_type, start_date, end_date, duration_days, status, reason) VALUES (?, 'medical', ?, ?, 1, 'pending', ?)");
+        $stmt->execute([$empD, $today, $today, $demoReason]);
         $leaveId = $db->lastInsertId();
 
         $stmt = $db->prepare("INSERT INTO leave_request_attachments (leave_request_id, file_path, original_name, mime_type, file_size) VALUES (?, ?, ?, ?, ?)");
         $stmt->execute([
             $leaveId,
             'leave_attachments/' . $sampleFileName,
-            'medical_certificate.pdf',
+            $demoOriginalName,
             'application/pdf',
             filesize($sampleFilePath)
         ]);
-        echo "Created medical leave request #$leaveId with attachment for Employee E.\n";
+        echo "Created canonical demo medical leave request #$leaveId with attachment for Employee E.\n";
     }
 
     $db->commit();
