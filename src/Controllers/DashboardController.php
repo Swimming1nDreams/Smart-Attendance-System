@@ -181,6 +181,15 @@ class DashboardController extends Controller
             $todayRecord['clock_in_time'] !== null &&
             $todayRecord['clock_out_time'] === null;
 
+        $resolvedWorkPolicy = null;
+        if ($this->scheduleResolver !== null) {
+            try {
+                $resolution = $this->scheduleResolver->resolve($userId, $today);
+                $resolvedWorkPolicy = \App\Services\WorkPolicyDisplayPresenter::present($resolution);
+            } catch (\Throwable) {
+                $resolvedWorkPolicy = \App\Services\WorkPolicyDisplayPresenter::present(null);
+            }
+        }
 
         $this->renderView('dashboard/employee', [
 
@@ -228,6 +237,7 @@ class DashboardController extends Controller
                 return $data['employee_analytics'][0]['has_100_percent_attendance'] ?? false;
             })(),
 
+            'resolvedWorkPolicy' => $resolvedWorkPolicy,
         ]);
     }
 

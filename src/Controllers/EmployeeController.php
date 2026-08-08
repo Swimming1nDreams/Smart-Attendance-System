@@ -17,6 +17,7 @@ use App\Services\EmailVerificationService;
 use App\Services\EmployeeValidationService;
 use App\Services\PasswordPolicyException;
 use App\Services\PasswordPolicyService;
+use App\Services\WorkScheduleResolverService;
 
 class EmployeeController extends MasterDataController
 {
@@ -28,9 +29,10 @@ class EmployeeController extends MasterDataController
     private AccountManagementService $accountManagementService;
     private EmployeeValidationService $employeeValidationService;
     private PasswordPolicyService $passwordPolicy;
+    private ?WorkScheduleResolverService $scheduleResolver;
     private ?AuditLogService $auditLog;
 
-    public function __construct(Employee $employeeModel, EmployeeProfile $employeeProfileModel, Department $departmentModel, Position $positionModel, EmailVerificationService $emailVerificationService, AccountManagementService $accountManagementService, EmployeeValidationService $employeeValidationService, PasswordPolicyService $passwordPolicy, \App\Core\SessionManager $sessionManager, Application $app, ?AuditLogService $auditLog = null)
+    public function __construct(Employee $employeeModel, EmployeeProfile $employeeProfileModel, Department $departmentModel, Position $positionModel, EmailVerificationService $emailVerificationService, AccountManagementService $accountManagementService, EmployeeValidationService $employeeValidationService, PasswordPolicyService $passwordPolicy, \App\Core\SessionManager $sessionManager, Application $app, ?WorkScheduleResolverService $scheduleResolver = null, ?AuditLogService $auditLog = null)
     {
         parent::__construct($sessionManager, $app);
         $this->employeeModel = $employeeModel;
@@ -41,6 +43,7 @@ class EmployeeController extends MasterDataController
         $this->accountManagementService = $accountManagementService;
         $this->employeeValidationService = $employeeValidationService;
         $this->passwordPolicy = $passwordPolicy;
+        $this->scheduleResolver = $scheduleResolver;
         $this->auditLog = $auditLog;
     }
 
@@ -164,9 +167,20 @@ class EmployeeController extends MasterDataController
 
         $profile = $this->employeeProfileModel->findByUserId($id);
 
+        $resolvedWorkPolicy = null;
+        if ($this->scheduleResolver !== null) {
+            try {
+                $resolution = $this->scheduleResolver->resolve($id, date('Y-m-d'));
+                $resolvedWorkPolicy = \App\Services\WorkPolicyDisplayPresenter::present($resolution);
+            } catch (\Throwable) {
+                $resolvedWorkPolicy = \App\Services\WorkPolicyDisplayPresenter::present(null);
+            }
+        }
+
         $this->render('employees/show', [
             'employee' => $employee,
             'profile' => $profile,
+            'resolvedWorkPolicy' => $resolvedWorkPolicy,
             'title' => $this->t('employees_module.details_title'),
         ]);
     }

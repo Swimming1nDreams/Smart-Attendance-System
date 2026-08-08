@@ -142,6 +142,22 @@ $summaryCards = [
                                 </div>
                             <?php endif; ?>
                         </div>
+                        <div class="sapas-dashboard-mini-card">
+                            <div class="sapas-card-heading">
+                                <span class="sapas-card-icon"><?= $renderIcon('calendar', 'sapas-icon') ?></span>
+                                <p class="sapas-dashboard-card-title"><?= htmlspecialchars($t('employees_module.work_policy') ?? 'Current Work Policy', ENT_QUOTES, 'UTF-8') ?></p>
+                            </div>
+                            <?php if (!empty($resolvedWorkPolicy['available'])): ?>
+                                <p class="mt-2 text-sm font-semibold leading-6 text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['name'], ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="text-xs text-slate-500 mb-1">Source: <?= htmlspecialchars($resolvedWorkPolicy['source_label'], ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="text-sm text-slate-700">Today: <span class="font-medium"><?= htmlspecialchars($resolvedWorkPolicy['schedule_label'], ENT_QUOTES, 'UTF-8') ?></span></p>
+                                <?php if ($resolvedWorkPolicy['is_working_day']): ?>
+                                    <p class="text-xs text-slate-500 mt-1">Grace: <?= htmlspecialchars($resolvedWorkPolicy['grace_label'], ENT_QUOTES, 'UTF-8') ?></p>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <p class="mt-2 text-sm leading-6 text-slate-600">No current work policy could be resolved.</p>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
 

@@ -134,6 +134,33 @@ $statusBadgeClass = $isActive
         </div>
     </div>
 
+    <div class="sapas-workspace-card bg-slate-50 border border-slate-200">
+        <h2 class="text-xl font-semibold"><?= htmlspecialchars($t('employees_module.work_policy') ?? 'Current Work Policy', ENT_QUOTES, 'UTF-8') ?></h2>
+        <p class="mt-1 text-sm text-slate-500">Authoritative policy resolved for today.</p>
+        <?php if (!empty($resolvedWorkPolicy['available'])): ?>
+            <div class="mt-6 grid gap-6 md:grid-cols-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Policy Name</p>
+                    <p class="mt-1 text-lg text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['name'], ENT_QUOTES, 'UTF-8') ?></p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Source</p>
+                    <p class="mt-1 text-lg text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['source_label'], ENT_QUOTES, 'UTF-8') ?></p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Today's Schedule</p>
+                    <p class="mt-1 text-lg text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['schedule_label'], ENT_QUOTES, 'UTF-8') ?></p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Grace Period</p>
+                    <p class="mt-1 text-lg text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['grace_label'], ENT_QUOTES, 'UTF-8') ?></p>
+                </div>
+            </div>
+        <?php else: ?>
+            <p class="mt-6 text-sm text-slate-600">No current work policy could be resolved.</p>
+        <?php endif; ?>
+    </div>
+
     <div class="sapas-workspace-card">
         <h2 class="text-xl font-semibold"><?= htmlspecialchars($t('employees_module.contact_section'), ENT_QUOTES, 'UTF-8') ?></h2>
         <p class="mt-1 text-sm text-slate-500"><?= htmlspecialchars($t('employees_module.contact_detail_help'), ENT_QUOTES, 'UTF-8') ?></p>
