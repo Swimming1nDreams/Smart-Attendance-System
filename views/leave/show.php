@@ -96,6 +96,18 @@ $hasCancellationContext = $cancelledAt !== '' || $cancelledBy !== '' || $cancelR
             <p class="mt-2 text-slate-700"><?= htmlspecialchars($reason !== '' ? $reason : '-', ENT_QUOTES, 'UTF-8') ?></p>
         </div>
 
+        <?php if (!empty($attachment)): ?>
+        <div class="mt-6 sapas-operation-detail bg-white">
+            <p class="text-sm font-medium text-slate-500">Supporting Document</p>
+            <p class="mt-2 text-slate-700">
+                <a href="/leave/attachment/download?id=<?= (int)$attachment['id'] ?>" class="text-sky-600 hover:underline" target="_blank" rel="noopener noreferrer">
+                    <?= htmlspecialchars($attachment['original_name'], ENT_QUOTES, 'UTF-8') ?>
+                </a>
+                <span class="text-xs text-slate-400 ml-2">(<?= round($attachment['file_size'] / 1024, 1) ?> KB)</span>
+            </p>
+        </div>
+        <?php endif; ?>
+
         <?php if ($canCancel): ?>
             <form method="post" action="/leave/cancel" class="mt-6" onsubmit="return confirm('<?= htmlspecialchars($t('leave_module.confirm_cancel_pending'), ENT_QUOTES, 'UTF-8') ?>');">
                 <input type="hidden" name="id" value="<?= (int) ($leaveRequest['id'] ?? 0) ?>">

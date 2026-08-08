@@ -493,4 +493,20 @@ class LeaveRequest
     {
         return $this->findOverlappingRequests($userId, $startDate, $endDate, $excludeId);
     }
+
+    public function getAttachment(int $leaveId): ?array
+    {
+        $statement = $this->connection->prepare(
+            'SELECT id, leave_request_id, file_path, original_name, mime_type, file_size, created_at FROM leave_request_attachments WHERE leave_request_id = :leave_request_id LIMIT 1'
+        );
+        $statement->bindValue(':leave_request_id', $leaveId, PDO::PARAM_INT);
+
+        try {
+            $statement->execute();
+            $attachment = $statement->fetch();
+            return $attachment === false ? null : $attachment;
+        } catch (PDOException $exception) {
+            throw DatabaseOperationException::forOperation(self::class, 'getAttachment', $exception);
+        }
+    }
 }

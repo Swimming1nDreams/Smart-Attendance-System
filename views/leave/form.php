@@ -33,7 +33,7 @@ $leaveTypes = [
     </div>
 <?php endif; ?>
 
-<form method="post" action="/leave/create" class="space-y-6">
+<form method="post" action="/leave/create" enctype="multipart/form-data" class="space-y-6">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '', ENT_QUOTES, 'UTF-8') ?>">
 
     <div class="sapas-workspace-card">
@@ -60,6 +60,11 @@ $leaveTypes = [
                 <label for="end_date" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.end_date'), ENT_QUOTES, 'UTF-8') ?></label>
                 <input type="date" id="end_date" name="end_date" value="<?= htmlspecialchars((string) ($leaveRequest['end_date'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required class="mt-2 sapas-form-control">
             </div>
+            <div class="md:col-span-2">
+                <label for="attachment" id="attachment_label" class="block text-sm font-medium text-slate-700">Supporting Document (Optional)</label>
+                <input type="file" id="attachment" name="attachment" accept=".jpg,.jpeg,.png,.pdf" class="mt-2 sapas-form-control p-1">
+                <p id="attachment_help" class="mt-2 text-xs text-slate-500">Max size 5 MB. Allowed types: PDF, JPG, PNG.</p>
+            </div>
         </div>
     </div>
 
@@ -76,3 +81,26 @@ $leaveTypes = [
         </div>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const leaveTypeSelect = document.getElementById('leave_type');
+    const attachmentLabel = document.getElementById('attachment_label');
+    const attachmentHelp = document.getElementById('attachment_help');
+
+    function updateAttachmentUI() {
+        if (leaveTypeSelect.value === 'medical') {
+            attachmentLabel.textContent = 'Supporting Medical Document';
+            attachmentHelp.textContent = 'Attach a medical certificate, prescription, or related document when available. Max size 5 MB. Allowed types: PDF, JPG, PNG.';
+        } else {
+            attachmentLabel.textContent = 'Supporting Document (Optional)';
+            attachmentHelp.textContent = 'Max size 5 MB. Allowed types: PDF, JPG, PNG.';
+        }
+    }
+
+    if (leaveTypeSelect && attachmentLabel && attachmentHelp) {
+        leaveTypeSelect.addEventListener('change', updateAttachmentUI);
+        updateAttachmentUI();
+    }
+});
+</script>

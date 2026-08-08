@@ -614,6 +614,10 @@ $router->addRoute('POST', '/leave/create', static function (Request $request) us
     $leaveController->store($request);
 });
 
+$router->addRoute('GET', '/leave/attachment/download', static function (Request $request) use ($leaveController): void {
+    $leaveController->downloadAttachment($request);
+});
+
 $router->addRoute('GET', '/attendance/edit', static function (Request $request) use ($attendanceController): void {
     $attendanceController->edit($request);
 });

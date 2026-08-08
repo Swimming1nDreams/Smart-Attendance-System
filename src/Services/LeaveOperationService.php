@@ -17,7 +17,7 @@ final class LeaveOperationService
         $this->dateValidator = $dateValidator ?? new DateValidationService();
     }
 
-    public function createRequest(int $userId, string $leaveType, string $startDate, string $endDate, int $durationDays, ?string $reason): int
+    public function createRequest(int $userId, string $leaveType, string $startDate, string $endDate, int $durationDays, ?string $reason, ?array $attachmentData = null): int
     {
         if (
             !$this->dateValidator->isValidDate($startDate)
@@ -30,7 +30,7 @@ final class LeaveOperationService
             throw new LeaveOperationException('invalid_duration');
         }
 
-        return $this->transactional('create_leave_request', function () use ($userId, $leaveType, $startDate, $endDate, $durationDays, $reason): int {
+        return $this->transactional('create_leave_request', function () use ($userId, $leaveType, $startDate, $endDate, $durationDays, $reason, $attachmentData): int {
             $this->lockEmployee($userId, true);
             if ($this->hasOverlappingRequest($userId, $startDate, $endDate, null)) {
                 throw new LeaveOperationException('overlap');
@@ -49,7 +49,22 @@ final class LeaveOperationService
                 ':status' => 'pending',
             ]);
 
-            return (int) $this->connection->lastInsertId();
+            $leaveId = (int) $this->connection->lastInsertId();
+
+            if ($attachmentData !== null) {
+                $attachStmt = $this->connection->prepare(
+                    'INSERT INTO leave_request_attachments (leave_request_id, file_path, original_name, mime_type, file_size) VALUES (:leave_request_id, :file_path, :original_name, :mime_type, :file_size)'
+                );
+                $attachStmt->execute([
+                    ':leave_request_id' => $leaveId,
+                    ':file_path' => $attachmentData['file_path'],
+                    ':original_name' => $attachmentData['original_name'],
+                    ':mime_type' => $attachmentData['mime_type'],
+                    ':file_size' => $attachmentData['file_size'],
+                ]);
+            }
+
+            return $leaveId;
         });
     }
 
