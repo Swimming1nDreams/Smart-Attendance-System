@@ -878,6 +878,7 @@ return array (
       'holiday' => 'Holiday',
       'weekend' => 'Weekend',
       'approved_leave' => 'Approved Leave',
+      'checked_in' => 'Checked In',
       'incomplete' => 'Incomplete',
     ),
     'leave' => 

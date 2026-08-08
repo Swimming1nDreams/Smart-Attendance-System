@@ -833,7 +833,7 @@ class LeaveController extends Controller
             exit;
         }
 
-        $statement = $this->app->getContainer()->get(\PDO::class)->prepare(
+        $statement = $this->app->getDatabase()->getConnection()->prepare(
             'SELECT a.file_path, a.original_name, a.mime_type, a.file_size, lr.user_id FROM leave_request_attachments a JOIN leave_requests lr ON a.leave_request_id = lr.id WHERE a.id = :id LIMIT 1'
         );
         $statement->execute([':id' => $attachmentId]);

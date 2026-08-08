@@ -99,9 +99,13 @@ final class AnalyticsService
             $expectedDays = 0;
             $derivedAbsent = 0;
 
-            foreach ($workingDays as $workingDay) {
-                $date = $workingDay['date'];
-                if ($date > $today) {
+            $fallbackMap = array_fill_keys(array_column($workingDays, 'date'), true);
+            $endLimit = min(new DateTimeImmutable($to), new DateTimeImmutable($today));
+
+            for ($day = new DateTimeImmutable($from); $day <= $endLimit; $day = $day->add(new DateInterval('P1D'))) {
+                $date = $day->format('Y-m-d');
+
+                if (!$this->isResolvedWorkingDate($userId, $date, $fallbackMap)) {
                     continue;
                 }
                 if (isset($approvedLeaveDates[$date])) {
