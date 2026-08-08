@@ -37,26 +37,19 @@ try {
     $demoReason = 'SAPAS Phase 2B Demo - Medical checkup';
     $demoOriginalName = 'medical_certificate.pdf';
 
-    // 1. Find existing demo records
-    // Identify by: user_id = emp_e_leave, leave_type = medical,
-    // AND (reason = Canonical OR (reason = 'Medical checkup' AND original_name = 'medical_certificate.pdf'))
-    $stmt = $db->prepare("SELECT lr.id, lra.id as attachment_id, lra.file_path, lr.reason
+    // 1. Find existing canonical demo records strictly by canonical reason & user
+    $stmt = $db->prepare("SELECT lr.id, lra.id as attachment_id, lra.file_path
                           FROM leave_requests lr
                           LEFT JOIN leave_request_attachments lra ON lr.id = lra.leave_request_id
-                          WHERE lr.user_id = ? AND lr.leave_type = 'medical'
-                            AND (
-                                (lr.reason = ?)
-                                OR
-                                (lr.reason = 'Medical checkup' AND lra.original_name = ?)
-                            )
+                          WHERE lr.user_id = ? AND lr.leave_type = 'medical' AND lr.reason = ?
                           ORDER BY lr.id DESC");
-    $stmt->execute([$empD, $demoReason, $demoOriginalName]);
+    $stmt->execute([$empD, $demoReason]);
     $existingRecords = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (count($existingRecords) > 0) {
         $validRecord = array_shift($existingRecords); // Keep the first (newest) record
 
-        // Remove duplicates
+        // Remove duplicates if multiple canonical records exist
         foreach ($existingRecords as $duplicate) {
             if ($duplicate['file_path']) {
                 $physicalPath = $storageBaseDir . '/' . $duplicate['file_path'];
@@ -71,13 +64,6 @@ try {
             $delStmt = $db->prepare("DELETE FROM leave_requests WHERE id = ?");
             $delStmt->execute([$duplicate['id']]);
             echo "Removed duplicate demo record #{$duplicate['id']}\n";
-        }
-
-        // Upgrade legacy record if necessary
-        if ($validRecord['reason'] === 'Medical checkup') {
-            $updStmt = $db->prepare("UPDATE leave_requests SET reason = ? WHERE id = ?");
-            $updStmt->execute([$demoReason, $validRecord['id']]);
-            echo "Upgraded legacy demo record #{$validRecord['id']} to canonical demo reason.\n";
         }
 
         // Check if valid record has attachment row and physical file
