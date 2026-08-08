@@ -72,19 +72,6 @@ if ($isApply) {
 }
 
 $emailsToKeep = [
-    // Realistic identities
-    'hr.admin@silveroakhr.com',
-    'zin.mar.htun@silveroakhr.com',
-    'thiri.mon@silveroakhr.com',
-    'aung.min.khant@silveroakhr.com',
-    'su.myat.noe@silveroakhr.com',
-    'thant.zin.oo@silveroakhr.com',
-    'may.thu.aung@silveroakhr.com',
-    'htet.naing.win@silveroakhr.com',
-    'ei.ei.phyu@silveroakhr.com',
-    'kaung.htet.zaw@silveroakhr.com',
-    
-    // Legacy migration references
     'emp_a_ontime@example.com',
     'emp_b_late@example.com',
     'emp_c_absent@example.com',
