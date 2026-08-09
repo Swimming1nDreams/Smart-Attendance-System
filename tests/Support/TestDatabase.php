@@ -118,7 +118,7 @@ final class TestDatabase
         // Maintained minimal schema mirror for fast integration tests.
         // Update this alongside relevant production migrations to avoid silent schema drift.
         $this->connection->exec('SET FOREIGN_KEY_CHECKS = 0');
-        $this->connection->exec('DROP TABLE IF EXISTS audit_logs, notifications, leave_requests, holidays, overtime_decisions, attendance_records, employee_profiles, work_schedule_assignments, overtime_policy_settings, attendance_policy_settings, company_profiles, work_schedule_days, work_schedule_templates, staff_code_sequences, users, positions, departments');
+        $this->connection->exec('DROP TABLE IF EXISTS leave_request_attachments, audit_logs, notifications, leave_requests, holidays, overtime_decisions, attendance_records, employee_profiles, work_schedule_assignments, overtime_policy_settings, attendance_policy_settings, company_profiles, work_schedule_days, work_schedule_templates, staff_code_sequences, users, positions, departments');
         $this->connection->exec('SET FOREIGN_KEY_CHECKS = 1');
 
         $this->connection->exec(
@@ -474,6 +474,21 @@ final class TestDatabase
                 CONSTRAINT fk_test_notifications_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE,
                 CONSTRAINT fk_test_notifications_related_user_id FOREIGN KEY (related_user_id) REFERENCES users (id) ON DELETE SET NULL ON UPDATE CASCADE,
                 CONSTRAINT fk_test_notifications_related_leave_request_id FOREIGN KEY (related_leave_request_id) REFERENCES leave_requests (id) ON DELETE SET NULL ON UPDATE CASCADE
+            ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci"
+        );
+
+        $this->connection->exec(
+            "CREATE TABLE leave_request_attachments (
+                id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                leave_request_id INT UNSIGNED NOT NULL,
+                file_path VARCHAR(255) NOT NULL,
+                original_name VARCHAR(255) NOT NULL,
+                mime_type VARCHAR(100) NOT NULL,
+                file_size INT UNSIGNED NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_leave_attachments_leave_id (leave_request_id),
+                CONSTRAINT fk_test_leave_attachments_leave_id FOREIGN KEY (leave_request_id) REFERENCES leave_requests(id) ON DELETE CASCADE
             ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci"
         );
 
