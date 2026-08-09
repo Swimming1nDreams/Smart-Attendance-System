@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\Attendance;
-use App\Models\Company;
-use App\Models\Department;
 use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\LeaveRequest;
@@ -26,7 +24,7 @@ test('database integration: 100% attendance recognition phase 2a', function (): 
         new Holiday($pdo),
         new LeaveRequest($pdo),
         $policy,
-        new WorkScheduleResolverService(new Employee($pdo), new Department($pdo), new Company($pdo))
+        new WorkScheduleResolverService($pdo)
     );
 
     // Initial state: no attendance for the month, should not have 100%

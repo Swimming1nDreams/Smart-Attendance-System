@@ -65,7 +65,7 @@ test('office network failure message and deployment documentation are bilingual 
     $readme = file_get_contents(project_path('README.md'));
     $developmentMap = file_get_contents(project_path('DEVELOPMENT_MAP.md'));
     $expectedEnglish = 'Check In and Check Out are available only on the approved office network. Connect to the office network and try again, or contact an administrator.';
-    $expectedMyanmar = 'ဝန်ထမ်း Check In/Check Out ကို သတ်မှတ်ထားသော ရုံးကွန်ရက်မှသာ လုပ်ဆောင်နိုင်ပါသည်။ ရုံးကွန်ရက်သို့ ချိတ်ဆက်ပြီး ထပ်မံကြိုးစားပါ၊ သို့မဟုတ် စီမံခန့်ခွဲသူထံ ဆက်သွယ်ပါ။';
+    $expectedMyanmar = 'အလုပ်ဝင်ချိန်နှင့် အလုပ်ဆင်းချိန်ကို သတ်မှတ်ထားသော ရုံးကွန်ရက်တွင်သာ မှတ်တမ်းတင်နိုင်ပါသည်။ ရုံးကွန်ရက်သို့ ချိတ်ဆက်ပြီး ထပ်မံကြိုးစားပါ သို့မဟုတ် စီမံခန့်ခွဲသူထံ ဆက်သွယ်ပါ။';
 
     assert_same($expectedEnglish, $english['flash']['attendance_office_network_required'] ?? null);
     assert_same($expectedMyanmar, $myanmar['flash']['attendance_office_network_required'] ?? null);

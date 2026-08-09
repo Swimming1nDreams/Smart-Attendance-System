@@ -118,23 +118,7 @@ final class TestDatabase
         // Maintained minimal schema mirror for fast integration tests.
         // Update this alongside relevant production migrations to avoid silent schema drift.
         $this->connection->exec('SET FOREIGN_KEY_CHECKS = 0');
-        $this->connection->exec('DROP TABLE IF EXISTS overtime_decisions');
-        $this->connection->exec('DROP TABLE IF EXISTS work_schedule_assignments');
-        $this->connection->exec('DROP TABLE IF EXISTS overtime_policy_settings');
-        $this->connection->exec('DROP TABLE IF EXISTS attendance_policy_settings');
-        $this->connection->exec('DROP TABLE IF EXISTS company_profiles');
-        $this->connection->exec('DROP TABLE IF EXISTS work_schedule_days');
-        $this->connection->exec('DROP TABLE IF EXISTS work_schedule_templates');
-        $this->connection->exec('DROP TABLE IF EXISTS audit_logs');
-        $this->connection->exec('DROP TABLE IF EXISTS staff_code_sequences');
-        $this->connection->exec('DROP TABLE IF EXISTS notifications');
-        $this->connection->exec('DROP TABLE IF EXISTS leave_requests');
-        $this->connection->exec('DROP TABLE IF EXISTS attendance_records');
-        $this->connection->exec('DROP TABLE IF EXISTS employee_profiles');
-        $this->connection->exec('DROP TABLE IF EXISTS users');
-        $this->connection->exec('DROP TABLE IF EXISTS departments');
-        $this->connection->exec('DROP TABLE IF EXISTS positions');
-        $this->connection->exec('DROP TABLE IF EXISTS holidays');
+        $this->connection->exec('DROP TABLE IF EXISTS audit_logs, notifications, leave_requests, holidays, overtime_decisions, attendance_records, employee_profiles, work_schedule_assignments, overtime_policy_settings, attendance_policy_settings, company_profiles, work_schedule_days, work_schedule_templates, staff_code_sequences, users, positions, departments');
         $this->connection->exec('SET FOREIGN_KEY_CHECKS = 1');
 
         $this->connection->exec(

@@ -33,12 +33,12 @@ test('duration and schedule-boundary overtime use exact minutes and employee exp
     assert_same(7.5, $policy->workingHours($minutes));
     assert_same(30, $policy->calculateOvertimeMinutes('present', $minutes, 7, '2026-07-22', false, false, true, '09:00:00', '16:30:00'));
     assert_same(0, $policy->calculateOvertimeMinutes('present', $minutes, 8, '2026-07-22', false, false, true, '09:00:00', '16:30:00'));
-    assert_same('7h 30m', $policy->formatDuration($minutes));
-    assert_same('45m', $policy->formatDuration(45));
-    assert_same('<1m', $policy->formatDuration(0));
+    assert_same('7 hr 30 min', $policy->formatDuration($minutes));
+    assert_same('45 min', $policy->formatDuration(45));
+    assert_same('0 min', $policy->formatDuration(0));
 
     $myTranslations = require project_path('lang/my.php');
-    assert_same('16h 18m', $policy->formatDuration(978));
+    assert_same('16 hr 18 min', $policy->formatDuration(978));
     assert_not_contains('16.30', $policy->formatDuration(978));
     assert_same('16 နာရီ 18 မိနစ်', $policy->formatDuration(978, $myTranslations['common']['duration_formats']));
 });

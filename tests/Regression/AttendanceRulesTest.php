@@ -56,7 +56,7 @@ test('admin add attendance rejects equal same-day check in and check out times',
         'present',
     ]);
 
-    assert_contains('Check Out time must be after Check In time.', implode("\n", $errors));
+    assert_contains('Check-out time must be after check-in time.', implode("\n", $errors));
 });
 
 test('workforce seed uses the configured safe demo domain and covers attendance through July 21', function (): void {

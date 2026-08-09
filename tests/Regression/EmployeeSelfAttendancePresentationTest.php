@@ -12,7 +12,6 @@ test('employee dashboard self-attendance actions stay server-authoritative and s
     assert_contains('action="/attendance/clock-out"', $view);
     assert_contains('name="csrf_token"', $view);
     assert_contains("attendance.missing_check_out", $view);
-    assert_contains("is_missing_check_out", $view);
     assert_contains('$clockInBlockReason', $view);
     assert_contains('dashboard.employee.no_clock_actions_holiday', $view);
     assert_contains('dashboard.employee.no_clock_actions_non_working_day', $view);

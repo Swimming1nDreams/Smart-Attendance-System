@@ -136,7 +136,7 @@ test('database integration: admin attendance writes use centralized status and d
     assert_not_null($weekend);
     assert_same('weekend', (string) $weekend['status']);
     assert_same(0, (int) $weekend['late_minutes']);
-    assert_same('<1m', (new AttendancePolicyService())->enrichRecord($weekend)['working_duration']);
+    assert_same('0 min', (new AttendancePolicyService())->enrichRecord($weekend)['working_duration']);
 
     $database->pdo()->exec("INSERT INTO holidays (holiday_name, holiday_date) VALUES ('Policy Holiday', '2026-08-10')");
     $operations->createRecord($ids['other_employee_id'], '2026-08-10', '10:00:00', '12:00:00', 'present', 'Holiday work');

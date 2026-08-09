@@ -51,7 +51,7 @@ test('admin attendance supports assigned overnight schedules without allowing da
     assert_same(1, count($listed));
     $enriched = (new AttendancePolicyService())->enrichRecord($listed[0]);
     assert_same(480, (int) $enriched['actual_work_minutes']);
-    assert_same('8h', $enriched['working_duration']);
+    assert_same('8 hr', $enriched['working_duration']);
 
     $operations->updateRecord((int) $overnight['id'], $ids['employee_id'], '2026-08-03', '22:30:00', '06:00:00', 'present', 'late overnight');
     $updated = $attendance->findById((int) $overnight['id']);

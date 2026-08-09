@@ -75,8 +75,8 @@ test('focused login and compact attendance overview presentation are enabled', f
     assert_true(isset($myanmar['auth']['welcome_back']), 'Myanmar login heading should exist.');
     assert_same('SAPAS', $myanmar['app']['acronym'] ?? null);
     assert_same('SAPAS', $myanmar['app']['name'] ?? null);
-    assert_same('စမတ်တက်ရောက်မှုနှင့် စွမ်းဆောင်ရည် ခွဲခြမ်းစိတ်ဖြာရေးစနစ်', $myanmar['app']['official_name'] ?? null);
-    assert_same('စမတ်တက်ရောက်မှုနှင့် စွမ်းဆောင်ရည် ခွဲခြမ်းစိတ်ဖြာရေးစနစ်', $myanmar['app']['title_suffix'] ?? null);
+    assert_same('စမတ် အလုပ်တက်ရောက်မှုနှင့် စွမ်းဆောင်ရည်ခွဲခြမ်းစိတ်ဖြာရေးစနစ်', $myanmar['app']['official_name'] ?? null);
+    assert_same('စမတ် အလုပ်တက်ရောက်မှုနှင့် စွမ်းဆောင်ရည်ခွဲခြမ်းစိတ်ဖြာရေးစနစ်', $myanmar['app']['title_suffix'] ?? null);
     assert_true(isset($myanmar['app']['sidebar_subtitle']), 'Myanmar sidebar subtitle should exist.');
     assert_not_contains('View All Departments', $myanmar['dashboard']['admin']['view_all_departments'] ?? '');
 });
