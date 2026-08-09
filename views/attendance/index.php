@@ -412,28 +412,28 @@ function previewRemarks(?string $remarks, int $limit = 48): string
                 </colgroup>
                 <thead class="bg-slate-50">
                     <tr>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.date'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.date'), ENT_QUOTES, 'UTF-8') ?></th>
                         <?php if ($isAdmin): ?>
-                            <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?></th>
                         <?php endif; ?>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('dashboard.common.clock_in_time'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('dashboard.common.clock_out_time'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('dashboard.common.late_minutes'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('dashboard.common.working_hours'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.overtime'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('attendance.remarks'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('dashboard.common.clock_in_time'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('dashboard.common.clock_out_time'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('dashboard.common.late_minutes'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('dashboard.common.working_hours'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.overtime'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('attendance.remarks'), ENT_QUOTES, 'UTF-8') ?></th>
                         <?php if ($isAdmin): ?>
-                            <th class="px-4 py-3 text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.actions'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.actions'), ENT_QUOTES, 'UTF-8') ?></th>
                         <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
                     <?php foreach ($records as $index => $record): ?>
                         <tr>
-                            <td class="px-4 py-4 text-sm text-slate-800"><span class="sapas-row-number"><?= $rowNumberStart + (int) $index ?></span></td>
-                            <td class="px-4 py-4 text-sm text-slate-800">
+                            <td class="px-4 py-4 text-sm text-slate-800 whitespace-nowrap"><span class="sapas-row-number"><?= $rowNumberStart + (int) $index ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-800 whitespace-nowrap">
                                 <div class="sapas-date-cell">
                                     <p class="font-medium text-slate-900"><?= htmlspecialchars(attendanceDateValue((string) $record['attendance_date']), ENT_QUOTES, 'UTF-8') ?></p>
                                     <p class="text-xs text-slate-500"><?= htmlspecialchars(attendanceWeekdayValue((string) $record['attendance_date']), ENT_QUOTES, 'UTF-8') ?></p>
@@ -454,17 +454,17 @@ function previewRemarks(?string $remarks, int $limit = 48): string
                                     </div>
                                 </td>
                             <?php endif; ?>
-                            <td class="px-4 py-4 text-sm text-slate-600 sapas-table-value-nowrap"><?= htmlspecialchars($record['clock_in_time'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td class="px-4 py-4 text-sm text-slate-600 sapas-table-value-nowrap"><?= htmlspecialchars($record['clock_out_time'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td class="px-4 py-4 text-sm">
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap sapas-table-value-nowrap"><?= htmlspecialchars($record['clock_in_time'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap sapas-table-value-nowrap"><?= htmlspecialchars($record['clock_out_time'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="px-4 py-4 text-sm whitespace-nowrap">
                                 <?php $displayStatus = (string) ($record['attendance_display_status'] ?? $record['status']); ?>
                                 <span class="<?= attendanceStatusClasses($displayStatus) ?>">
                                     <?= htmlspecialchars(formatStatusLabel($displayStatus), ENT_QUOTES, 'UTF-8') ?>
                                 </span>
                             </td>
-                            <td class="px-4 py-4 text-sm text-slate-600 sapas-table-number"><?= htmlspecialchars($record['late_duration'] ?? '0 min', ENT_QUOTES, 'UTF-8') ?></td>
-                            <td class="px-4 py-4 text-sm text-slate-600 sapas-table-number"><?= htmlspecialchars(formatWorkingDurationValue($record), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td class="px-4 py-4 text-sm text-slate-600 sapas-table-number"><?= htmlspecialchars((string) ($record['overtime_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap sapas-table-number"><?= htmlspecialchars($record['late_duration'] ?? '0 min', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap sapas-table-number"><?= htmlspecialchars(formatWorkingDurationValue($record), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap sapas-table-number"><?= htmlspecialchars((string) ($record['overtime_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                             <td class="px-4 py-4 text-sm text-slate-600 sapas-table-remarks" title="<?= htmlspecialchars((string) ($record['remarks'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(previewRemarks($record['remarks'] ?? null), ENT_QUOTES, 'UTF-8') ?></td>
                             <?php if ($isAdmin): ?>
                                 <td class="px-4 py-4 text-sm font-medium sapas-table-action">

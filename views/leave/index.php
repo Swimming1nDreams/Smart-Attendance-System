@@ -190,13 +190,13 @@ if ($toFilter !== '') {
             <table class="sapas-data-table sapas-leave-employee-table divide-y divide-slate-200">
                 <thead class="bg-slate-50">
                     <tr>
-                        <th class="sapas-col-row-number"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-leave-type"><?= htmlspecialchars($t('common.labels.type'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-leave-dates"><?= htmlspecialchars($t('leave_module.dates'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-number"><?= htmlspecialchars($t('leave_module.days'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-status"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-leave-reason"><?= htmlspecialchars($t('leave_module.reason'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-leave-actions"><?= htmlspecialchars($t('common.actions.view'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-row-number whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-leave-type whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.type'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-leave-dates whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.dates'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-number whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.days'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-status whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-leave-reason whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.reason'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-leave-actions whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.actions.view'), ENT_QUOTES, 'UTF-8') ?></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
@@ -211,9 +211,9 @@ if ($toFilter !== '') {
                         $submittedTime = (string) ($submittedParts[1] ?? '');
                         ?>
                         <tr>
-                            <td><span class="sapas-row-number"><?= $rowNumberStart + (int) $index ?></span></td>
-                            <td><span class="sapas-leave-type-chip"><?= htmlspecialchars(leaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="sapas-row-number"><?= $rowNumberStart + (int) $index ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="sapas-leave-type-chip"><?= htmlspecialchars(leaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap">
                                 <div class="sapas-leave-date-cell">
                                     <p class="sapas-leave-date-range">
                                         <span><?= htmlspecialchars((string) ($leaveRequest['start_date'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
@@ -225,10 +225,10 @@ if ($toFilter !== '') {
                                     </p>
                                 </div>
                             </td>
-                            <td><span class="sapas-table-number"><?= (int) ($leaveRequest['duration_days'] ?? 0) ?></span></td>
-                            <td><span class="<?= leaveStatusBadgeClass($status) ?>"><?= htmlspecialchars(leaveStatusLabel($status), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td><p class="sapas-leave-reason" title="<?= htmlspecialchars($reason, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(leavePreview($reason), ENT_QUOTES, 'UTF-8') ?></p></td>
-                            <td class="sapas-table-action">
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="sapas-table-number"><?= (int) ($leaveRequest['duration_days'] ?? 0) ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="<?= leaveStatusBadgeClass($status) ?>"><?= htmlspecialchars(leaveStatusLabel($status), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><p class="sapas-leave-reason" title="<?= htmlspecialchars($reason, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(leavePreview($reason), ENT_QUOTES, 'UTF-8') ?></p></td>
+                            <td class="px-4 py-4 text-sm font-medium sapas-table-action">
                                 <div class="sapas-leave-actions">
                                     <a href="/leave/show?id=<?= (int) ($leaveRequest['id'] ?? 0) ?>" class="sapas-btn sapas-btn-secondary"><?= htmlspecialchars($t('common.actions.view_details'), ENT_QUOTES, 'UTF-8') ?></a>
                                     <?php if ($canCancel): ?>

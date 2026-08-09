@@ -190,14 +190,14 @@ function employeeStatusClasses(string $status): string
             <table class="sapas-data-table sapas-employee-table divide-y divide-slate-200">
                 <thead class="bg-slate-50">
                     <tr>
-                        <th class="sapas-col-row-number"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-employee"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-employee-department"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-employee-position"><?= htmlspecialchars($t('common.labels.position'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-employee-role"><?= htmlspecialchars($t('common.labels.role'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-employee-status"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-employee-verification"><?= htmlspecialchars($t('employees_module.email_verification'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-employee-actions"><?= htmlspecialchars($t('common.labels.actions'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-row-number whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-employee whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-employee-department whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-employee-position whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.position'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-employee-role whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.role'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-employee-status whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-employee-verification whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('employees_module.email_verification'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-employee-actions whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.actions'), ENT_QUOTES, 'UTF-8') ?></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
@@ -216,8 +216,8 @@ function employeeStatusClasses(string $status): string
                         $deactivateConfirm = sprintf($t('common.confirm.deactivate_employee'), $employeeName);
                         ?>
                         <tr>
-                            <td><span class="sapas-row-number"><?= $rowNumberStart + (int) $index ?></span></td>
-                            <td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="sapas-row-number"><?= $rowNumberStart + (int) $index ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-600">
                                     <div class="sapas-person-cell">
                                         <div class="sapas-person-cell-head">
                                             <p class="sapas-person-name font-semibold text-slate-900" title="<?= htmlspecialchars($employeeIdentity, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($employeeIdentity, ENT_QUOTES, 'UTF-8') ?></p>
@@ -225,12 +225,12 @@ function employeeStatusClasses(string $status): string
                                         <p class="sapas-person-email" title="<?= htmlspecialchars($employeeEmail, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($employeeEmail, ENT_QUOTES, 'UTF-8') ?></p>
                                     </div>
                                 </td>
-                            <td><p class="sapas-table-text-cell" title="<?= htmlspecialchars($departmentName !== '' ? $departmentName : '—', ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($departmentName !== '' ? $departmentName : '—', ENT_QUOTES, 'UTF-8') ?></p></td>
-                            <td><p class="sapas-table-text-cell" title="<?= htmlspecialchars($positionName !== '' ? $positionName : '—', ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($positionName !== '' ? $positionName : '—', ENT_QUOTES, 'UTF-8') ?></p></td>
-                            <td><span class="<?= employeeRoleClasses($role) ?>"><?= htmlspecialchars($t('roles.' . $role), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td><span class="<?= employeeStatusClasses($accountStatus) ?>"><?= htmlspecialchars($t('statuses.account.' . $accountStatus), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td><span class="<?= $isEmailVerified ? 'sapas-badge sapas-badge-success' : 'sapas-badge sapas-badge-warning' ?>"><?= htmlspecialchars($isEmailVerified ? $t('employees_module.email_verified') : $t('employees_module.email_unverified'), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td class="sapas-table-action">
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><p class="sapas-table-text-cell" title="<?= htmlspecialchars($departmentName !== '' ? $departmentName : '—', ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($departmentName !== '' ? $departmentName : '—', ENT_QUOTES, 'UTF-8') ?></p></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><p class="sapas-table-text-cell" title="<?= htmlspecialchars($positionName !== '' ? $positionName : '—', ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($positionName !== '' ? $positionName : '—', ENT_QUOTES, 'UTF-8') ?></p></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="<?= employeeRoleClasses($role) ?>"><?= htmlspecialchars($t('roles.' . $role), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="<?= employeeStatusClasses($accountStatus) ?>"><?= htmlspecialchars($t('statuses.account.' . $accountStatus), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="<?= $isEmailVerified ? 'sapas-badge sapas-badge-success' : 'sapas-badge sapas-badge-warning' ?>"><?= htmlspecialchars($isEmailVerified ? $t('employees_module.email_verified') : $t('employees_module.email_unverified'), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td class="px-4 py-4 text-sm font-medium sapas-table-action">
                                 <div class="sapas-employee-actions">
                                     <a href="/employees/show?id=<?= (int) $employee['id'] ?>" class="sapas-btn sapas-btn-primary"><?= htmlspecialchars($t('common.actions.view'), ENT_QUOTES, 'UTF-8') ?></a>
                                     <a href="/employees/edit?id=<?= (int) $employee['id'] ?>" class="sapas-btn sapas-btn-secondary sapas-btn-spotlight"><?= htmlspecialchars($t('common.actions.edit'), ENT_QUOTES, 'UTF-8') ?></a>

@@ -45,16 +45,16 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
     </div>
 <?php endif; ?>
 
-<div class="sapas-login-card-header">
-    <h1><?= htmlspecialchars($t('auth.welcome_back'), ENT_QUOTES, 'UTF-8') ?></h1>
-    <p><?= htmlspecialchars($t('auth.login_form_intro'), ENT_QUOTES, 'UTF-8') ?></p>
+<div class="sapas-login-card-header text-center mb-8">
+    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900"><?= htmlspecialchars($t('auth.welcome_back'), ENT_QUOTES, 'UTF-8') ?></h1>
+    <p class="mt-3 text-base text-slate-500 font-medium"><?= htmlspecialchars($t('auth.login_form_intro'), ENT_QUOTES, 'UTF-8') ?></p>
 </div>
 
 <form method="post" action="/login" id="loginForm" class="space-y-4"<?= !empty($errors) ? ' aria-describedby="login-errors"' : '' ?>>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '', ENT_QUOTES, 'UTF-8') ?>">
 
-    <div>
-        <label for="email" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('auth.email_label'), ENT_QUOTES, 'UTF-8') ?></label>
+    <div class="mt-2">
+        <label for="email" class="block text-sm font-semibold text-slate-700"><?= htmlspecialchars($t('auth.email_label'), ENT_QUOTES, 'UTF-8') ?></label>
         <div class="sapas-input-shell mt-2">
             <span class="sapas-input-icon"><?= $renderIcon('mail', 'sapas-icon') ?></span>
             <input
@@ -70,8 +70,8 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
         </div>
     </div>
 
-    <div>
-        <label for="password" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('auth.password_label'), ENT_QUOTES, 'UTF-8') ?></label>
+    <div class="mt-6">
+        <label for="password" class="block text-sm font-semibold text-slate-700"><?= htmlspecialchars($t('auth.password_label'), ENT_QUOTES, 'UTF-8') ?></label>
         <div class="sapas-input-shell mt-2">
             <span class="sapas-input-icon"><?= $renderIcon('lock', 'sapas-icon') ?></span>
             <input
@@ -104,7 +104,7 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
         type="submit"
         id="loginButton"
         data-loading-text="<?= htmlspecialchars($loadingText, ENT_QUOTES, 'UTF-8') ?>"
-        class="sapas-btn sapas-btn-primary sapas-login-submit w-full justify-center py-3 text-base"
+        class="sapas-btn sapas-btn-primary sapas-login-submit w-full justify-center py-3 text-base font-bold shadow-md hover:shadow-lg transition-all rounded-xl"
     >
         <?= $renderIcon('arrow-right', 'sapas-action-icon') ?>
         <?= htmlspecialchars($t('auth.login_button'), ENT_QUOTES, 'UTF-8') ?>
