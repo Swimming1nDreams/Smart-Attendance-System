@@ -72,6 +72,13 @@ $pdo->beginTransaction();
 
 try {
     removeLegacyPlaceholders($pdo, $legacyPlaceholderEmails);
+    seedCompanyProfile($pdo, [
+        'company_name' => 'Silver Oak HR',
+        'short_name' => 'Silver Oak',
+        'email' => 'contact@silveroakhr.com',
+        'phone' => '+95 1 234 5678',
+        'address' => '123 Sule Pagoda Road, Kyauktada Township, Yangon',
+    ]);
     $departmentIds = seedDepartments($pdo, $departments);
     $positionIds = seedPositions($pdo, $positions);
     $employeeIds = seedEmployees($pdo, $employees, $departmentIds, $positionIds, $passwordHash);
@@ -97,6 +104,18 @@ printf("Attendance rows inserted: %d\n", $attendanceRows);
 printSeedSummary($pdo, $seedDomain);
 require __DIR__ . '/seed_august_2026_demo.php';
 printf("Run `php scripts/refresh-demo-accounts.php` to generate private demonstration credentials.\n");
+
+function seedCompanyProfile(PDO $pdo, array $profile): void
+{
+    $pdo->prepare('UPDATE company_profiles SET company_name = :company_name, short_name = :short_name, email = :email, phone = :phone, address = :address ORDER BY id ASC LIMIT 1')
+        ->execute([
+            ':company_name' => $profile['company_name'],
+            ':short_name' => $profile['short_name'],
+            ':email' => $profile['email'],
+            ':phone' => $profile['phone'],
+            ':address' => $profile['address'],
+        ]);
+}
 
 function seedDepartments(PDO $pdo, array $departments): array
 {
@@ -149,16 +168,18 @@ function seedEmployees(PDO $pdo, array $employees, array $departmentIds, array $
     $ids = [];
     $select = $pdo->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
     $insert = $pdo->prepare(
-        'INSERT INTO users (name, email, password, role, department_id, position_id, status, email_verified_at) VALUES (:name, :email, :password, "employee", :department_id, :position_id, :status, NOW())'
+        'INSERT INTO users (name, email, password, role, department_id, position_id, status, staff_code, email_verified_at) VALUES (:name, :email, :password, "employee", :department_id, :position_id, :status, :staff_code, NOW())'
     );
     $update = $pdo->prepare(
-        'UPDATE users SET name = :name, email = :email, password = :password, role = "employee", department_id = :department_id, position_id = :position_id, status = :status, email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = :id'
+        'UPDATE users SET name = :name, email = :email, password = :password, role = "employee", department_id = :department_id, position_id = :position_id, status = :status, staff_code = IF(staff_code = "", :staff_code, staff_code), email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = :id'
     );
     $profile = $pdo->prepare(
         'INSERT INTO employee_profiles (user_id, phone, address) VALUES (:user_id, :phone, :address) ON DUPLICATE KEY UPDATE phone = VALUES(phone), address = VALUES(address)'
     );
 
+    $staffCodeCounter = 1000;
     foreach ($employees as $employee) {
+        $staffCodeCounter++;
         $passwordHash = password_hash('Seed!Aq7' . rtrim(strtr(base64_encode(random_bytes(15)), '+/', 'XZ'), '='), PASSWORD_DEFAULT);
         $departmentId = $departmentIds[$employee['department']] ?? null;
         $positionId = $positionIds[$employee['position']] ?? null;
@@ -178,6 +199,7 @@ function seedEmployees(PDO $pdo, array $employees, array $departmentIds, array $
             ':department_id' => $departmentId,
             ':position_id' => $positionId,
             ':status' => $employee['status'],
+            ':staff_code' => 'EMP-' . $staffCodeCounter,
         ];
 
         if ($id === false) {
