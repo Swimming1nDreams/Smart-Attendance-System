@@ -18,7 +18,7 @@ class EmployeeProfile
 
     public function findByUserId(int $userId): ?array
     {
-        $statement = $this->connection->prepare('SELECT id, user_id, phone, address, created_at, updated_at FROM employee_profiles WHERE user_id = :user_id LIMIT 1');
+        $statement = $this->connection->prepare('SELECT id, user_id, phone, address, profile_photo_filename, created_at, updated_at FROM employee_profiles WHERE user_id = :user_id LIMIT 1');
         $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
 
         try {
@@ -69,6 +69,23 @@ class EmployeeProfile
         $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
         $statement->bindValue(':phone', $phone, $phone === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         $statement->bindValue(':address', $address, $address === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+
+        try {
+            return $statement->execute();
+        } catch (PDOException) {
+            return false;
+        }
+    }
+
+    public function updatePhotoFilename(int $userId, ?string $filename): bool
+    {
+        $statement = $this->connection->prepare(
+            'INSERT INTO employee_profiles (user_id, profile_photo_filename)
+             VALUES (:user_id, :profile_photo_filename)
+             ON DUPLICATE KEY UPDATE profile_photo_filename = VALUES(profile_photo_filename), updated_at = CURRENT_TIMESTAMP'
+        );
+        $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $statement->bindValue(':profile_photo_filename', $filename, $filename === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
 
         try {
             return $statement->execute();

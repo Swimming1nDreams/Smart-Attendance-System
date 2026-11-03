@@ -1,8 +1,8 @@
 {
-  "name": "sapas-ui",
+  "name": "oaas-ui",
   "private": true,
   "version": "1.0.0",
-  "description": "Tailwind build workflow for the SAPAS PHP MVC UI.",
+  "description": "Tailwind build workflow for the OAAS PHP MVC UI.",
   "scripts": {
     "build:css": "tailwindcss -c tailwind.config.js -i ./assets/css/tailwind.css -o ./public/assets/css/tailwind.css --minify",
     "watch:css": "tailwindcss -c tailwind.config.js -i ./assets/css/tailwind.css -o ./public/assets/css/tailwind.css --watch"

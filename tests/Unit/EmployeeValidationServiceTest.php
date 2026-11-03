@@ -22,6 +22,11 @@ function employee_validation_service(array $existingEmails = []): EmployeeValida
         {
             return in_array(strtolower($email), array_map('strtolower', $this->existingEmails), true);
         }
+
+        public function existsByStaffCode(string $staffCode, ?int $excludeId = null): bool
+        {
+            return false;
+        }
     };
 
     $departmentModel = new class extends Department {
@@ -67,6 +72,7 @@ function valid_employee_validation_input(array $overrides = []): array
         'department_id' => '',
         'position_id' => '',
         'status' => 'active',
+        'staff_code' => '123456',
         'employment_type' => 'full-time',
         'join_date' => '',
         'expected_daily_work_hours' => '8.00',
@@ -153,4 +159,19 @@ test('employee validation delegates password decisions to PasswordPolicyService'
     ]));
 
     assert_true(in_array('password_too_common', $result['errors'], true));
+});
+
+test('employee validation requires an admin supplied six digit staff code', function (): void {
+    $service = employee_validation_service();
+
+    assert_true(in_array('employee_staff_code_required', $service->validate(valid_employee_validation_input(['staff_code' => '']))['errors'], true));
+    foreach (['12345', '1234567', 'ABC123', '１２３４５６'] as $invalidCode) {
+        assert_true(in_array('employee_staff_code_format', $service->validate(valid_employee_validation_input(['staff_code' => $invalidCode]))['errors'], true));
+    }
+    assert_same([], $service->validate(valid_employee_validation_input(['staff_code' => '004217']))['errors']);
+    assert_true(in_array(
+        'employee_staff_code_format',
+        $service->validate(valid_employee_validation_input(['staff_code' => 'SAP-0042']), 42, 'SAP-0042')['errors'],
+        true,
+    ), 'Editing a legacy account must require the Administrator to replace its old code.');
 });

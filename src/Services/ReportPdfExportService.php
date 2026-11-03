@@ -9,7 +9,7 @@ use DateTimeImmutable;
 
 class ReportPdfExportService
 {
-    private const MYANMAR_PDF_FONT_FAMILY = 'SAPAS Myanmar';
+    private const MYANMAR_PDF_FONT_FAMILY = 'OAAS Myanmar';
     private $isFile;
 
     public function __construct(
@@ -341,6 +341,7 @@ class ReportPdfExportService
     {
         $platform = strtolower($this->platform ?? PHP_OS_FAMILY);
         $candidates = [$this->configuredBrowserPath];
+        $candidates[] = $this->environmentValue('OAAS_CHROME_PATH');
         $candidates[] = $this->environmentValue('SAPAS_CHROME_PATH');
         $candidates[] = $this->environmentValue('CHROME_PATH');
 
@@ -457,10 +458,10 @@ class ReportPdfExportService
 
     private function sanitizeFilename(string $filename): string
     {
-        $filename = preg_replace('/[^A-Za-z0-9_.-]+/', '_', $filename) ?? 'sapas_report.pdf';
+        $filename = preg_replace('/[^A-Za-z0-9_.-]+/', '_', $filename) ?? 'oaas_report.pdf';
         $filename = trim($filename, '._');
 
-        return $filename === '' ? 'sapas_report.pdf' : $filename;
+        return $filename === '' ? 'oaas_report.pdf' : $filename;
     }
 
     private function escape(string $value): string

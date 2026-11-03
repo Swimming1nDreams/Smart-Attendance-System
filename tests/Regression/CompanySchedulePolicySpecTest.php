@@ -9,7 +9,7 @@ test('workforce policy specification documents authoritative foundation and rema
     assert_contains('Status: Workforce Policy Center foundation implemented', $spec);
     assert_contains('Foundation Implemented', $spec);
     assert_contains('New employee/admin attendance writes resolve the employee policy by business date', $spec);
-    assert_contains('SAPAS remains a single-company system.', $spec);
+    assert_contains('OAAS remains a single-company system.', $spec);
     assert_contains('WorkScheduleResolverService', $spec);
     assert_contains('Employee assignment', $spec);
     assert_contains('Department assignment', $spec);

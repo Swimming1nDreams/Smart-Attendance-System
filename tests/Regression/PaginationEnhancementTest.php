@@ -61,12 +61,12 @@ test('attendance list clamps invalid high pages before loading records', functio
     assert_contains('private function clampPage(int $page, int $perPage, int $total): int', $controllerSource);
     assert_contains('$page = $this->clampPage($page, $perPage, $total);', $controllerSource);
 
-    $adminCount = '$total = $this->attendanceModel->countAll($selectedEmployeeId, $search, $fromDate, $toDate);';
-    $adminFind = '$records = $this->attendanceModel->findAll($selectedEmployeeId, $search, $fromDate, $toDate, $page, $perPage);';
+    $adminCount = '$total = $this->attendanceModel->countAll($selectedEmployeeId, $search, $fromDate, $toDate, $departmentId, \'absent\');';
+    $adminFind = '$records = $this->attendanceModel->findAll($selectedEmployeeId, $search, $fromDate, $toDate, $page, $perPage, $departmentId, \'absent\');';
     assert_true(strpos($controllerSource, $adminCount) < strpos($controllerSource, $adminFind), 'Admin attendance list should count and clamp before querying page rows.');
 
-    $employeeCount = '$total = $this->attendanceModel->countAll($userId, \'\', $fromDate, $toDate);';
-    $employeeFind = '$records = $this->attendanceModel->findAll($userId, \'\', $fromDate, $toDate, $page, $perPage);';
+    $employeeCount = '$total = $this->attendanceModel->countAll($userId, \'\', $fromDate, $toDate, null, \'absent\');';
+    $employeeFind = '$records = $this->attendanceModel->findAll($userId, \'\', $fromDate, $toDate, $page, $perPage, null, \'absent\');';
     assert_true(strpos($controllerSource, $employeeCount) < strpos($controllerSource, $employeeFind), 'Employee attendance list should count and clamp before querying page rows.');
 });
 

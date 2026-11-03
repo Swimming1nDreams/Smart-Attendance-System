@@ -128,6 +128,199 @@ test('workforce policy assignments reject overlaps and remove employee overrides
     assert_same(2, $auditCount);
 });
 
+test('workforce policy assignments validate selected targets and preserve company scope without a target', function (): void {
+    $database = TestDatabase::connect();
+    $ids = $database->resetAndSeed();
+    $pdo = $database->pdo();
+    $assignments = new WorkScheduleAssignmentService($pdo, new AuditLogService($pdo));
+    $policyId = workforce_policy_test_schedule($pdo, 'Assignment Target Validation Policy', [1, 2, 3, 4, 5]);
+
+    $company = $assignments->create([
+        'scope_type' => 'company',
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+    ], $ids['admin_id']);
+    assert_true($company['ok']);
+    $companyHasNullTarget = (int) $pdo->query(
+        'SELECT scope_id IS NULL FROM work_schedule_assignments WHERE id = ' . (int) $company['id']
+    )->fetchColumn();
+    assert_same(1, $companyHasNullTarget);
+
+    $department = $assignments->create([
+        'scope_type' => 'department',
+        'department_id' => $ids['department_id'],
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+    ], $ids['admin_id']);
+    assert_true($department['ok']);
+    assert_same((int) $ids['department_id'], (int) $department['data']['scope_id']);
+
+    $missingDepartment = $assignments->create([
+        'scope_type' => 'department',
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+    ], $ids['admin_id']);
+    assert_false($missingDepartment['ok']);
+    assert_true(isset($missingDepartment['errors']['department_id']));
+    assert_false(isset($missingDepartment['errors']['scope_id']));
+
+    $invalidDepartment = $assignments->create([
+        'scope_type' => 'department',
+        'department_id' => 999999,
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+    ], $ids['admin_id']);
+    assert_false($invalidDepartment['ok']);
+    assert_true(isset($invalidDepartment['errors']['department_id']));
+
+    $missingEmployee = $assignments->create([
+        'scope_type' => 'employee',
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+    ], $ids['admin_id']);
+    assert_false($missingEmployee['ok']);
+    assert_true(isset($missingEmployee['errors']['employee_id']));
+    assert_false(isset($missingEmployee['errors']['scope_id']));
+
+    $invalidEmployee = $assignments->create([
+        'scope_type' => 'employee',
+        'employee_id' => $ids['admin_id'],
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+    ], $ids['admin_id']);
+    assert_false($invalidEmployee['ok']);
+    assert_true(isset($invalidEmployee['errors']['employee_id']));
+
+    $invalidScope = $assignments->create([
+        'scope_type' => 'team',
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+    ], $ids['admin_id']);
+    assert_false($invalidScope['ok']);
+    assert_same('team', $invalidScope['data']['scope_type']);
+    assert_true(isset($invalidScope['errors']['scope_type']));
+
+    $employeeOption = null;
+    foreach ($assignments->options()['employees'] as $option) {
+        if ((int) $option['id'] === (int) $ids['employee_id']) {
+            $employeeOption = $option;
+            break;
+        }
+    }
+    assert_not_null($employeeOption);
+    assert_same((int) $ids['department_id'], (int) $employeeOption['department_id']);
+    assert_true(trim((string) $employeeOption['department_name']) !== '');
+
+    $editData = $assignments->normalizeInput([], [
+        'scope_type' => 'employee',
+        'scope_id' => $ids['employee_id'],
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+        'effective_to' => null,
+        'reason' => null,
+        'is_active' => 1,
+    ]);
+    assert_same((int) $ids['employee_id'], (int) $editData['employee_id']);
+    assert_null($editData['department_id']);
+
+    $changedScopeData = $assignments->normalizeInput(['scope_type' => 'department'], [
+        'scope_type' => 'employee',
+        'scope_id' => $ids['employee_id'],
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+        'effective_to' => null,
+        'reason' => null,
+        'is_active' => 1,
+    ]);
+    assert_null($changedScopeData['department_id']);
+    assert_null($changedScopeData['scope_id']);
+});
+
+test('workforce policy assignments schedule notifications for every active user in scope one day early', function (): void {
+    $database = TestDatabase::connect();
+    $ids = $database->resetAndSeed();
+    $pdo = $database->pdo();
+    $assignments = new WorkScheduleAssignmentService($pdo, new AuditLogService($pdo));
+    $policyId = workforce_policy_test_schedule($pdo, 'Scheduled Notification Policy', [1, 2, 3, 4, 5]);
+    $insertHead = $pdo->prepare(
+        "INSERT INTO users (name, email, password, role, department_id, status, staff_code, email_verified_at)
+         VALUES ('Policy Test Department Head', 'policy.head@sapas.test', :password, 'department_head', :department_id, 'active', '909090', NOW())"
+    );
+    $insertHead->execute([
+        ':password' => password_hash('PolicyHead42', PASSWORD_DEFAULT),
+        ':department_id' => $ids['department_id'],
+    ]);
+    $departmentHeadId = (int) $pdo->lastInsertId();
+
+    $created = $assignments->create([
+        'scope_type' => 'department',
+        'department_id' => $ids['department_id'],
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-01',
+        'is_active' => '1',
+    ], $ids['admin_id']);
+    assert_true($created['ok']);
+
+    $assignmentId = (int) $created['id'];
+    $expectedRecipients = (int) $pdo->query(
+        "SELECT COUNT(*) FROM users WHERE status = 'active' AND department_id = " . (int) $ids['department_id']
+    )->fetchColumn();
+    $rows = $pdo->query(
+        "SELECT user_id, available_at, category, priority, context_json FROM notifications
+         WHERE type = 'work_policy_assignment_upcoming'
+           AND related_work_schedule_assignment_id = {$assignmentId}
+           AND cancelled_at IS NULL
+         ORDER BY user_id"
+    )->fetchAll();
+    assert_same($expectedRecipients, count($rows));
+    assert_true(in_array($departmentHeadId, array_map(static fn (array $row): int => (int) $row['user_id'], $rows), true));
+    foreach ($rows as $row) {
+        assert_same('2029-12-31 00:00:00', $row['available_at']);
+        assert_same('policy', $row['category']);
+        assert_same('high', $row['priority']);
+        assert_contains('2030-01-01', (string) $row['context_json']);
+    }
+    assert_same(0, (new Notification($pdo))->countUnreadForUser($ids['employee_id']));
+
+    $updated = $assignments->update($assignmentId, [
+        'scope_type' => 'department',
+        'department_id' => $ids['department_id'],
+        'work_schedule_template_id' => $policyId,
+        'effective_from' => '2030-01-03',
+        'is_active' => '1',
+    ], $ids['admin_id']);
+    assert_true($updated['ok']);
+    assert_same($expectedRecipients, (int) $pdo->query(
+        "SELECT COUNT(*) FROM notifications WHERE related_work_schedule_assignment_id = {$assignmentId} AND cancelled_at IS NULL"
+    )->fetchColumn());
+    assert_same('2030-01-02 00:00:00', (string) $pdo->query(
+        "SELECT MIN(available_at) FROM notifications WHERE related_work_schedule_assignment_id = {$assignmentId} AND cancelled_at IS NULL"
+    )->fetchColumn());
+
+    $pdo->prepare(
+        "INSERT INTO users (name, email, password, role, department_id, status, staff_code, email_verified_at)
+         VALUES ('Policy Scope Newcomer', 'policy.newcomer@sapas.test', :password, 'employee', :department_id, 'active', '919191', NOW())"
+    )->execute([
+        ':password' => password_hash('PolicyNewcomer42', PASSWORD_DEFAULT),
+        ':department_id' => $ids['department_id'],
+    ]);
+    $newcomerId = (int) $pdo->lastInsertId();
+    $reconciled = $assignments->reconcileUpcomingNotifications(new DateTimeImmutable('2030-01-02'));
+    assert_same(1, $reconciled['assignments']);
+    assert_same($expectedRecipients + 1, $reconciled['recipients']);
+    assert_same(1, (int) $pdo->query(
+        "SELECT COUNT(*) FROM notifications
+         WHERE user_id = {$newcomerId}
+           AND related_work_schedule_assignment_id = {$assignmentId}
+           AND cancelled_at IS NULL"
+    )->fetchColumn());
+
+    assert_true($assignments->end($assignmentId, '2030-01-03', $ids['admin_id']));
+    assert_same(0, (int) $pdo->query(
+        "SELECT COUNT(*) FROM notifications WHERE related_work_schedule_assignment_id = {$assignmentId} AND cancelled_at IS NULL"
+    )->fetchColumn());
+});
+
 test('overtime review decisions update approved minutes, notifications, and audit history', function (): void {
     $database = TestDatabase::connect();
     $ids = $database->resetAndSeed();
@@ -384,7 +577,7 @@ test('attendance report screen export and excel data share enriched V3 values', 
     assert_same(0, (int) $export['all_records'][0]['late_minutes']);
 
     $xlsx = (new ReportExcelExportService())->build([
-        'project_name' => 'SAPAS',
+        'project_name' => 'OAAS',
         'system_label' => 'System',
         'generated_at_label' => 'Generated at',
         'active_filters_label' => 'Active Filters',

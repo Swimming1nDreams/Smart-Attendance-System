@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-if ((string) getenv('SAPAS_ALLOW_DEMO_SEED') !== '1') {
-    fwrite(STDERR, "Holiday seed blocked. Set SAPAS_ALLOW_DEMO_SEED=1 to run this dev-only script.\n");
+if ((string) (getenv('OAAS_ALLOW_DEMO_SEED') ?: getenv('SAPAS_ALLOW_DEMO_SEED')) !== '1') {
+    fwrite(STDERR, "Holiday seed blocked. Set OAAS_ALLOW_DEMO_SEED=1 to run this dev-only script.\n");
     exit(1);
 }
 

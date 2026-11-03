@@ -33,4 +33,12 @@ test('employee attendance page renders safely before today has an attendance rec
     assert_contains('Working Hours', $html);
     assert_contains('—', $html);
     assert_contains('action="/attendance/clock-in"', $html);
+    assert_contains('>Waiting</div>', $html);
+    assert_not_contains('>Present</span>', $html);
+
+    $view = file_get_contents(project_path('views/attendance/index.php'));
+    assert_true(is_string($view));
+    assert_contains('<?php if ($todayRecord !== null): ?>', $view);
+    assert_same('Present', formatStatusLabel('present'));
+    assert_same('Absent', formatStatusLabel('absent'));
 });

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-if ((string) getenv('SAPAS_ALLOW_DEMO_SEED') !== '1') {
-    fwrite(STDERR, "Workforce seed blocked. Set SAPAS_ALLOW_DEMO_SEED=1 to run this dev-only script.\n");
+if ((string) (getenv('OAAS_ALLOW_DEMO_SEED') ?: getenv('SAPAS_ALLOW_DEMO_SEED')) !== '1') {
+    fwrite(STDERR, "Workforce seed blocked. Set OAAS_ALLOW_DEMO_SEED=1 to run this dev-only script.\n");
     exit(1);
 }
 
@@ -20,7 +20,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
 $passwordHash = null;
-$seedDomain = '@' . (getenv('SAPAS_DEMO_EMAIL_DOMAIN') ?: 'silveroakhr.com');
+$seedDomain = '@' . (getenv('OAAS_DEMO_EMAIL_DOMAIN') ?: getenv('SAPAS_DEMO_EMAIL_DOMAIN') ?: 'silveroakhr.com');
 $legacySeedDomain = '@legacy.invalid';
 $seedRemarkPrefix = 'Workforce seed';
 $legacyRemarkPrefix = 'Demo seed';
@@ -51,11 +51,12 @@ $employees = [
     ['name' => 'Ei Mon Kyaw', 'email' => 'ei.mon.kyaw' . $seedDomain, 'legacy_email' => 'nilar.win' . $legacySeedDomain, 'department' => 'Human Resources', 'position' => 'HR Officer', 'status' => 'active', 'phone' => '+95 9 450 100 103', 'address' => 'Yankin Township, Yangon'],
     ['name' => 'Htet Naing', 'email' => 'htet.naing' . $seedDomain, 'legacy_email' => 'thomas.reed' . $legacySeedDomain, 'department' => 'Finance', 'position' => 'Finance Analyst', 'status' => 'active', 'phone' => '+95 9 450 100 104', 'address' => 'Bahan Township, Yangon'],
     ['name' => 'Su Myat Noe', 'email' => 'su.myat.noe' . $seedDomain, 'legacy_email' => 'khin.htet' . $legacySeedDomain, 'department' => 'Information Technology', 'position' => 'Systems Administrator', 'status' => 'active', 'phone' => '+95 9 450 100 105', 'address' => 'Hlaing Township, Yangon'],
-    ['name' => 'Nay Chi Win', 'email' => 'nay.chi.win' . $seedDomain, 'legacy_email' => 'sofia.karim' . $legacySeedDomain, 'department' => 'Customer Support', 'position' => 'Support Specialist', 'status' => 'active', 'phone' => '+95 9 450 100 106', 'address' => 'Tamwe Township, Yangon'],
-    ['name' => 'Pyae Sone Aung', 'email' => 'pyae.sone.aung' . $seedDomain, 'legacy_email' => 'ye.lin' . $legacySeedDomain, 'department' => 'Customer Support', 'position' => 'Support Specialist', 'status' => 'active', 'phone' => '+95 9 450 100 107', 'address' => 'Thingangyun Township, Yangon'],
-    ['name' => 'Zin Mar Htun', 'email' => 'zin.mar.htun' . $seedDomain, 'legacy_email' => 'grace.tun' . $legacySeedDomain, 'department' => 'Finance', 'position' => 'Finance Analyst', 'status' => 'inactive', 'phone' => '+95 9 450 100 108', 'address' => 'Ahlone Township, Yangon'],
-    ['name' => 'Ko Ko Lwin', 'email' => 'ko.ko.lwin' . $seedDomain, 'legacy_email' => null, 'department' => 'Quality Assurance', 'position' => 'Quality Assurance Analyst', 'status' => 'active', 'phone' => '+95 9 450 100 109', 'address' => 'Mingalar Taung Nyunt Township, Yangon'],
-    ['name' => 'May Thu Hlaing', 'email' => 'may.thu.hlaing' . $seedDomain, 'legacy_email' => null, 'department' => 'Operations', 'position' => 'Project Coordinator', 'status' => 'active', 'phone' => '+95 9 450 100 110', 'address' => 'Lanmadaw Township, Yangon'],
+    ['name' => 'Nay Chi Win', 'email' => 'nay.chi.win' . $seedDomain, 'legacy_email' => 'sofia.karim' . $legacySeedDomain, 'department' => 'Customer Support', 'position' => 'Support Specialist', 'status' => 'active', 'phone' => '+95 9 450 100 106', 'address' => 'Tamwe Township, Yangon', 'role' => 'employee'],
+    ['name' => 'Pyae Sone Aung', 'email' => 'pyae.sone.aung' . $seedDomain, 'legacy_email' => 'ye.lin' . $legacySeedDomain, 'department' => 'Customer Support', 'position' => 'Support Specialist', 'status' => 'active', 'phone' => '+95 9 450 100 107', 'address' => 'Thingangyun Township, Yangon', 'role' => 'employee'],
+    ['name' => 'Zin Mar Htun', 'email' => 'zin.mar.htun' . $seedDomain, 'legacy_email' => 'grace.tun' . $legacySeedDomain, 'department' => 'Finance', 'position' => 'Finance Analyst', 'status' => 'inactive', 'phone' => '+95 9 450 100 108', 'address' => 'Ahlone Township, Yangon', 'role' => 'employee'],
+    ['name' => 'Ko Ko Lwin', 'email' => 'ko.ko.lwin' . $seedDomain, 'legacy_email' => null, 'department' => 'Quality Assurance', 'position' => 'Quality Assurance Analyst', 'status' => 'active', 'phone' => '+95 9 450 100 109', 'address' => 'Mingalar Taung Nyunt Township, Yangon', 'role' => 'employee'],
+    ['name' => 'May Thu Hlaing', 'email' => 'may.thu.hlaing' . $seedDomain, 'legacy_email' => null, 'department' => 'Operations', 'position' => 'Project Coordinator', 'status' => 'active', 'phone' => '+95 9 450 100 110', 'address' => 'Lanmadaw Township, Yangon', 'role' => 'employee'],
+    ['name' => 'Myat Su Mon', 'email' => 'myat.su.mon' . $seedDomain, 'legacy_email' => null, 'department' => 'Operations', 'position' => 'Operations Lead', 'status' => 'active', 'phone' => '+95 9 450 100 111', 'address' => 'Sanchaung Township, Yangon', 'role' => 'department_head'],
 ];
 
 $holidays = require __DIR__ . '/data/holidays_2026.php';
@@ -168,10 +169,10 @@ function seedEmployees(PDO $pdo, array $employees, array $departmentIds, array $
     $ids = [];
     $select = $pdo->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
     $insert = $pdo->prepare(
-        'INSERT INTO users (name, email, password, role, department_id, position_id, status, staff_code, email_verified_at) VALUES (:name, :email, :password, "employee", :department_id, :position_id, :status, :staff_code, NOW())'
+        'INSERT INTO users (name, email, password, role, department_id, position_id, status, staff_code, email_verified_at) VALUES (:name, :email, :password, :role, :department_id, :position_id, :status, :staff_code, NOW())'
     );
     $update = $pdo->prepare(
-        'UPDATE users SET name = :name, email = :email, password = :password, role = "employee", department_id = :department_id, position_id = :position_id, status = :status, staff_code = IF(staff_code = "", :staff_code, staff_code), email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = :id'
+        'UPDATE users SET name = :name, email = :email, password = :password, role = :role, department_id = :department_id, position_id = :position_id, status = :status, staff_code = IF(staff_code = "", :staff_code, staff_code), email_verified_at = COALESCE(email_verified_at, NOW()) WHERE id = :id'
     );
     $profile = $pdo->prepare(
         'INSERT INTO employee_profiles (user_id, phone, address) VALUES (:user_id, :phone, :address) ON DUPLICATE KEY UPDATE phone = VALUES(phone), address = VALUES(address)'
@@ -196,10 +197,11 @@ function seedEmployees(PDO $pdo, array $employees, array $departmentIds, array $
             ':name' => $employee['name'],
             ':email' => $employee['email'],
             ':password' => $passwordHash,
+            ':role' => $employee['role'] ?? 'employee',
             ':department_id' => $departmentId,
             ':position_id' => $positionId,
             ':status' => $employee['status'],
-            ':staff_code' => 'EMP-' . $staffCodeCounter,
+            ':staff_code' => sprintf('%06d', $staffCodeCounter),
         ];
 
         if ($id === false) {

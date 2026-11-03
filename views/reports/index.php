@@ -18,6 +18,7 @@ $reportLabels = [
     'attendance-summary' => $t('reports_module.attendance_summary'),
     'employee-attendance-detail' => $t('reports_module.employee_attendance_detail'),
     'leave-request' => $t('reports_module.leave_request'),
+    'absence' => $t('reports_module.absence_report'),
     'late-absent-exception' => $t('reports_module.late_absent_exception'),
 ];
 
@@ -25,6 +26,7 @@ $reportIcons = [
     'attendance-summary' => 'analytics',
     'employee-attendance-detail' => 'user',
     'leave-request' => 'leave',
+    'absence' => 'x-circle',
     'late-absent-exception' => 'warning',
 ];
 
@@ -32,6 +34,7 @@ $reportTones = [
     'attendance-summary' => 'is-attendance',
     'employee-attendance-detail' => 'is-employee',
     'leave-request' => 'is-leave',
+    'absence' => 'is-exception',
     'late-absent-exception' => 'is-exception',
 ];
 
@@ -50,6 +53,7 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
                 'attendance-summary' => '/admin/reports/attendance-summary',
                 'employee-attendance-detail' => '/admin/reports/employee-attendance-detail',
                 'leave-request' => '/admin/reports/leave-requests',
+                'absence' => '/admin/reports/absence',
                 'late-absent-exception' => '/admin/reports/late-absent-exceptions',
                 default => '/admin/reports?type=' . urlencode((string) $key),
             };

@@ -17,6 +17,28 @@ test('PDF browser discovery gives explicit configuration priority', function ():
     assert_same($existing[0], call_private($service, 'browserExecutablePath'));
 });
 
+test('PDF browser discovery prefers OAAS environment configuration and keeps the SAPAS fallback', function (): void {
+    $oaasBrowser = 'C:\\Environment\\oaas-chrome.exe';
+    $legacyBrowser = 'C:\\Environment\\legacy-chrome.exe';
+    $pathExists = static fn (string $path): bool => in_array($path, [$oaasBrowser, $legacyBrowser], true);
+
+    $preferred = new ReportPdfExportService(
+        null,
+        ['OAAS_CHROME_PATH' => $oaasBrowser, 'SAPAS_CHROME_PATH' => $legacyBrowser, 'PATH' => ''],
+        'Windows',
+        $pathExists
+    );
+    $fallback = new ReportPdfExportService(
+        null,
+        ['SAPAS_CHROME_PATH' => $legacyBrowser, 'PATH' => ''],
+        'Windows',
+        $pathExists
+    );
+
+    assert_same($oaasBrowser, call_private($preferred, 'browserExecutablePath'));
+    assert_same($legacyBrowser, call_private($fallback, 'browserExecutablePath'));
+});
+
 test('PDF browser discovery supports standard macOS Chrome and Edge paths', function (): void {
     $chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
     $edge = '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge';

@@ -5,10 +5,25 @@ declare(strict_types=1);
 require __DIR__ . '/bootstrap.php';
 require __DIR__ . '/Support/TestDatabase.php';
 
-$databaseName = getenv('SAPAS_BROWSER_DB_NAME') ?: 'sapas_browser_test';
+$databaseName = getenv('OAAS_BROWSER_DB_NAME') ?: getenv('SAPAS_BROWSER_DB_NAME') ?: 'sapas_browser_test';
 $database = TestDatabase::connect($databaseName);
 $ids = $database->resetAndSeed();
 $pdo = $database->pdo();
+
+$departmentHead = $pdo->prepare(
+    'INSERT INTO users (name, email, password, role, department_id, position_id, status, staff_code, email_verified_at)
+     VALUES (:name, :email, :password, :role, :department_id, :position_id, :status, :staff_code, NOW())'
+);
+$departmentHead->execute([
+    ':name' => 'Integration Department Head',
+    ':email' => 'department.head.integration@sapas.test',
+    ':password' => password_hash('Password123!', PASSWORD_DEFAULT),
+    ':role' => 'department_head',
+    ':department_id' => $ids['department_id'],
+    ':position_id' => $ids['position_id'],
+    ':status' => 'active',
+    ':staff_code' => '909090',
+]);
 
 $pdo->prepare(
     'INSERT INTO attendance_records (user_id, attendance_date, clock_in_time, clock_out_time, working_hours, status, late_minutes, remarks) VALUES (:user_id, :attendance_date, :clock_in_time, :clock_out_time, :working_hours, :status, :late_minutes, :remarks)'
@@ -53,5 +68,6 @@ $pdo->prepare(
 echo "Seeded browser QA database: {$database->databaseName()}\n";
 echo "Start the app with DB_NAME={$database->databaseName()} and browse to /login.\n";
 echo "Admin: admin.integration@sapas.test / Password123!\n";
+echo "Department Head: department.head.integration@sapas.test / Password123!\n";
 echo "Employee: employee.integration@sapas.test / Password123!\n";
 echo "Inactive employee: inactive.integration@sapas.test / Password123!\n";

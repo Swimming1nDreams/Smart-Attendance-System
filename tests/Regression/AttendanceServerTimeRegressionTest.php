@@ -7,7 +7,7 @@ test('employee self check-in uses server time and authenticated session identity
     $source = method_source($controller, 'clockIn');
 
     assert_method_order($controller, 'clockIn', [
-        '$this->sessionManager->requireRole(\'employee\')',
+        '$this->sessionManager->requireAnyRole([\'employee\', \'department_head\'])',
         '$this->validateCsrfToken($request)',
         '$userId = $this->sessionManager->getUserId()',
         '$this->ensureActiveEmployee($userId)',
@@ -28,15 +28,18 @@ test('employee self check-out uses server time and authenticated session identit
     $source = method_source($controller, 'clockOut');
 
     assert_method_order($controller, 'clockOut', [
-        '$this->sessionManager->requireRole(\'employee\')',
+        '$this->sessionManager->requireAnyRole([\'employee\', \'department_head\'])',
         '$this->validateCsrfToken($request)',
         '$userId = $this->sessionManager->getUserId()',
         '$this->ensureActiveEmployee($userId)',
-        '$today = date(\'Y-m-d\')',
-        '->clockOut($userId, $today, date(\'H:i:s\'), $userId',
+        '$requestTime = new DateTimeImmutable(\'now\')',
+        '$today = $requestTime->format(\'Y-m-d\')',
+        '$calculation = $this->requireAttendanceOperations()->clockOut(',
+        '$requestTime->format(\'H:i:s\'),',
     ]);
 
-    assert_not_contains('getBodyParams()', $source, 'Self check-out must not read client-submitted attendance data.');
+    assert_contains("['early_departure_reason']", $source);
+    assert_contains("['early_departure_note']", $source);
     assert_not_contains('$request->query(', $source, 'Self check-out must not read client-submitted attendance data from the query string.');
 
     foreach (['employee_id', 'attendance_date', 'clock_out_time', 'status'] as $field) {
@@ -44,15 +47,21 @@ test('employee self check-out uses server time and authenticated session identit
     }
 });
 
-test('employee self-attendance forms submit only the CSRF token', function (): void {
+test('employee self-attendance forms submit no client-owned attendance values', function (): void {
+    $checkoutPartial = file_get_contents(project_path('views/partials/early_departure_checkout.php'));
+    assert_true(is_string($checkoutPartial), 'Early-departure checkout partial should be readable.');
     foreach (['views/dashboard/employee.php', 'views/attendance/index.php'] as $viewPath) {
         $view = file_get_contents(project_path($viewPath));
         assert_true(is_string($view), sprintf('%s should be readable.', $viewPath));
 
         foreach (['clock-in', 'clock-out'] as $action) {
-            $form = attendance_self_action_form($view, '/attendance/' . $action, $viewPath);
+            $formSource = $action === 'clock-out' ? $checkoutPartial : $view;
+            $form = attendance_self_action_form($formSource, '/attendance/' . $action, $viewPath);
             preg_match_all('/\bname="([^"]+)"/', $form, $matches);
-            assert_same(['csrf_token'], array_values(array_unique($matches[1] ?? [])), sprintf('%s %s form should submit only the CSRF token.', $viewPath, $action));
+            $expectedFields = $action === 'clock-out'
+                ? ['csrf_token', 'early_departure_reason', 'early_departure_note']
+                : ['csrf_token'];
+            assert_same($expectedFields, array_values(array_unique($matches[1] ?? [])), sprintf('%s %s form should submit only permitted fields.', $viewPath, $action));
 
             foreach ([
                 'employee_id',
@@ -73,14 +82,14 @@ test('employee self-attendance forms submit only the CSRF token', function (): v
     }
 });
 
-test('administrator attendance corrections remain manual role-protected and CSRF-protected', function (): void {
+test('authorized manager attendance corrections remain manual role-protected and CSRF-protected', function (): void {
     $controller = project_path('src/Controllers/AttendanceController.php');
 
-    assert_method_contains($controller, 'create', '$this->ensureAdmin();');
-    assert_method_contains($controller, 'edit', '$this->ensureAdmin();');
+    assert_method_contains($controller, 'create', '$this->ensureAdminOrDepartmentHead();');
+    assert_method_contains($controller, 'edit', '$this->ensureAdminOrDepartmentHead();');
 
     assert_method_order($controller, 'store', [
-        '$this->ensureAdmin();',
+        '$this->ensureAdminOrDepartmentHead();',
         '$this->validateCsrfToken($request);',
         '$request->getBodyParams()[\'employee_id\']',
         '$request->getBodyParams()[\'attendance_date\']',
@@ -92,7 +101,7 @@ test('administrator attendance corrections remain manual role-protected and CSRF
     ]);
 
     assert_method_order($controller, 'update', [
-        '$this->ensureAdmin();',
+        '$this->ensureAdminOrDepartmentHead();',
         '$this->validateCsrfToken($request);',
         '$request->getBodyParams()[\'employee_id\']',
         '$request->getBodyParams()[\'attendance_date\']',

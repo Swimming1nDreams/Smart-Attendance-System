@@ -9,9 +9,9 @@ $defaults = [
     'username' => '',
     'password' => '',
     'encryption' => 'tls',
-    'from_email' => 'no-reply@sapas.local',
-    'from_name' => 'Smart Attendance',
-    'verification_subject' => 'Verify your Smart Attendance account email',
+    'from_email' => 'no-reply@oaas.local',
+    'from_name' => 'Office Attendance and Analytic System (OAAS)',
+    'verification_subject' => 'Your Office Attendance and Analytic System verification code',
     'local_host' => '',
 ];
 

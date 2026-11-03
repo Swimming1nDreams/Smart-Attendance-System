@@ -17,8 +17,21 @@ final class LeaveOperationService
         $this->dateValidator = $dateValidator ?? new DateValidationService();
     }
 
-    public function createRequest(int $userId, string $leaveType, string $startDate, string $endDate, int $durationDays, ?string $reason, ?array $attachmentData = null): int
+    public function createRequest(int $userId, string $leaveType, string $startDate, string $endDate, int $durationDays, ?string $reason, string $reasonCategory, ?array $attachmentData = null): int
     {
+        if (!LeaveReasonCatalog::supportsLeaveType($leaveType)) {
+            throw new LeaveOperationException('leave_type_invalid');
+        }
+        if (!LeaveReasonCatalog::isValid($leaveType, $reasonCategory)) {
+            throw new LeaveOperationException('reason_category_invalid');
+        }
+        $reason = trim((string) $reason);
+        if ($reason === '') {
+            throw new LeaveOperationException('reason_required');
+        }
+        if (mb_strlen($reason) > 1000) {
+            throw new LeaveOperationException('reason_too_long');
+        }
         if (
             !$this->dateValidator->isValidDate($startDate)
             || !$this->dateValidator->isValidDate($endDate)
@@ -30,18 +43,19 @@ final class LeaveOperationService
             throw new LeaveOperationException('invalid_duration');
         }
 
-        return $this->transactional('create_leave_request', function () use ($userId, $leaveType, $startDate, $endDate, $durationDays, $reason, $attachmentData): int {
-            $this->lockEmployee($userId, true);
+        return $this->transactional('create_leave_request', function () use ($userId, $leaveType, $startDate, $endDate, $durationDays, $reason, $reasonCategory, $attachmentData): int {
+            $this->lockLeaveRequester($userId, true);
             if ($this->hasOverlappingRequest($userId, $startDate, $endDate, null)) {
                 throw new LeaveOperationException('overlap');
             }
 
             $statement = $this->connection->prepare(
-                'INSERT INTO leave_requests (user_id, leave_type, start_date, end_date, duration_days, reason, status) VALUES (:user_id, :leave_type, :start_date, :end_date, :duration_days, :reason, :status)'
+                'INSERT INTO leave_requests (user_id, leave_type, reason_category, start_date, end_date, duration_days, reason, status) VALUES (:user_id, :leave_type, :reason_category, :start_date, :end_date, :duration_days, :reason, :status)'
             );
             $statement->execute([
                 ':user_id' => $userId,
                 ':leave_type' => $leaveType,
+                ':reason_category' => $reasonCategory,
                 ':start_date' => $startDate,
                 ':end_date' => $endDate,
                 ':duration_days' => $durationDays,
@@ -76,7 +90,8 @@ final class LeaveOperationService
                 throw new LeaveOperationException('not_found');
             }
 
-            $this->lockEmployee((int) $snapshot['user_id'], true);
+            $requester = $this->lockLeaveRequester((int) $snapshot['user_id'], true);
+            $this->assertManagerCanManageRequester($reviewedBy, $requester);
             $leave = $this->findLeave($leaveId, true);
             if ($leave === null) {
                 throw new LeaveOperationException('not_found');
@@ -113,7 +128,20 @@ final class LeaveOperationService
 
     public function reject(int $leaveId, int $reviewedBy, string $reviewedAt, string $reviewNote, array $auditContext = []): array
     {
-        return $this->transitionPending($leaveId, 'reject_leave_request', function (array $leave) use ($reviewedBy, $reviewedAt, $reviewNote, $auditContext): void {
+        return $this->transactional('reject_leave_request', function () use ($leaveId, $reviewedBy, $reviewedAt, $reviewNote, $auditContext): array {
+            $snapshot = $this->findLeave($leaveId, false);
+            if ($snapshot === null) {
+                throw new LeaveOperationException('not_found');
+            }
+            $requester = $this->lockLeaveRequester((int) $snapshot['user_id'], false);
+            $this->assertManagerCanManageRequester($reviewedBy, $requester);
+            $leave = $this->findLeave($leaveId, true);
+            if ($leave === null) {
+                throw new LeaveOperationException('not_found');
+            }
+            if ($leave['status'] !== 'pending') {
+                throw new LeaveOperationException('concurrent_update');
+            }
             $statement = $this->connection->prepare(
                 'UPDATE leave_requests SET status = :status, reviewed_by = :reviewed_by, reviewed_at = :reviewed_at, review_note = :review_note, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND status = :current_status'
             );
@@ -130,12 +158,20 @@ final class LeaveOperationService
             }
             $this->auditLog?->record($reviewedBy, 'leave.rejected', 'leave_request', (int) $leave['id'], 'Leave request rejected',
                 ['status' => $leave['status']], ['status' => 'rejected', 'reviewed_by' => $reviewedBy, 'reviewed_at' => $reviewedAt, 'review_note' => $reviewNote], $auditContext);
+
+            return $leave;
         });
     }
 
     public function cancelByAdmin(int $leaveId, int $cancelledBy, string $cancelledAt, string $cancelReason, array $auditContext = []): array
     {
         return $this->transactional('cancel_leave_request_by_admin', function () use ($leaveId, $cancelledBy, $cancelledAt, $cancelReason, $auditContext): array {
+            $snapshot = $this->findLeave($leaveId, false);
+            if ($snapshot === null) {
+                throw new LeaveOperationException('not_found');
+            }
+            $requester = $this->lockLeaveRequester((int) $snapshot['user_id'], false);
+            $this->assertManagerCanManageRequester($cancelledBy, $requester);
             $leave = $this->findLeave($leaveId, true);
             if ($leave === null) {
                 throw new LeaveOperationException('not_found');
@@ -157,7 +193,7 @@ final class LeaveOperationService
             if ($statement->rowCount() !== 1) {
                 throw new LeaveOperationException('concurrent_update');
             }
-            $this->auditLog?->record($cancelledBy, 'leave.cancelled_by_admin', 'leave_request', $leaveId, 'Administrator cancelled leave request',
+            $this->auditLog?->record($cancelledBy, 'leave.cancelled_by_manager', 'leave_request', $leaveId, 'Authorized manager cancelled leave request',
                 ['status' => $leave['status']], ['status' => 'cancelled', 'cancelled_by' => $cancelledBy, 'cancelled_at' => $cancelledAt, 'cancel_reason' => $cancelReason], $auditContext);
 
             return $leave;
@@ -167,6 +203,11 @@ final class LeaveOperationService
     public function cancelByEmployee(int $leaveId, int $userId, string $cancelledAt, string $cancelReason, array $auditContext = []): array
     {
         return $this->transactional('cancel_leave_request_by_employee', function () use ($leaveId, $userId, $cancelledAt, $cancelReason, $auditContext): array {
+            $snapshot = $this->findLeave($leaveId, false);
+            if ($snapshot === null || (int) $snapshot['user_id'] !== $userId) {
+                throw new LeaveOperationException('not_found');
+            }
+            $this->lockLeaveRequester($userId, true);
             $leave = $this->findLeave($leaveId, true);
             if ($leave === null || (int) $leave['user_id'] !== $userId) {
                 throw new LeaveOperationException('not_found');
@@ -197,35 +238,58 @@ final class LeaveOperationService
         });
     }
 
-    private function transitionPending(int $leaveId, string $operation, callable $transition): array
+    /** @return array<string, mixed> */
+    private function lockLeaveRequester(int $userId, bool $requireActive): array
     {
-        return $this->transactional($operation, function () use ($leaveId, $transition): array {
-            $leave = $this->findLeave($leaveId, true);
-            if ($leave === null) {
-                throw new LeaveOperationException('not_found');
-            }
-            if ($leave['status'] !== 'pending') {
-                throw new LeaveOperationException('concurrent_update');
-            }
-            $transition($leave);
-
-            return $leave;
-        });
-    }
-
-    private function lockEmployee(int $userId, bool $requireActive): void
-    {
-        $statement = $this->connection->prepare('SELECT id, role, status FROM users WHERE id = :id LIMIT 1 FOR UPDATE');
+        $statement = $this->connection->prepare('SELECT id, role, status, department_id FROM users WHERE id = :id LIMIT 1 FOR UPDATE');
         $statement->execute([':id' => $userId]);
-        $employee = $statement->fetch();
-        if ($employee === false || $employee['role'] !== 'employee' || ($requireActive && $employee['status'] !== 'active')) {
+        $requester = $statement->fetch();
+        if (
+            $requester === false
+            || !in_array((string) ($requester['role'] ?? ''), ['employee', 'department_head'], true)
+            || ($requireActive && ($requester['status'] ?? '') !== 'active')
+        ) {
             throw new LeaveOperationException('employee_invalid');
         }
+
+        return $requester;
+    }
+
+    /** @param array<string, mixed> $requester */
+    private function assertManagerCanManageRequester(int $actorUserId, array $requester): void
+    {
+        $statement = $this->connection->prepare(
+            'SELECT id, role, status, department_id FROM users WHERE id = :id LIMIT 1 FOR UPDATE'
+        );
+        $statement->execute([':id' => $actorUserId]);
+        $actor = $statement->fetch();
+
+        if ($actor === false || ($actor['status'] ?? '') !== 'active') {
+            throw new LeaveOperationException('authorization_denied');
+        }
+
+        if (($actor['role'] ?? '') === 'admin') {
+            return;
+        }
+
+        $actorDepartmentId = isset($actor['department_id']) ? (int) $actor['department_id'] : 0;
+        $requesterDepartmentId = isset($requester['department_id']) ? (int) $requester['department_id'] : 0;
+        if (
+            ($actor['role'] ?? '') === 'department_head'
+            && ($requester['role'] ?? '') === 'employee'
+            && (int) ($actor['id'] ?? 0) !== (int) ($requester['id'] ?? 0)
+            && $actorDepartmentId > 0
+            && $actorDepartmentId === $requesterDepartmentId
+        ) {
+            return;
+        }
+
+        throw new LeaveOperationException('authorization_denied');
     }
 
     private function findLeave(int $leaveId, bool $lock): ?array
     {
-        $sql = 'SELECT id, user_id, leave_type, start_date, end_date, duration_days, reason, status FROM leave_requests WHERE id = :id LIMIT 1';
+        $sql = 'SELECT id, user_id, leave_type, reason_category, start_date, end_date, duration_days, reason, status FROM leave_requests WHERE id = :id LIMIT 1';
         if ($lock) {
             $sql .= ' FOR UPDATE';
         }

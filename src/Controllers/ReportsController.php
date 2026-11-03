@@ -11,9 +11,11 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Services\AttendanceExceptionReportService;
 use App\Services\AttendanceSummaryReportService;
+use App\Services\AbsenceReportService;
 use App\Services\AuditLogService;
 use App\Services\EmployeeAttendanceReportService;
 use App\Services\LeaveReportService;
+use App\Services\LeaveReasonCatalog;
 use App\Services\ReportExcelExportService;
 use App\Services\ReportFilterService;
 use App\Services\ReportPdfExportService;
@@ -24,6 +26,7 @@ final class ReportsController extends MasterDataController
         'attendance-summary' => ['title_key' => 'reports_module.attendance_summary', 'description_key' => 'reports_module.attendance_summary_card_description'],
         'employee-attendance-detail' => ['title_key' => 'reports_module.employee_attendance_detail', 'description_key' => 'reports_module.employee_attendance_detail_card_description'],
         'leave-request' => ['title_key' => 'reports_module.leave_request', 'description_key' => 'reports_module.leave_request_card_description'],
+        'absence' => ['title_key' => 'reports_module.absence_report', 'description_key' => 'reports_module.absence_report_card_description'],
         'late-absent-exception' => ['title_key' => 'reports_module.late_absent_exception', 'description_key' => 'reports_module.late_absent_exception_card_description'],
     ];
 
@@ -33,6 +36,7 @@ final class ReportsController extends MasterDataController
         private EmployeeAttendanceReportService $employeeAttendanceReports,
         private LeaveReportService $leaveReports,
         private AttendanceExceptionReportService $exceptionReports,
+        private AbsenceReportService $absenceReports,
         private Employee $employees,
         private Department $departments,
         private ReportPdfExportService $pdf,
@@ -46,7 +50,7 @@ final class ReportsController extends MasterDataController
 
     public function index(Request $request): void
     {
-        $this->ensureAdmin();
+        $this->ensureAdminOrDepartmentHead();
         $selected = trim((string) $request->query('type', ''));
         if (!isset(self::REPORT_TYPES[$selected])) {
             $selected = '';
@@ -63,64 +67,91 @@ final class ReportsController extends MasterDataController
 
     public function attendanceSummary(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->attendanceSummary($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->attendanceSummary($input);
         $result = $this->attendanceSummaryReports->generate($filters, (int) ($filters['per_page'] ?? 20));
         $this->render('reports/attendance_summary', [
             'title' => $this->t('reports_module.attendance_summary'), 'pageTitle' => $this->t('reports_module.attendance_summary'),
             'pageDescription' => $this->t('reports_module.attendance_summary_description'), 'errors' => $filters['errors'],
             'records' => $result['records'], 'totals' => $result['totals'], 'totalRecords' => $result['total_records'],
-            'page' => $result['page'], 'perPage' => $result['per_page'], 'departments' => $this->departments->findAll(''),
-            'employees' => $this->employees->findReportEmployees(), 'filters' => $this->viewFilters($filters),
+            'page' => $result['page'], 'perPage' => $result['per_page'], 'departments' => $this->filterAllowedDepartments($this->departments->findAll(''), $input['department_id'] ?? null),
+            'employees' => $this->employees->findReportEmployees($filters['department_id'] ?? null), 'filters' => $this->viewFilters($filters),
         ]);
     }
 
     public function employeeAttendanceDetail(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->employeeAttendance($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->employeeAttendance($input);
         $result = $this->employeeAttendanceReports->generate($filters, (int) ($filters['per_page'] ?? 20));
         $this->render('reports/employee_attendance_detail', [
             'title' => $this->t('reports_module.employee_attendance_detail'), 'pageTitle' => $this->t('reports_module.employee_attendance_detail'),
             'pageDescription' => $this->t('reports_module.employee_attendance_detail_description'), 'errors' => $filters['errors'],
             'records' => $result['records'], 'approvedLeaveRequests' => $result['approved_leave_requests'],
             'approvedLeaveByDate' => $result['approved_leave_by_date'], 'selectedEmployee' => $filters['employee'] ?? null,
-            'employees' => $this->employees->findReportEmployees(), 'totalRecords' => $result['total_records'],
+            'employees' => $this->employees->findReportEmployees($filters['department_id'] ?? null), 'totalRecords' => $result['total_records'],
             'page' => $result['page'], 'perPage' => $result['per_page'], 'filters' => $this->viewFilters($filters),
         ]);
     }
 
     public function leaveRequests(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->leaveRequests($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->leaveRequests($input);
         $result = $this->leaveReports->generate($filters, (int) ($filters['per_page'] ?? 20));
         $this->render('reports/leave_requests', [
             'title' => $this->t('reports_module.leave_request'), 'pageTitle' => $this->t('reports_module.leave_request'),
             'pageDescription' => $this->t('reports_module.leave_request_description'), 'errors' => $filters['errors'],
             'leaveRequests' => $result['records'], 'totalRequests' => $result['total_records'], 'page' => $result['page'],
-            'perPage' => $result['per_page'], 'employees' => $this->employees->findReportEmployees(), 'filters' => $this->viewFilters($filters),
+            'perPage' => $result['per_page'],
+            'departments' => $this->filterAllowedDepartments($this->departments->findAll(''), $input['department_id'] ?? null),
+            'employees' => $this->employees->findReportEmployees($filters['department_id'] ?? null),
+            'departmentScopeLocked' => $this->sessionManager->getUserRole() === 'department_head',
+            'filters' => $this->viewFilters($filters),
+        ]);
+    }
+
+    public function absences(Request $request): void
+    {
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->absences($input);
+        $result = $this->absenceReports->generate($filters, (int) ($filters['per_page'] ?? 20));
+        $this->render('reports/absence', [
+            'title' => $this->t('reports_module.absence_report'), 'pageTitle' => $this->t('reports_module.absence_report'),
+            'pageDescription' => $this->t('reports_module.absence_report_description'), 'errors' => $filters['errors'],
+            'records' => $result['records'], 'totalRecords' => $result['total_records'],
+            'affectedEmployees' => $result['affected_employees'], 'page' => $result['page'], 'perPage' => $result['per_page'],
+            'departments' => $this->filterAllowedDepartments($this->departments->findAll(''), $input['department_id'] ?? null),
+            'employees' => $this->employees->findReportEmployees($filters['department_id'] ?? null),
+            'departmentScopeLocked' => $this->sessionManager->getUserRole() === 'department_head',
+            'filters' => $this->viewFilters($filters),
         ]);
     }
 
     public function lateAbsentExceptions(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->attendanceExceptions($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->attendanceExceptions($input);
         $result = $this->exceptionReports->generate($filters, (int) ($filters['per_page'] ?? 20));
         $this->render('reports/late_absent_exceptions', [
             'title' => $this->t('reports_module.late_absent_exception'), 'pageTitle' => $this->t('reports_module.late_absent_exception'),
             'pageDescription' => $this->t('reports_module.late_absent_exception_description'), 'errors' => $filters['errors'],
             'records' => $result['records'], 'totalRecords' => $result['total_records'], 'page' => $result['page'],
-            'perPage' => $result['per_page'], 'departments' => $this->departments->findAll(''),
-            'employees' => $this->employees->findReportEmployees(), 'filters' => $this->viewFilters($filters),
+            'perPage' => $result['per_page'], 'departments' => $this->filterAllowedDepartments($this->departments->findAll(''), $input['department_id'] ?? null),
+            'employees' => $this->employees->findReportEmployees($filters['department_id'] ?? null), 'filters' => $this->viewFilters($filters),
         ]);
     }
 
     public function attendanceSummaryPdf(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->attendanceSummary($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->attendanceSummary($input);
         $this->ensurePdfFilters($filters, '/admin/reports/attendance-summary', $request);
         $result = $this->attendanceSummaryReports->generate($filters, 20, true);
         if ($result['total_records'] === 0) {
@@ -132,7 +163,6 @@ final class ReportsController extends MasterDataController
                 [$this->t('reports.total_records'), (string) $totals['total_records']],
                 [$this->t('reports.total_attended_including_late'), (string) $totals['present_count']],
                 [$this->t('statuses.attendance.late'), (string) $totals['late_count']],
-                [$this->t('statuses.attendance.absent'), (string) $totals['absent_count']],
                 [$this->t('reports.total_work_duration'), (string) $totals['total_work_duration']],
                 [$this->t('common.labels.overtime'), $this->formatMinutes((int) $totals['total_overtime_minutes'])],
             ]],
@@ -147,13 +177,14 @@ final class ReportsController extends MasterDataController
              ], $result['records'])],
         ];
         $this->streamAndAudit($request, 'attendance_summary', $filters, $this->t('reports_module.attendance_summary'),
-            'sapas_attendance_summary_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
+            'oaas_attendance_summary_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
     }
 
     public function employeeAttendanceDetailPdf(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->employeeAttendance($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->employeeAttendance($input);
         $this->ensurePdfFilters($filters, '/admin/reports/employee-attendance-detail', $request);
         $result = $this->employeeAttendanceReports->generate($filters, 20, true);
         if ($result['records'] === [] && $result['approved_leave_requests'] === []) {
@@ -180,31 +211,61 @@ final class ReportsController extends MasterDataController
         }
         $name = (string) ($filters['employee']['name'] ?? 'employee');
         $this->streamAndAudit($request, 'employee_attendance_detail', $filters, $this->t('reports_module.employee_attendance_detail'),
-            'sapas_employee_attendance_detail_' . $this->filters->filenamePart($name) . '_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
+            'oaas_employee_attendance_detail_' . $this->filters->filenamePart($name) . '_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
     }
 
     public function leaveRequestsPdf(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->leaveRequests($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->leaveRequests($input);
         $this->ensurePdfFilters($filters, '/admin/reports/leave-requests', $request);
         $result = $this->leaveReports->generate($filters, 20, true);
         if ($result['total_records'] === 0) {
             $this->redirectBack('/admin/reports/leave-requests', $request, $this->t('reports.pdf_empty_leave'));
         }
         $sections = [['title' => $this->t('reports.leave_requests'),
-            'headers' => [$this->t('employees_module.staff_code'), $this->t('common.labels.employee'), $this->t('common.labels.email'), $this->t('common.labels.type'), $this->t('common.labels.start_date'), $this->t('common.labels.end_date'), $this->t('leave_module.days'), $this->t('common.labels.status'), $this->t('common.labels.submitted'), $this->t('common.labels.decision_cancel_note')],
+            'headers' => [$this->t('employees_module.staff_code'), $this->t('common.labels.employee'), $this->t('common.labels.email'), $this->t('common.labels.type'), $this->t('leave_module.reason_category'), $this->t('common.labels.start_date'), $this->t('common.labels.end_date'), $this->t('leave_module.days'), $this->t('common.labels.status'), $this->t('common.labels.submitted'), $this->t('common.labels.reason'), $this->t('common.labels.decision_cancel_note')],
             'rows' => array_map(fn (array $row): array => [(string) ($row['staff_code'] ?? ''), (string) ($row['employee_name'] ?? ''), (string) ($row['employee_email'] ?? ''),
-                $this->leaveType((string) ($row['leave_type'] ?? '')), (string) ($row['start_date'] ?? ''), (string) ($row['end_date'] ?? ''),
-                (string) ((int) ($row['duration_days'] ?? 0)), $this->leaveStatus((string) ($row['status'] ?? '')), (string) ($row['created_at'] ?? ''), $this->notePreview($row)], $result['records'])]];
+                $this->leaveType((string) ($row['leave_type'] ?? '')), $this->reasonCategory($row), (string) ($row['start_date'] ?? ''), (string) ($row['end_date'] ?? ''),
+                (string) ((int) ($row['duration_days'] ?? 0)), $this->leaveStatus((string) ($row['status'] ?? '')), (string) ($row['created_at'] ?? ''), $this->requestReason($row), $this->notePreview($row)], $result['records'])]];
         $this->streamAndAudit($request, 'leave_requests', $filters, $this->t('reports_module.leave_request'),
-            'sapas_leave_requests_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
+            'oaas_leave_requests_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
+    }
+
+    public function absencesPdf(Request $request): void
+    {
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->absences($input);
+        $this->ensurePdfFilters($filters, '/admin/reports/absence', $request);
+        $result = $this->absenceReports->generate($filters, 20, true);
+        if ($result['total_records'] === 0) {
+            $this->redirectBack('/admin/reports/absence', $request, $this->t('reports.pdf_empty_absence'));
+        }
+        $sections = [
+            ['title' => $this->t('reports.totals'), 'headers' => [$this->t('reports.metric'), $this->t('reports.value')], 'rows' => [
+                [$this->t('reports.total_absence_days'), (string) $result['total_records']],
+                [$this->t('reports.affected_employees'), (string) $result['affected_employees']],
+            ]],
+            ['title' => $this->t('reports.absence_records'),
+             'headers' => [$this->t('employees_module.staff_code'), $this->t('common.labels.date'), $this->t('common.labels.employee'), $this->t('common.labels.email'), $this->t('common.labels.department'), $this->t('common.labels.status'), $this->t('attendance.remarks')],
+             'rows' => array_map(fn (array $row): array => [
+                 (string) ($row['staff_code'] ?? ''), (string) ($row['attendance_date'] ?? ''),
+                 (string) ($row['employee_name'] ?? ''), (string) ($row['employee_email'] ?? ''),
+                 (string) ($row['department_name'] ?? $this->t('reports_module.no_department')),
+                 $this->attendanceStatus('absent'), trim((string) ($row['remarks'] ?? '')) ?: $this->t('common.none'),
+             ], $result['records'])],
+        ];
+        $this->streamAndAudit($request, 'absence', $filters, $this->t('reports_module.absence_report'),
+            'oaas_absence_report_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
     }
 
     public function lateAbsentExceptionsPdf(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->attendanceExceptions($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->attendanceExceptions($input);
         $this->ensurePdfFilters($filters, '/admin/reports/late-absent-exceptions', $request);
         $result = $this->exceptionReports->generate($filters, 20, true);
         if ($result['total_records'] === 0) {
@@ -214,18 +275,19 @@ final class ReportsController extends MasterDataController
             'headers' => [$this->t('employees_module.staff_code'), $this->t('common.labels.employee'), $this->t('common.labels.email'), $this->t('common.labels.department'), $this->t('common.labels.date'), $this->t('common.labels.exception'), $this->t('common.labels.status'), $this->t('common.labels.clock_in'), $this->t('common.labels.clock_out'), $this->t('attendance.late_minutes'), $this->t('common.labels.approved_leave')],
             'rows' => array_map(fn (array $row): array => [(string) ($row['staff_code'] ?? ''), (string) ($row['employee_name'] ?? ''), (string) ($row['employee_email'] ?? ''),
                 (string) ($row['department_name'] ?? $this->t('reports_module.no_department')), (string) ($row['attendance_date'] ?? ''),
-                ($row['status'] ?? '') === 'absent' ? $this->t('statuses.exception.absent') : $this->t('statuses.exception.late'),
+                $this->t('statuses.exception.late'),
                 $this->attendanceStatus((string) ($row['attendance_display_status'] ?? $row['status'] ?? '')),
                 (string) ($row['clock_in_time'] ?? '—'), (string) ($row['clock_out_time'] ?? '—'), (string) ((int) ($row['late_minutes'] ?? 0)),
                 !empty($row['has_approved_leave']) ? $this->t('reports_module.approved_leave_on_date') : $this->t('common.none')], $result['records'])]];
         $this->streamAndAudit($request, 'attendance_exceptions', $filters, $this->t('reports_module.late_absent_exception'),
-            'sapas_late_absent_exceptions_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
+            'oaas_late_absent_exceptions_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.pdf', $sections);
     }
 
     public function attendanceSummaryExcel(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->attendanceSummary($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->attendanceSummary($input);
         $this->ensureExcelFilters($filters, '/admin/reports/attendance-summary', $request);
         $result = $this->attendanceSummaryReports->generate($filters, 20, true);
         if ($result['total_records'] === 0) {
@@ -237,7 +299,6 @@ final class ReportsController extends MasterDataController
             [$this->t('reports.total_records'), $this->excelCell((int) $totals['total_records'], 'integer')],
             [$this->t('reports.total_attended_including_late'), $this->excelCell((int) $totals['present_count'], 'integer')],
             [$this->t('statuses.attendance.late'), $this->excelCell((int) $totals['late_count'], 'integer')],
-            [$this->t('statuses.attendance.absent'), $this->excelCell((int) $totals['absent_count'], 'integer')],
             [$this->t('reports.total_work_duration'), $this->excelCell((int) $totals['total_work_minutes'], 'duration')],
             [$this->t('common.labels.overtime'), $this->excelCell((int) $totals['total_overtime_minutes'], 'duration')],
         ];
@@ -290,15 +351,16 @@ final class ReportsController extends MasterDataController
             $request,
             'attendance_summary',
             $filters,
-            'sapas_attendance_summary_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
+            'oaas_attendance_summary_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
             $sheets,
         );
     }
 
     public function employeeAttendanceDetailExcel(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->employeeAttendance($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->employeeAttendance($input);
         $this->ensureExcelFilters($filters, '/admin/reports/employee-attendance-detail', $request);
         $result = $this->employeeAttendanceReports->generate($filters, 20, true);
         if ($result['records'] === [] && $result['approved_leave_requests'] === []) {
@@ -386,15 +448,16 @@ final class ReportsController extends MasterDataController
             $request,
             'employee_attendance_detail',
             $filters,
-            'sapas_employee_attendance_detail_' . $this->filters->filenamePart($name) . '_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
+            'oaas_employee_attendance_detail_' . $this->filters->filenamePart($name) . '_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
             $sheets,
         );
     }
 
     public function leaveRequestsExcel(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->leaveRequests($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->leaveRequests($input);
         $this->ensureExcelFilters($filters, '/admin/reports/leave-requests', $request);
         $result = $this->leaveReports->generate($filters, 20, true);
         if ($result['total_records'] === 0) {
@@ -409,11 +472,13 @@ final class ReportsController extends MasterDataController
             (string) ($row['employee_name'] ?? ''),
             (string) ($row['employee_email'] ?? ''),
             $this->leaveType((string) ($row['leave_type'] ?? '')),
+            $this->reasonCategory($row),
             $this->excelCell((string) ($row['start_date'] ?? ''), 'date'),
             $this->excelCell((string) ($row['end_date'] ?? ''), 'date'),
             $this->excelCell((int) ($row['duration_days'] ?? 0), 'integer'),
             $this->excelLeaveStatusCell((string) ($row['status'] ?? '')),
             $this->excelCell((string) ($row['created_at'] ?? ''), 'datetime'),
+            $this->excelCell($this->requestReason($row), 'wrap'),
             $this->excelCell($this->notePreview($row), 'wrap'),
         ], $result['records']);
 
@@ -436,11 +501,13 @@ final class ReportsController extends MasterDataController
                     $this->excelColumn($this->t('common.labels.employee'), 24),
                     $this->excelColumn($this->t('common.labels.email'), 32),
                     $this->excelColumn($this->t('common.labels.type'), 20),
+                    $this->excelColumn($this->t('leave_module.reason_category'), 26),
                     $this->excelColumn($this->t('common.labels.start_date'), 14),
                     $this->excelColumn($this->t('common.labels.end_date'), 14),
                     $this->excelColumn($this->t('leave_module.days'), 10),
                     $this->excelColumn($this->t('common.labels.status'), 15),
                     $this->excelColumn($this->t('common.labels.submitted'), 20),
+                    $this->excelColumn($this->t('common.labels.reason'), 42),
                     $this->excelColumn($this->t('common.labels.decision_cancel_note'), 36),
                 ],
                 $requestRows,
@@ -451,15 +518,72 @@ final class ReportsController extends MasterDataController
             $request,
             'leave_requests',
             $filters,
-            'sapas_leave_requests_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
+            'oaas_leave_requests_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
+            $sheets,
+        );
+    }
+
+    public function absencesExcel(Request $request): void
+    {
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->absences($input);
+        $this->ensureExcelFilters($filters, '/admin/reports/absence', $request);
+        $result = $this->absenceReports->generate($filters, 20, true);
+        if ($result['total_records'] === 0) {
+            $this->redirectBack('/admin/reports/absence', $request, $this->t('reports.excel_empty_absence'));
+        }
+
+        $summaryRows = [
+            [$this->t('reports.total_absence_days'), $this->excelCell((int) $result['total_records'], 'integer')],
+            [$this->t('reports.affected_employees'), $this->excelCell((int) $result['affected_employees'], 'integer')],
+        ];
+        $absenceRows = array_map(fn (array $row): array => [
+            (string) ($row['staff_code'] ?? ''),
+            $this->excelCell((string) ($row['attendance_date'] ?? ''), 'date'),
+            (string) ($row['employee_name'] ?? ''),
+            (string) ($row['employee_email'] ?? ''),
+            (string) ($row['department_name'] ?? $this->t('reports_module.no_department')),
+            $this->excelAttendanceStatusCell('absent'),
+            $this->excelCell(trim((string) ($row['remarks'] ?? '')) ?: $this->t('common.none'), 'wrap'),
+        ], $result['records']);
+        $sheets = [
+            $this->excelSheet(
+                $this->t('reports.sheet_summary'),
+                $this->t('reports_module.absence_report'),
+                [$this->excelColumn($this->t('reports.metric'), 34), $this->excelColumn($this->t('reports.value'), 38)],
+                $summaryRows,
+                'summary',
+            ),
+            $this->excelSheet(
+                $this->t('reports.sheet_absence_records'),
+                $this->t('reports.absence_records'),
+                [
+                    $this->excelColumn($this->t('employees_module.staff_code'), 14),
+                    $this->excelColumn($this->t('common.labels.date'), 14),
+                    $this->excelColumn($this->t('common.labels.employee'), 24),
+                    $this->excelColumn($this->t('common.labels.email'), 32),
+                    $this->excelColumn($this->t('common.labels.department'), 22),
+                    $this->excelColumn($this->t('common.labels.status'), 16),
+                    $this->excelColumn($this->t('attendance.remarks'), 42),
+                ],
+                $absenceRows,
+            ),
+        ];
+        $this->streamExcelAndAudit(
+            $request,
+            'absence',
+            $filters,
+            'oaas_absence_report_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
             $sheets,
         );
     }
 
     public function lateAbsentExceptionsExcel(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->attendanceExceptions($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->attendanceExceptions($input);
         $this->ensureExcelFilters($filters, '/admin/reports/late-absent-exceptions', $request);
         $result = $this->exceptionReports->generate($filters, 20, true);
         if ($result['total_records'] === 0) {
@@ -521,7 +645,7 @@ final class ReportsController extends MasterDataController
             $request,
             'attendance_exceptions',
             $filters,
-            'sapas_late_absent_exceptions_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
+            'oaas_late_absent_exceptions_' . $this->filters->dateRangeFilename($filters) . '_' . date('Ymd_His') . '.xlsx',
             $sheets,
         );
     }
@@ -627,6 +751,20 @@ final class ReportsController extends MasterDataController
     private function leaveStatus(string $status): string { return $this->t('statuses.leave.' . $status); }
     private function leaveType(string $type): string { return $this->t('leave.types.' . $type); }
 
+    private function reasonCategory(array $row): string
+    {
+        return LeaveReasonCatalog::label(
+            (string) ($row['reason_category'] ?? ''),
+            fn (string $key): string => $this->t($key)
+        );
+    }
+
+    private function requestReason(array $row): string
+    {
+        $reason = trim((string) ($row['reason'] ?? ''));
+        return $reason !== '' ? $reason : $this->t('leave_module.no_reason_provided');
+    }
+
     private function notePreview(array $row): string
     {
         $note = trim((string) ($row['review_note'] ?? ''));
@@ -639,6 +777,7 @@ final class ReportsController extends MasterDataController
         }
         return match ($reason) {
             'leave.cancel_reasons.admin', 'Cancelled by admin' => $this->t('leave.cancel_reasons.admin'),
+            'leave.cancel_reasons.department_head', 'Cancelled by department head' => $this->t('leave.cancel_reasons.department_head'),
             'leave.cancel_reasons.employee', 'Cancelled by employee' => $this->t('leave.cancel_reasons.employee'),
             default => mb_substr($reason, 0, 120),
         };
@@ -707,11 +846,7 @@ final class ReportsController extends MasterDataController
     /** @return array{value:mixed,type:string} */
     private function excelExceptionCell(string $status): array
     {
-        $label = $status === 'absent'
-            ? $this->t('statuses.exception.absent')
-            : $this->t('statuses.exception.late');
-
-        return $this->excelCell($label, $status === 'absent' ? 'status_danger' : 'status_warning');
+        return $this->excelCell($this->t('statuses.exception.late'), 'status_warning');
     }
 
     /**

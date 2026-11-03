@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Project
-SAPAS — Smart Attendance and Performance Analytics System
+OAAS — Office Attendance and Analytic System
 
 ## Stack
 - PHP 8+

@@ -103,6 +103,479 @@
 }
 
 @layer components {
+  /* Single-panel login and verification identity: no promotional/navy side. */
+  .sapas-guest-frame.is-focused-login.is-single-panel {
+    max-width: 44rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-guest-form-panel {
+    order: 1;
+    min-height: auto;
+    padding: 2.75rem 3.5rem 3rem;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-guest-language {
+    position: static;
+    justify-content: flex-end;
+    margin: 0 0 1.5rem;
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-guest-header,
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-guest-card {
+    width: 100%;
+    max-width: 34rem;
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest .sapas-brand-mark {
+    display: inline-flex;
+    width: 4.25rem;
+    height: 4.25rem;
+    flex: 0 0 4.25rem;
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest .sapas-brand-text {
+    width: auto;
+    max-width: calc(100% - 5.25rem);
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest .sapas-brand-subtitle {
+    margin-top: 0.5rem;
+    color: #475f75;
+    font-size: 1rem;
+    font-weight: 650;
+    line-height: 1.5rem;
+    letter-spacing: 0;
+    text-transform: none;
+    overflow-wrap: anywhere;
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-guest-card {
+    margin-top: 2.25rem;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .sapas-guest-frame.is-focused-login.is-single-panel .sapas-login-card-header h1 {
+    font-size: 2rem;
+    line-height: 2.35rem;
+  }
+
+  .sapas-guest-frame.is-verification.is-single-panel {
+    max-width: 40rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sapas-guest-frame.is-verification.is-single-panel .sapas-guest-form-panel {
+    min-height: auto;
+    padding: 2.5rem 3rem 2.75rem;
+  }
+
+  .sapas-guest-frame.is-verification .sapas-guest-language {
+    justify-content: flex-end;
+  }
+
+  .sapas-guest-frame.is-verification .sapas-guest-header,
+  .sapas-guest-frame.is-verification .sapas-guest-card {
+    width: 100%;
+    max-width: 32rem;
+  }
+
+  .sapas-guest-frame.is-verification .sapas-brand-lockup-guest {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.875rem;
+  }
+
+  .sapas-guest-frame.is-verification .sapas-brand-lockup-guest .sapas-brand-mark {
+    display: inline-flex;
+    width: 3.5rem;
+    height: 3.5rem;
+    flex: 0 0 3.5rem;
+  }
+
+  .sapas-guest-frame.is-verification .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 2.25rem;
+  }
+
+  .sapas-guest-frame.is-verification .sapas-brand-lockup-guest .sapas-brand-subtitle {
+    margin-top: 0.3rem;
+    color: #52677b;
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.35rem;
+    letter-spacing: 0;
+    text-transform: none;
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 1024px) {
+    .sapas-guest-frame.is-focused-login.is-single-panel,
+    .sapas-guest-frame.is-verification.is-single-panel {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sapas-guest-frame.is-focused-login.is-single-panel .sapas-guest-form-panel,
+    .sapas-guest-frame.is-verification.is-single-panel .sapas-guest-form-panel {
+      padding: 1.5rem;
+    }
+
+    .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest {
+      gap: 0.75rem;
+    }
+
+    .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest .sapas-brand-mark {
+      width: 3rem;
+      height: 3rem;
+      flex-basis: 3rem;
+    }
+
+    .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest .sapas-brand-text {
+      max-width: calc(100% - 3.75rem);
+    }
+
+    .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest .sapas-brand-wordmark {
+      font-size: 1.9rem;
+      line-height: 2.1rem;
+    }
+
+    .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-lockup-guest .sapas-brand-subtitle {
+      margin-top: 0.25rem;
+      font-size: 0.78rem;
+      line-height: 1.2rem;
+    }
+
+    .sapas-guest-frame.is-focused-login.is-single-panel .sapas-guest-card {
+      margin-top: 1.75rem;
+    }
+
+    .sapas-guest-frame.is-verification .sapas-brand-lockup-guest .sapas-brand-wordmark {
+      font-size: 1.65rem;
+      line-height: 1.9rem;
+    }
+  }
+
+  :lang(my) .sapas-guest-frame.is-focused-login.is-single-panel .sapas-brand-subtitle,
+  :lang(my) .sapas-guest-frame.is-verification .sapas-brand-subtitle {
+    line-height: 1.6;
+  }
+}
+
+@layer components {
+  /* Final presentation pass: readable login identity, analytics lists, and employee columns. */
+  .sapas-guest-frame.is-focused-login .sapas-guest-language {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 1rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-header {
+    max-width: 100%;
+    padding-right: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest {
+    width: 100%;
+    align-items: flex-start;
+    gap: 0;
+    text-align: left;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-mark {
+    display: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-text {
+    width: 100%;
+    max-width: 19rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    display: block;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.45rem;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-card {
+    margin-top: 1.5rem;
+  }
+
+  .sapas-analytics-feature-panels {
+    align-items: start;
+  }
+
+  .sapas-analytics-attention-panel {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  .sapas-analytics-attention-count,
+  .sapas-analytics-recognition-count {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .sapas-analytics-recognition-count {
+    display: inline-flex;
+    min-width: 2.75rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.75rem;
+    border: 1px solid rgba(217, 119, 6, 0.28);
+    border-radius: 9999px;
+    background: #fef3c7;
+    color: #b45309;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .sapas-analytics-review-list,
+  .sapas-analytics-recognition-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 0.75rem;
+    max-height: 32rem;
+    padding: 1rem;
+  }
+
+  .sapas-analytics-attention-card {
+    min-width: 0;
+    padding: 1rem;
+  }
+
+  .sapas-analytics-attention-card-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .sapas-analytics-review-identity,
+  .sapas-analytics-recognition-identity {
+    min-width: 0;
+  }
+
+  .sapas-analytics-attention-card-head .sapas-analytics-review-identity strong,
+  .sapas-analytics-attention-card-head .sapas-analytics-review-identity > span {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .sapas-analytics-attention-card-head .sapas-analytics-review-identity strong {
+    display: block;
+    color: #0f172a;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.35rem;
+  }
+
+  .sapas-analytics-attention-card-head .sapas-analytics-review-identity > span {
+    display: block;
+    margin-top: 0.125rem;
+    color: #64748b;
+    font-size: 0.8125rem;
+    line-height: 1.2rem;
+  }
+
+  .sapas-analytics-attention-signals {
+    gap: 0.5rem;
+  }
+
+  .sapas-analytics-attention-signals span {
+    white-space: nowrap;
+  }
+
+  .sapas-analytics-recognition-panel {
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .sapas-analytics-recognition-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.875rem;
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid #fde68a;
+    border-radius: 0.75rem;
+    background: #ffffff;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .sapas-analytics-recognition-card:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 8px 18px -14px rgba(146, 64, 14, 0.58);
+  }
+
+  .sapas-analytics-recognition-star {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #fde68a;
+    border-radius: 9999px;
+    background: #fffbeb;
+    color: #d97706;
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+
+  .sapas-analytics-recognition-name,
+  .sapas-analytics-recognition-context {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .sapas-analytics-recognition-name {
+    color: #0f172a;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.35rem;
+  }
+
+  .sapas-analytics-recognition-context {
+    margin-top: 0.125rem;
+    color: #64748b;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2rem;
+  }
+
+  .sapas-analytics-recognition-score {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0.35rem 0.625rem;
+    border: 1px solid #fde68a;
+    border-radius: 0.5rem;
+    background: #fffbeb;
+    color: #b45309;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .sapas-employee-table {
+    min-width: 84rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee {
+    width: 18rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-department {
+    width: 12rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-position {
+    width: 13rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-actions {
+    width: 15rem;
+  }
+
+  .sapas-employee-table .sapas-person-name,
+  .sapas-employee-table .sapas-person-email,
+  .sapas-employee-table .sapas-table-text-cell {
+    max-width: none;
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .sapas-employee-table .sapas-employee-actions {
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  @media (min-width: 1024px) {
+    .sapas-guest-frame.is-focused-login {
+      grid-template-columns: minmax(22rem, 0.9fr) minmax(28rem, 1.1fr);
+    }
+  }
+
+  @media (max-width: 639px) {
+    .sapas-guest-frame.is-focused-login .sapas-guest-language {
+      margin-bottom: 0.875rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-wordmark {
+      font-size: 1rem;
+      line-height: 1.35rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-card {
+      margin-top: 1.25rem;
+    }
+
+    .sapas-analytics-attention-header {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .sapas-analytics-review-list,
+    .sapas-analytics-recognition-list {
+      padding: 0.75rem;
+    }
+
+    .sapas-analytics-attention-card-head,
+    .sapas-analytics-recognition-card {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .sapas-analytics-attention-card-head > .sapas-badge,
+    .sapas-analytics-recognition-score {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+}
+
+@layer components {
   .sapas-app-shell {
     @apply w-full max-w-none;
     min-height: 100vh;
@@ -637,7 +1110,7 @@
   }
 
   .sapas-dashboard-personal-grid {
-    @apply grid gap-6 lg:grid-cols-5 lg:items-stretch;
+    @apply grid gap-6 lg:grid-cols-5 lg:items-start;
   }
 
   .sapas-dashboard-eyebrow {
@@ -1918,6 +2391,14 @@
     @apply bg-brand-50 text-brand-700 ring-1 ring-brand-100 shadow-sapas-soft;
   }
 
+  .sapas-chip-warning {
+    @apply bg-amber-50 text-amber-800 ring-1 ring-amber-200 shadow-sapas-soft;
+  }
+
+  .sapas-chip-danger {
+    @apply bg-rose-50 text-rose-800 ring-1 ring-rose-200 shadow-sapas-soft;
+  }
+
   .sapas-policy-center {
     @apply text-slate-800;
   }
@@ -2427,7 +2908,7 @@
   }
 
   .sapas-analytics-table {
-    min-width: 77.5rem;
+    min-width: 84rem;
   }
 
   .sapas-leave-admin-table {
@@ -2769,6 +3250,14 @@
     @apply px-3 py-2.5 text-left align-middle text-sm;
   }
 
+  .sapas-analytics-table th {
+    @apply px-4 py-3 text-sm;
+  }
+
+  .sapas-analytics-table td {
+    @apply px-4 py-3;
+  }
+
   .sapas-data-table th,
   .sapas-data-table td,
   .sapas-data-table .text-right,
@@ -2819,6 +3308,14 @@
 
   .sapas-data-table .sapas-col-number-wide {
     width: 6.5rem;
+  }
+
+  .sapas-analytics-table .sapas-col-approved-leave {
+    width: 9rem;
+  }
+
+  .sapas-analytics-table .sapas-col-late {
+    width: 5.5rem;
   }
 
   .sapas-data-table .sapas-col-duration {
@@ -4294,6 +4791,21 @@
     padding: 0 0.25rem;
   }
 
+  .sapas-topbar-profile-link {
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .sapas-topbar-profile-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .sapas-topbar-profile-link:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.92);
+    outline-offset: 3px;
+  }
+
   .sapas-topbar-user-avatar {
     display: inline-flex;
     width: 2rem;
@@ -4301,7 +4813,9 @@
     flex: none;
     align-items: center;
     justify-content: center;
-    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 9999px;
     background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
   }
@@ -7023,7 +7537,34 @@
   }
 
   .sapas-attendance-table {
-    min-width: 82rem;
+    min-width: 94rem;
+  }
+
+  .sapas-attendance-table th,
+  .sapas-attendance-table td {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .sapas-attendance-table .sapas-col-employee {
+    width: 15.5rem;
+  }
+
+  .sapas-attendance-table .sapas-col-attendance-time {
+    width: 7.5rem;
+  }
+
+  .sapas-attendance-table .sapas-col-attendance-status {
+    width: 17rem;
+  }
+
+  .sapas-attendance-table .sapas-attendance-status-cell {
+    white-space: normal;
+  }
+
+  .sapas-attendance-table .sapas-attendance-status-cell > span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   .sapas-attendance-table .sapas-col-attendance-late {
@@ -7031,6 +7572,10 @@
   }
 
   .sapas-attendance-table .sapas-col-attendance-work-duration {
+    width: 8rem;
+  }
+
+  .sapas-attendance-table .sapas-col-action {
     width: 8rem;
   }
 
@@ -7211,5 +7756,586 @@
       min-height: 8.5rem;
       padding: 1.5rem 1rem;
     }
+  }
+}
+
+@layer components {
+  /* Keep the final presentation rules after prior sprint layers so their layout wins the cascade. */
+  .sapas-guest-frame.is-focused-login .sapas-guest-language {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 1rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-header {
+    max-width: 100%;
+    padding-right: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest {
+    width: 100%;
+    align-items: flex-start;
+    gap: 0;
+    text-align: left;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-mark {
+    display: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-text {
+    width: 100%;
+    max-width: 19rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    display: block;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.45rem;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-card {
+    margin-top: 1.5rem;
+  }
+
+  .sapas-analytics-attention-panel {
+    width: 100%;
+    margin: 0;
+  }
+
+  .sapas-analytics-attention-card-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .sapas-employee-table {
+    min-width: 84rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee {
+    width: 18rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-department {
+    width: 12rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-position {
+    width: 13rem;
+  }
+
+  .sapas-employee-table .sapas-col-employee-actions {
+    width: 15rem;
+  }
+
+  .sapas-employee-table .sapas-person-name,
+  .sapas-employee-table .sapas-person-email,
+  .sapas-employee-table .sapas-table-text-cell {
+    max-width: none;
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 1024px) {
+    .sapas-guest-frame.is-focused-login {
+      grid-template-columns: minmax(22rem, 0.9fr) minmax(28rem, 1.1fr);
+    }
+  }
+
+  @media (max-width: 639px) {
+    .sapas-guest-frame.is-focused-login .sapas-guest-language {
+      margin-bottom: 0.875rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-wordmark {
+      font-size: 1rem;
+      line-height: 1.35rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-card {
+      margin-top: 1.25rem;
+    }
+
+    .sapas-analytics-attention-header {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .sapas-analytics-attention-card-head,
+    .sapas-analytics-recognition-card {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .sapas-analytics-attention-card-head > .sapas-badge,
+    .sapas-analytics-recognition-score {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+}
+
+@layer components {
+  /* OAAS visual depth pass: restore a clear canvas, primary-card, nested-card hierarchy. */
+  .sapas-app-body {
+    background:
+      radial-gradient(circle at 88% 8%, rgba(47, 128, 237, 0.055), transparent 24rem),
+      linear-gradient(180deg, #eaf1f7 0%, #f1f5f9 24rem, #eaf1f7 100%);
+  }
+
+  .sapas-main {
+    background: transparent;
+  }
+
+  .sapas-card,
+  .sapas-workspace-card,
+  .sapas-dashboard-section,
+  .sapas-dashboard-primary-action,
+  .sapas-report-filter-panel,
+  .sapas-filter-panel,
+  .sapas-report-summary-card,
+  .sapas-chart-card,
+  .sapas-table-wrap,
+  .sapas-report-table-panel,
+  .sapas-notifications-panel,
+  .sapas-masterdata-form-card {
+    border-color: #cfdae6;
+    background: #ffffff;
+    box-shadow: 0 16px 36px -30px rgba(11, 39, 66, 0.62);
+  }
+
+  .sapas-dashboard-hero,
+  .sapas-workspace-hero,
+  .sapas-material-hero,
+  .sapas-analytics-hero,
+  .sapas-report-hero {
+    border-color: #cbd8e5;
+    background:
+      linear-gradient(135deg, rgba(238, 246, 255, 0.92), rgba(255, 255, 255, 0.98) 48%, rgba(240, 253, 250, 0.68));
+    box-shadow: 0 18px 40px -32px rgba(11, 39, 66, 0.7);
+  }
+
+  .sapas-dashboard-command-panel,
+  .sapas-workspace-opening-panel,
+  .sapas-dashboard-mini-card,
+  .sapas-dashboard-status-panel,
+  .sapas-report-insight-panel,
+  .sapas-analytics-attention-panel,
+  .sapas-form-section,
+  .sapas-masterdata-form-header,
+  .sapas-masterdata-form-footer,
+  .sapas-notifications-summary {
+    border-color: #d4e0eb;
+    background: #f1f5f9;
+    box-shadow: none;
+  }
+
+  .sapas-form-control {
+    border-color: #bdcbd9;
+    background: #fbfdff;
+  }
+
+  .sapas-form-control:hover:not(:disabled):not([readonly]) {
+    border-color: #9fb3c7;
+  }
+
+  .sapas-dashboard-kpi-card {
+    border-color: #d5e0ea;
+    background: #f8fafc;
+  }
+
+  .sapas-dashboard-kpi-card.is-primary {
+    border-color: #b9e1d0;
+    background: linear-gradient(145deg, #effbf6, #ffffff 72%);
+  }
+
+  .sapas-dashboard-kpi-card.is-attention {
+    border-color: #f0d69c;
+    background: linear-gradient(145deg, #fff9e8, #ffffff 72%);
+  }
+
+  .sapas-dashboard-kpi-card.is-secondary {
+    border-color: #c9daf2;
+    background: linear-gradient(145deg, #eff6ff, #ffffff 72%);
+  }
+
+  .sapas-dashboard-section-priority {
+    border-color: #ecd9aa;
+    background: linear-gradient(145deg, #fffaf0, #ffffff 68%);
+  }
+
+  .sapas-dashboard-section-activity {
+    border-color: #c5e2d5;
+    background: linear-gradient(145deg, #f2fbf7, #ffffff 68%);
+  }
+
+  .sapas-dashboard-section-secondary {
+    border-color: #d5def0;
+    background: linear-gradient(145deg, #f4f7fc, #ffffff 68%);
+  }
+
+  .sapas-dashboard-status-panel {
+    background: #eef6ff;
+  }
+
+  .sapas-analytics-kpi {
+    border-color: #d5e0ea;
+    background: #f8fafc;
+  }
+
+  .sapas-analytics-kpi.is-primary {
+    border-color: #b9e1d0;
+    background: #effbf6;
+  }
+
+  .sapas-analytics-kpi.is-neutral {
+    border-color: #c9daf2;
+    background: #eff6ff;
+  }
+
+  .sapas-analytics-kpi.is-warning {
+    border-color: #f0d69c;
+    background: #fff9e8;
+  }
+
+  .sapas-analytics-kpi.is-danger {
+    border-color: #f2c4cc;
+    background: #fff1f3;
+  }
+
+  .sapas-analytics-visual-card {
+    border-color: #d8e1ea;
+    background: #f8fafc;
+  }
+
+  .sapas-report-card {
+    border-color: #d5e0ea;
+    background: #f8fafc;
+  }
+
+  .sapas-report-card.is-attendance {
+    border-color: #b9e1d0;
+    background: linear-gradient(145deg, #effbf6, #ffffff 74%);
+  }
+
+  .sapas-report-card.is-employee {
+    border-color: #c9daf2;
+    background: linear-gradient(145deg, #eff6ff, #ffffff 74%);
+  }
+
+  .sapas-report-card.is-leave {
+    border-color: #d6d1f2;
+    background: linear-gradient(145deg, #f4f2ff, #ffffff 74%);
+  }
+
+  .sapas-report-card.is-exception {
+    border-color: #f0d69c;
+    background: linear-gradient(145deg, #fff9e8, #ffffff 74%);
+  }
+
+  .sapas-empty-state,
+  .sapas-report-empty,
+  .sapas-dashboard-table-empty,
+  .sapas-polish-empty-state {
+    border-color: #c7d4e1;
+    background: #f4f7fa;
+  }
+
+  .sapas-guest-shell {
+    background:
+      radial-gradient(circle at 10% 12%, rgba(47, 128, 237, 0.10), transparent 24rem),
+      radial-gradient(circle at 92% 88%, rgba(15, 118, 110, 0.08), transparent 22rem),
+      linear-gradient(145deg, #e6eef6, #f4f7fa 52%, #e9f0f6);
+  }
+
+  .sapas-guest-frame.is-focused-login {
+    max-width: 72rem;
+    border-color: #c6d4e2;
+    border-radius: 1.5rem;
+    box-shadow: 0 36px 80px -45px rgba(9, 36, 61, 0.78);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+    min-height: 37rem;
+    background: #fbfdff;
+    padding: 2.5rem 3rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-guest-card {
+    background: transparent;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+    min-height: 37rem;
+    padding: 2.5rem 2.75rem;
+    background:
+      radial-gradient(circle at 88% 12%, rgba(56, 189, 248, 0.22), transparent 18rem),
+      radial-gradient(circle at 10% 92%, rgba(20, 184, 166, 0.18), transparent 17rem),
+      linear-gradient(145deg, #153f68 0%, #0f3152 48%, #0b2742 100%);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-inner {
+    display: grid;
+    min-height: 100%;
+    flex: 1 1 auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    justify-content: stretch;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-brand {
+    margin-bottom: 0;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-copy {
+    align-self: center;
+    max-width: 31rem;
+    padding: 1.5rem 0 3.75rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual .sapas-guest-visual-brand .sapas-brand-lockup-guest {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.875rem;
+    text-align: left;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual .sapas-guest-visual-brand .sapas-brand-mark {
+    display: inline-flex;
+    width: 3rem;
+    height: 3rem;
+    border-color: rgba(255, 255, 255, 0.32);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.7);
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual .sapas-guest-visual-brand .sapas-brand-text {
+    max-width: 24rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual .sapas-guest-visual-brand .sapas-brand-wordmark {
+    color: #ffffff;
+    font-size: 1.35rem;
+    line-height: 1.6rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual .sapas-guest-visual-brand .sapas-brand-subtitle {
+    margin-top: 0.2rem;
+    color: #c8dcee;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.15rem;
+    letter-spacing: 0.025em;
+    text-transform: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-visual-title {
+    max-width: 27rem;
+    font-size: 2.35rem;
+    line-height: 1.18;
+    text-wrap: balance;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-intro {
+    max-width: 26rem;
+    color: #d6e5f2;
+    font-size: 0.9375rem;
+    line-height: 1.65rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-guest-header,
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-guest-card {
+    max-width: 28rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest {
+    gap: 0.3rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-text {
+    max-width: 28rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-wordmark {
+    font-size: 1.75rem;
+    font-weight: 750;
+    line-height: 2.1rem;
+    letter-spacing: -0.025em;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-subtitle {
+    margin-top: 0.35rem;
+    color: #52677b;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.4rem;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-guest-card {
+    margin-top: 1.75rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-grid {
+    margin-top: 1.75rem;
+    gap: 0.75rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card {
+    align-items: flex-start;
+    min-height: 4.25rem;
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.075);
+    padding: 0.8rem 0.9rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-guest-overview-card p {
+    margin-top: 0.15rem;
+    color: #c8d8e7;
+    font-size: 0.75rem;
+    line-height: 1.2rem;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-eyebrow {
+    margin-bottom: 0.55rem;
+    color: #1f6fc7;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-security {
+    border: 1px solid #d6e3ee;
+    border-radius: 0.75rem;
+    background: #f1f6fa;
+    padding: 0.65rem 0.75rem;
+    color: #52677b;
+  }
+
+  .sapas-guest-frame.is-focused-login .sapas-login-security .sapas-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #1f6fc7;
+  }
+
+  @media (min-width: 1024px) {
+    .sapas-guest-frame.is-focused-login {
+      grid-template-columns: minmax(25rem, 0.96fr) minmax(29rem, 1.04fr);
+    }
+  }
+
+  @media (min-width: 1024px) and (max-height: 760px) {
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel,
+    .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+      min-height: 33rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-visual {
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-visual-brand {
+      margin-bottom: 0;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-visual-title {
+      font-size: 1.9rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-visual-copy {
+      padding-bottom: 2.5rem;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+      min-height: auto;
+      padding: 2rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-mark {
+      display: inline-flex;
+      width: 2.5rem;
+      height: 2.5rem;
+      flex: 0 0 2.5rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-text {
+      max-width: calc(100% - 3.25rem);
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-wordmark {
+      font-size: 1.55rem;
+      line-height: 1.9rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-subtitle {
+      font-size: 0.82rem;
+      line-height: 1.3rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sapas-guest-frame.is-focused-login {
+      border-radius: 1rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel {
+      padding: 1.25rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-brand-subtitle {
+      font-size: 0.7rem;
+      line-height: 1.1rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-wordmark {
+      font-size: 1.4rem;
+      line-height: 1.7rem;
+    }
+
+    .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-lockup-guest .sapas-brand-subtitle {
+      font-size: 0.75rem;
+      line-height: 1.2rem;
+    }
+  }
+
+  :lang(my) .sapas-guest-frame.is-focused-login .sapas-login-eyebrow {
+    line-height: 1.6;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  :lang(my) .sapas-guest-frame.is-focused-login .sapas-guest-visual-title {
+    max-width: 30rem;
+    font-size: 2.05rem;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+
+  :lang(my) .sapas-guest-frame.is-focused-login .sapas-guest-overview-intro,
+  :lang(my) .sapas-guest-frame.is-focused-login .sapas-guest-form-panel .sapas-brand-subtitle {
+    overflow-wrap: anywhere;
+    line-height: 1.6;
   }
 }

@@ -46,6 +46,11 @@ class AuthController extends Controller
                 exit;
             }
 
+            if ($role === 'department_head') {
+                header('Location: /department-head/dashboard');
+                exit;
+            }
+
             header('Location: /employee/dashboard');
             exit;
         }
@@ -122,6 +127,14 @@ class AuthController extends Controller
                 'Administrator signed in successfully', null, ['role' => 'admin'],
                 $this->auditLog->requestContext($request->getServerParams()), false);
             header('Location: /admin/dashboard');
+            exit;
+        }
+
+        if ($role === 'department_head') {
+            $this->auditLog?->record($this->authService->getUserId(), 'auth.department_head_login_succeeded', 'user', $this->authService->getUserId(),
+                'Department Head signed in successfully', null, ['role' => 'department_head'],
+                $this->auditLog->requestContext($request->getServerParams()), false);
+            header('Location: /department-head/dashboard');
             exit;
         }
 

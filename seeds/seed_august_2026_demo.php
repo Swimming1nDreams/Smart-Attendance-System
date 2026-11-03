@@ -8,8 +8,8 @@ use App\Services\AttendanceOperationService;
 use App\Services\AttendancePolicyService;
 use App\Services\WorkScheduleResolverService;
 
-if ((string) getenv('SAPAS_ALLOW_DEMO_SEED') !== '1') {
-    fwrite(STDERR, "August 2026 demo seed blocked. Set SAPAS_ALLOW_DEMO_SEED=1 to run this dev-only script.\n");
+if ((string) (getenv('OAAS_ALLOW_DEMO_SEED') ?: getenv('SAPAS_ALLOW_DEMO_SEED')) !== '1') {
+    fwrite(STDERR, "August 2026 demo seed blocked. Set OAAS_ALLOW_DEMO_SEED=1 to run this dev-only script.\n");
     exit(1);
 }
 
@@ -35,7 +35,7 @@ final class August2026DemoSeeder
         $calculator = new AttendanceCalculationService();
         $operations = new AttendanceOperationService($connection, $policy, null, $resolver, $calculator, null);
 
-        $seedDomain = '@' . (getenv('SAPAS_DEMO_EMAIL_DOMAIN') ?: 'silveroakhr.com');
+        $seedDomain = '@' . (getenv('OAAS_DEMO_EMAIL_DOMAIN') ?: getenv('SAPAS_DEMO_EMAIL_DOMAIN') ?: 'silveroakhr.com');
         $records = self::records($seedDomain);
         $created = 0;
         $updated = 0;

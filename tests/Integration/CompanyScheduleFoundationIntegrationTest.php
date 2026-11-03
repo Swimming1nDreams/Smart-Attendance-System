@@ -61,7 +61,7 @@ test('company profile validates inputs and records audit entries', function (): 
 
     $scheduleId = (int) $pdo->query('SELECT id FROM work_schedule_templates LIMIT 1')->fetchColumn();
     $valid = $service->update([
-        'company_name' => 'Silver Oak Smart Attendance',
+        'company_name' => 'Silver Oak Office Attendance',
         'short_name' => 'Silver Oak',
         'email' => 'admin@example.test',
         'phone' => '09 111 222 333',
@@ -72,7 +72,7 @@ test('company profile validates inputs and records audit entries', function (): 
         'default_work_schedule_id' => $scheduleId,
     ], $ids['admin_id'], ['ip_address' => '127.0.0.1', 'user_agent' => 'Unit']);
     assert_true($valid['ok']);
-    assert_same('Silver Oak Smart Attendance', $pdo->query('SELECT company_name FROM company_profiles LIMIT 1')->fetchColumn());
+    assert_same('Silver Oak Office Attendance', $pdo->query('SELECT company_name FROM company_profiles LIMIT 1')->fetchColumn());
     assert_same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_logs WHERE action = 'company_profile.updated'")->fetchColumn());
 });
 
@@ -120,6 +120,8 @@ test('workforce policy center clones versions and edits only unlocked policy set
     $pdo = $database->pdo();
     $service = company_schedule_work_service($pdo);
     $sourceId = (int) $pdo->query('SELECT default_work_schedule_id FROM company_profiles LIMIT 1')->fetchColumn();
+    $futureEffectiveDate = (new DateTimeImmutable('today'))->modify('+30 days')->format('Y-m-d');
+    $futureScheduleDate = (new DateTimeImmutable('today'))->modify('+35 days')->format('Y-m-d');
 
     $lockedWeekly = $service->updateWeeklySchedule($sourceId, company_schedule_payload('Ignored', [1, 2, 3, 4, 5], '08:00', '16:00', false, 0, 10, 480), $ids['admin_id']);
     assert_false($lockedWeekly['ok'], 'Active policies must not be directly edited.');
@@ -127,7 +129,7 @@ test('workforce policy center clones versions and edits only unlocked policy set
     $clone = $service->cloneAsDraft([
         'source_policy_id' => $sourceId,
         'name' => 'August Office Policy',
-        'effective_from' => '2026-08-10',
+        'effective_from' => $futureEffectiveDate,
         'change_reason' => 'Operational tab regression',
     ], $ids['admin_id']);
     assert_true($clone['ok'], 'Draft clone should succeed: ' . json_encode($clone['errors'] ?? [], JSON_UNESCAPED_UNICODE));
@@ -139,7 +141,7 @@ test('workforce policy center clones versions and edits only unlocked policy set
     $duplicate = $service->cloneAsDraft([
         'source_policy_id' => $sourceId,
         'name' => 'August Office Policy',
-        'effective_from' => '2026-08-10',
+        'effective_from' => $futureEffectiveDate,
         'change_reason' => 'Duplicate submission',
     ], $ids['admin_id']);
     assert_false($duplicate['ok'], 'Duplicate policy creation must return validation errors instead of a database exception.');
@@ -188,7 +190,7 @@ test('workforce policy center clones versions and edits only unlocked policy set
     assert_true($overtime['ok'], 'Draft overtime rules update should succeed: ' . json_encode($overtime['errors'] ?? [], JSON_UNESCAPED_UNICODE));
     assert_same('nearest', $pdo->query('SELECT rounding_mode FROM overtime_policy_settings WHERE work_schedule_template_id = ' . $draftId)->fetchColumn());
 
-    $scheduled = $service->scheduleVersion($draftId, '2026-08-15', $ids['admin_id']);
+    $scheduled = $service->scheduleVersion($draftId, $futureScheduleDate, $ids['admin_id']);
     assert_true($scheduled['ok'], 'Draft scheduling should succeed: ' . ($scheduled['message'] ?? ''));
     assert_same('scheduled', $pdo->query('SELECT lifecycle_status FROM work_schedule_templates WHERE id = ' . $draftId)->fetchColumn());
 

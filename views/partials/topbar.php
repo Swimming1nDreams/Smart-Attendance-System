@@ -5,7 +5,12 @@ $languageOptions = $languageOptions ?? ['en' => 'English', 'my' => 'Myanmar'];
 $languageSwitchUrl = $languageSwitchUrl ?? static fn (string $locale): string => '?lang=' . rawurlencode($locale);
 $userName = $userName ?? $t('common.user');
 $userRole = $userRole ?? 'employee';
-$roleLabel = $userRole === 'admin' ? $t('roles.admin') : $t('roles.employee');
+$roleLabel = $t('roles.' . $userRole);
+$dashboardHref = match ($userRole) {
+    'admin' => '/admin/dashboard',
+    'department_head' => '/department-head/dashboard',
+    default => '/employee/dashboard',
+};
 $unreadNotificationCount = (int) ($unreadNotificationCount ?? 0);
 $notificationButtonLabel = $t('notifications.topbar_label');
 if ($unreadNotificationCount > 0) {
@@ -34,7 +39,7 @@ $topbarTitle = (string) ($pageTitle ?? $title ?? $t('app.name'));
             <div class="sapas-topbar-mobile-brand">
                 <?php
                 $brandVariant = 'compact';
-                $brandHref = $userRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard';
+                $brandHref = $dashboardHref;
                 $brandShowText = true;
                 $brandShowSubtitle = false;
                 $brandWordmark = $t('app.acronym');
@@ -68,20 +73,27 @@ $topbarTitle = (string) ($pageTitle ?? $title ?? $t('app.name'));
                 </button>
             </form>
             <?php require __DIR__ . '/language_switcher.php'; ?>
-            <div class="sapas-topbar-user" title="<?= htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8') ?>">
-                <span class="sapas-topbar-user-avatar" aria-hidden="true">
-                    <?php
-                    $iconName = 'user';
-                    $iconClass = 'sapas-action-icon';
-                    require __DIR__ . '/icon.php';
-                    unset($iconName, $iconClass);
-                    ?>
-                </span>
+            <a
+                href="/profile"
+                class="sapas-topbar-user sapas-topbar-profile-link"
+                aria-label="<?= htmlspecialchars($t('nav.profile'), ENT_QUOTES, 'UTF-8') ?>"
+                title="<?= htmlspecialchars($t('nav.profile') . ' (' . $roleLabel . ')', ENT_QUOTES, 'UTF-8') ?>"
+            >
+                <?php
+                $avatarName = (string) $userName;
+                $avatarPhotoUrl = (string) ($topbarAvatarUrl ?? '');
+                $avatarClass = 'sapas-topbar-user-avatar';
+                $avatarInitialsClass = 'text-xs text-white';
+                $avatarAlt = sprintf($t('profile.avatar_alt'), $userName);
+                $avatarFallbackLabel = sprintf($t('profile.avatar_fallback'), $userName);
+                require __DIR__ . '/avatar.php';
+                unset($avatarName, $avatarPhotoUrl, $avatarClass, $avatarInitialsClass, $avatarAlt, $avatarFallbackLabel);
+                ?>
                 <span class="min-w-0">
                     <strong><?= htmlspecialchars($userName, ENT_QUOTES, 'UTF-8') ?></strong>
                     <small><?= htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8') ?></small>
                 </span>
-            </div>
+            </a>
         </div>
     </div>
 </div>

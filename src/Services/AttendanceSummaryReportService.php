@@ -51,34 +51,20 @@ final class AttendanceSummaryReportService
         $late = 0;
         $absent = 0;
         foreach ($records as $record) {
-            if (($record['status'] ?? '') === 'present') {
+            $scheduledStatus = (string) ($record['scheduled_attendance_status'] ?? $record['status'] ?? '');
+            if ($scheduledStatus === 'present') {
                 $present++;
             }
-            if ((int) ($record['late_minutes'] ?? 0) > 0) {
+            if ($scheduledStatus === 'present' && (int) ($record['late_minutes'] ?? 0) > 0) {
                 $late++;
             }
-            if (($record['status'] ?? '') === 'absent') {
+            if ($scheduledStatus === 'absent') {
                 $absent++;
             }
             $workMinutes += (int) ($record['actual_work_minutes'] ?? 0);
             $overtime += (int) ($record['overtime_minutes'] ?? 0);
         }
 
-        if (isset($this->analytics) && $this->analytics !== null && isset($filters['date_from'], $filters['date_to'])) {
-            try {
-                $analyticsData = $this->analytics->generate([
-                    'date_from' => $filters['date_from'],
-                    'date_to' => $filters['date_to'],
-                    'department_id' => $filters['department_id'] ?? null,
-                    'employee_id' => $filters['employee_id'] ?? null,
-                ]);
-                if (isset($analyticsData['summary']['total_absent_days'])) {
-                    $absent = (int) $analyticsData['summary']['total_absent_days'];
-                }
-            } catch (\Throwable $e) {
-                // Fallback to explicit if analytics fails
-            }
-        }
         return [
             'total_records' => count($records),
             'present_count' => $present,

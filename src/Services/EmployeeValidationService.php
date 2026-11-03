@@ -42,7 +42,9 @@ final class EmployeeValidationService
      */
     public function validate(array $input, ?int $excludeId = null, string $staffCode = ''): array
     {
+        $currentStaffCode = trim($staffCode);
         $name = trim((string) ($input['name'] ?? ''));
+        $staffCode = trim((string) ($input['staff_code'] ?? $currentStaffCode));
         $email = $this->normalizeEmail((string) ($input['email'] ?? ''));
         $password = (string) ($input['password'] ?? '');
         $passwordConfirmation = (string) ($input['password_confirmation'] ?? '');
@@ -57,9 +59,9 @@ final class EmployeeValidationService
         $overtimeEligibleValue = $input['overtime_eligible'] ?? null;
         $overtimeEligible = (string) $overtimeEligibleValue === '1';
         $sendVerificationCode = (string) ($input['send_verification_code'] ?? '1') === '1';
-        $phoneInput = (string) ($input['phone'] ?? '');
-        $phone = trim($phoneInput);
-        $address = trim((string) ($input['address'] ?? ''));
+        $contactValidation = $this->validateContact($input);
+        $phone = $contactValidation['data']['phone'];
+        $address = $contactValidation['data']['address'];
         $errors = [];
 
         if ($name === '') {
@@ -92,8 +94,12 @@ final class EmployeeValidationService
             $errors = array_merge($errors, $this->passwordPolicy->validate($password, $passwordConfirmation));
         }
 
-        if (!in_array($role, ['admin', 'employee'], true)) {
+        if (!in_array($role, ['admin', 'department_head', 'employee'], true)) {
             $errors[] = 'role_invalid';
+        }
+
+        if ($role === 'department_head' && $departmentId === null) {
+            $errors[] = 'department_head_requires_department';
         }
 
         if (!in_array($status, ['active', 'inactive'], true)) {
@@ -124,26 +130,15 @@ final class EmployeeValidationService
             $errors[] = 'position_invalid';
         }
 
-        if (mb_strlen($staffCode) > 50) {
-            $errors[] = 'employee_staff_code_too_long';
+        if ($staffCode === '') {
+            $errors[] = 'employee_staff_code_required';
+        } elseif (preg_match('/\A[0-9]{6}\z/D', $staffCode) !== 1) {
+            $errors[] = 'employee_staff_code_format';
+        } elseif ($this->employeeModel->existsByStaffCode($staffCode, $excludeId)) {
+            $errors[] = 'employee_staff_code_exists';
         }
 
-        if (mb_strlen($phoneInput) > 50) {
-            $errors[] = 'phone_too_long';
-        } elseif ($phone !== '') {
-            $normalizedPhone = $this->normalizeMyanmarPhone($phone);
-            if ($normalizedPhone === null) {
-                $errors[] = 'employee_phone_invalid';
-            } elseif (in_array($normalizedPhone, self::INVALID_PHONE_NUMBERS, true)) {
-                $errors[] = 'employee_phone_fake';
-            } else {
-                $phone = $normalizedPhone;
-            }
-        }
-
-        if (mb_strlen($address) > 1000) {
-            $errors[] = 'address_too_long';
-        }
+        $errors = array_merge($errors, $contactValidation['errors']);
 
         return [
             'data' => [
@@ -166,6 +161,40 @@ final class EmployeeValidationService
                 'phone' => $phone,
                 'address' => $address,
             ],
+            'errors' => array_values(array_unique($errors)),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @return array{data: array{phone: string, address: string}, errors: list<string>}
+     */
+    public function validateContact(array $input): array
+    {
+        $phoneInput = (string) ($input['phone'] ?? '');
+        $phone = trim($phoneInput);
+        $address = trim((string) ($input['address'] ?? ''));
+        $errors = [];
+
+        if (mb_strlen($phoneInput) > 50) {
+            $errors[] = 'phone_too_long';
+        } elseif ($phone !== '') {
+            $normalizedPhone = $this->normalizeMyanmarPhone($phone);
+            if ($normalizedPhone === null) {
+                $errors[] = 'employee_phone_invalid';
+            } elseif (in_array($normalizedPhone, self::INVALID_PHONE_NUMBERS, true)) {
+                $errors[] = 'employee_phone_fake';
+            } else {
+                $phone = $normalizedPhone;
+            }
+        }
+
+        if (mb_strlen($address) > 1000) {
+            $errors[] = 'address_too_long';
+        }
+
+        return [
+            'data' => ['phone' => $phone, 'address' => $address],
             'errors' => array_values(array_unique($errors)),
         ];
     }

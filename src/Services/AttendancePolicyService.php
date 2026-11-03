@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Localization;
 use DateTimeImmutable;
+use DateTimeZone;
 
 final class AttendancePolicyService
 {
@@ -13,6 +15,7 @@ final class AttendancePolicyService
     public const MAX_EXPECTED_HOURS = 24.0;
     public const SHIFT_START = '09:00:00';
     public const GRACE_PERIOD_END = '09:30:00';
+    public const AUTO_ABSENT_THRESHOLD_MINUTES = 60;
     public const MISSING_CHECKOUT_CUTOFF_MINUTES = 60; // Grace period after expected shift end before marking incomplete
 
     public function __construct(private ?DateValidationService $dateValidator = null)
@@ -20,9 +23,21 @@ final class AttendancePolicyService
         $this->dateValidator ??= new DateValidationService();
     }
 
-    public function deriveMissingAttendanceStatus(string $date, bool $isWorkingDay, bool $isHoliday, bool $hasApprovedLeave): string
-    {
-        $today = date('Y-m-d');
+    public function deriveMissingAttendanceStatus(
+        string $date,
+        bool $isWorkingDay,
+        bool $isHoliday,
+        bool $hasApprovedLeave,
+        ?string $scheduledStartAt = null,
+        ?DateTimeImmutable $asOf = null,
+        ?string $timezoneName = null,
+    ): string {
+        $timezoneName = trim((string) $timezoneName);
+        $timezone = $timezoneName !== '' && in_array($timezoneName, DateTimeZone::listIdentifiers(), true)
+            ? new DateTimeZone($timezoneName)
+            : ($asOf?->getTimezone() ?? new DateTimeZone(date_default_timezone_get()));
+        $asOf = ($asOf ?? new DateTimeImmutable('now', $timezone))->setTimezone($timezone);
+        $today = $asOf->format('Y-m-d');
         if ($date > $today) {
             return 'upcoming';
         }
@@ -35,7 +50,16 @@ final class AttendancePolicyService
         if (!$isWorkingDay) {
             return 'weekend';
         }
-        return 'absent';
+
+        $scheduledStartAt = trim((string) $scheduledStartAt);
+        if ($scheduledStartAt === '') {
+            return $date < $today ? 'absent' : 'pending';
+        }
+
+        $absentThreshold = (new DateTimeImmutable($scheduledStartAt, $timezone))
+            ->modify('+' . self::AUTO_ABSENT_THRESHOLD_MINUTES . ' minutes');
+
+        return $asOf > $absentThreshold ? 'absent' : 'pending';
     }
 
     public function expectedWorkMinutes(mixed $expectedHours): int
@@ -97,7 +121,7 @@ final class AttendancePolicyService
         $clockIn = $this->parseTime($clockInTime);
         $clockOut = $this->parseTime($clockOutTime);
 
-        if ($clockOut < $clockIn) {
+        if ($clockOut <= $clockIn) {
             throw new AttendancePolicyException('clock_out_before_clock_in');
         }
 
@@ -117,15 +141,13 @@ final class AttendancePolicyService
         $checkOutAt = isset($record['check_out_at']) ? (string) $record['check_out_at'] : '';
 
         if ($checkInAt !== '' && $checkOutAt !== '') {
-            $minutes = (int) floor(
-                ((new DateTimeImmutable($checkOutAt))->getTimestamp() - (new DateTimeImmutable($checkInAt))->getTimestamp()) / 60
-            );
-
-            if ($minutes <= 0) {
+            $checkIn = new DateTimeImmutable($checkInAt);
+            $checkOut = new DateTimeImmutable($checkOutAt);
+            if ($checkOut <= $checkIn) {
                 throw new AttendancePolicyException('clock_out_before_clock_in');
             }
 
-            return $minutes;
+            return (int) floor(($checkOut->getTimestamp() - $checkIn->getTimestamp()) / 60);
         }
 
         return $this->actualWorkMinutes($clockInTime, $clockOutTime);
@@ -213,7 +235,10 @@ final class AttendancePolicyService
             $record['overtime_minutes'] = $overtimeMinutes === null ? null : (int) $overtimeMinutes;
             $record['working_duration'] = $this->formatDuration($actualMinutes);
             $record['overtime_duration'] = $this->formatDuration($record['overtime_minutes']);
+            $record['calculated_overtime_duration'] = $this->formatDuration(isset($record['calculated_overtime_minutes']) ? (int) $record['calculated_overtime_minutes'] : null);
+            $record['approved_overtime_duration'] = $this->formatDuration(isset($record['approved_overtime_minutes']) ? (int) $record['approved_overtime_minutes'] : null);
             $record['late_duration'] = $this->formatDuration((int) ($record['late_minutes'] ?? 0));
+            $record['early_departure_duration'] = $this->formatDuration((int) ($record['early_departure_minutes'] ?? 0));
             $record['attendance_display_status'] = $this->displayStatusFromV3($record);
 
             return $record;
@@ -246,6 +271,7 @@ final class AttendancePolicyService
         $record['working_duration'] = $this->formatDuration($actualMinutes);
         $record['overtime_duration'] = $this->formatDuration($record['overtime_minutes']);
         $record['late_duration'] = $this->formatDuration((int) ($record['late_minutes'] ?? 0));
+        $record['early_departure_duration'] = $this->formatDuration((int) ($record['early_departure_minutes'] ?? 0));
         
         if ($status === 'present') {
             $isLate = $lateMinutes > 0;
@@ -279,11 +305,12 @@ final class AttendancePolicyService
      */
     public function formatDuration(?int $minutes, array $formats = []): string
     {
+        $localization = Localization::current();
         $formats = array_replace([
-            'hours_minutes' => '{hours} hr {minutes} min',
-            'hours' => '{hours} hr',
-            'minutes' => '{minutes} min',
-            'less_than_minute' => '0 min',
+            'hours_minutes' => $localization->translate('attendance.duration_formats.hours_minutes'),
+            'hours' => $localization->translate('attendance.duration_formats.hours'),
+            'minutes' => $localization->translate('attendance.duration_formats.minutes'),
+            'less_than_minute' => $localization->translate('attendance.duration_formats.less_than_minute'),
             'empty' => '—',
         ], $formats);
 
@@ -364,6 +391,10 @@ final class AttendancePolicyService
             }
             
             return $isLate ? 'late' : 'checked_in';
+        }
+
+        if ($state === 'out_of_schedule') {
+            return 'out_of_schedule';
         }
 
         if ($isLate) {

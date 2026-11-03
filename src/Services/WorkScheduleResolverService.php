@@ -494,6 +494,7 @@ final class WorkScheduleResolverService
             'maximum_attendance_minutes' => 960,
             'missing_check_out_mode' => 'mark_incomplete',
             'early_departure_enabled' => 1,
+            'early_departure_grace_minutes' => 0,
             'manual_override_allowed' => 1,
             'override_reason_required' => 1,
         ];

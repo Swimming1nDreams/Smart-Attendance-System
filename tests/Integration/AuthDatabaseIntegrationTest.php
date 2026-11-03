@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\AuthService;
 use App\Services\EmailVerificationMailer;
 use App\Services\EmailVerificationService;
+use App\Services\SessionSecurityService;
 
 test('database integration: active admin and employee users can log in', function (): void {
     $database = integration_database();
@@ -27,6 +28,25 @@ test('database integration: active admin and employee users can log in', functio
     assert_true($employeeAuth->login('employee.integration@sapas.test', 'Password123!'));
     assert_true($employeeSession->isAuthenticated());
     assert_same('employee', $employeeSession->getUserRole());
+
+    reset_test_session();
+    $deptHeadSession = new SessionManager();
+    $deptHeadUser = new User($database->pdo());
+    $deptHeadSession->setAuthenticatedSessionValidator([
+        new SessionSecurityService($deptHeadUser),
+        'validate',
+    ]);
+    $deptHeadAuth = new AuthService($deptHeadUser, $deptHeadSession);
+
+    $res = $database->pdo()->exec("INSERT INTO users (name, email, password, role, department_id, position_id, status, staff_code, email_verified_at) VALUES ('Integration Dept Head', 'depthead.integration@sapas.test', '" . password_hash('Password123!', PASSWORD_DEFAULT) . "', 'department_head', 1, 1, 'active', 'SAP-DH01', CURRENT_TIMESTAMP)");
+    if ($res === false) {
+        throw new RuntimeException('Failed to insert department head: ' . implode(', ', $database->pdo()->errorInfo()));
+    }
+
+    assert_true($deptHeadAuth->login('depthead.integration@sapas.test', 'Password123!'));
+    assert_true($deptHeadSession->isAuthenticated());
+    assert_same('department_head', $deptHeadSession->getUserRole());
+    assert_same(1, $deptHeadSession->getUserDepartmentId());
 });
 
 test('database integration: inactive users cannot establish a session', function (): void {

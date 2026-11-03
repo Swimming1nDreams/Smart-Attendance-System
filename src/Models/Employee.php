@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use PDO;
+
 use PDOException;
 
 class Employee
@@ -16,7 +17,12 @@ class Employee
         $this->connection = $connection;
     }
 
-    public function findAll(string $search = '', ?int $departmentId = null, ?int $positionId = null, ?string $status = null, int $page = 1, int $perPage = 20): array
+    public function getConnection(): PDO
+    {
+        return $this->connection;
+    }
+
+    public function findAll(string $search = '', ?int $departmentId = null, ?int $positionId = null, ?string $status = null, int $page = 1, int $perPage = 20, ?string $role = null): array
     {
         $offset = max(0, ($page - 1) * $perPage);
         $sql = 'SELECT u.id, u.name, u.email, u.role, u.status, u.session_version, u.email_verified_at, u.email_verification_expires_at, u.created_at, u.department_id, u.position_id, u.staff_code, u.employment_type, u.join_date, u.expected_daily_work_hours, u.overtime_eligible, d.name AS department_name, p.name AS position_name FROM users u LEFT JOIN departments d ON d.id = u.department_id LEFT JOIN positions p ON p.id = u.position_id WHERE 1=1';
@@ -45,6 +51,11 @@ class Employee
             $params[':status'] = $status;
         }
 
+        if ($role !== null && $role !== '') {
+            $sql .= ' AND u.role = :role';
+            $params[':role'] = $role;
+        }
+
         $sql .= ' ORDER BY u.created_at DESC, u.id DESC LIMIT :limit OFFSET :offset';
 
         $statement = $this->connection->prepare($sql);
@@ -64,7 +75,7 @@ class Employee
         }
     }
 
-    public function countAll(string $search = '', ?int $departmentId = null, ?int $positionId = null, ?string $status = null): int
+    public function countAll(string $search = '', ?int $departmentId = null, ?int $positionId = null, ?string $status = null, ?string $role = null): int
     {
         $sql = 'SELECT COUNT(*) FROM users u WHERE 1=1';
         $params = [];
@@ -90,6 +101,11 @@ class Employee
         if ($status !== null && $status !== '') {
             $sql .= ' AND u.status = :status';
             $params[':status'] = $status;
+        }
+
+        if ($role !== null && $role !== '') {
+            $sql .= ' AND u.role = :role';
+            $params[':role'] = $role;
         }
 
         $statement = $this->connection->prepare($sql);
@@ -127,7 +143,7 @@ class Employee
     public function findByRoleAndStatus(string $role, string $status, int $limit = 5): array
     {
         $statement = $this->connection->prepare(
-            'SELECT u.id, u.name, u.email, u.status, d.name AS department_name, p.name AS position_name
+            'SELECT u.id, u.name, u.email, u.role, u.status, u.department_id, d.name AS department_name, p.name AS position_name
              FROM users u
              LEFT JOIN departments d ON d.id = u.department_id
              LEFT JOIN positions p ON p.id = u.position_id
@@ -186,17 +202,25 @@ class Employee
         return $statement->fetchAll();
     }
 
-    public function findReportEmployees(): array
+    public function findReportEmployees(?int $departmentId = null): array
     {
-        $statement = $this->connection->prepare(
-            'SELECT u.id, u.name, u.email, u.staff_code, u.status, u.department_id,
+        $sql = 'SELECT u.id, u.name, u.email, u.staff_code, u.status, u.department_id,
                     d.name AS department_name, p.name AS position_name
              FROM users u
              LEFT JOIN departments d ON d.id = u.department_id
              LEFT JOIN positions p ON p.id = u.position_id
-             WHERE u.role = :role ORDER BY u.name ASC, u.id ASC'
-        );
-        $statement->execute([':role' => 'employee']);
+             WHERE u.role = :role';
+        
+        $params = [':role' => 'employee'];
+        if ($departmentId !== null) {
+            $sql .= ' AND u.department_id = :department_id';
+            $params[':department_id'] = $departmentId;
+        }
+        
+        $sql .= ' ORDER BY u.name ASC, u.id ASC';
+
+        $statement = $this->connection->prepare($sql);
+        $statement->execute($params);
 
         return $statement->fetchAll();
     }

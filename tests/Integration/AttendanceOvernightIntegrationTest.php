@@ -59,8 +59,14 @@ test('admin attendance supports assigned overnight schedules without allowing da
     assert_same('2026-08-04 06:00:00', $updated['check_out_at']);
     assert_same(450, (int) $updated['regular_minutes']);
     assert_same(30, (int) $updated['late_minutes']);
-    assert_same(30, (int) $updated['early_departure_minutes']);
+    assert_same(0, (int) $updated['early_departure_minutes']);
     assert_same(0, (int) $updated['calculated_overtime_minutes']);
+
+    $operations->createRecord($ids['employee_id'], '2026-08-04', '22:00:00', '05:00:00', 'present', 'early overnight');
+    $earlyOvernight = $attendance->findByUserIdAndDate($ids['employee_id'], '2026-08-04');
+    assert_not_null($earlyOvernight);
+    assert_same('present', $earlyOvernight['attendance_state']);
+    assert_same(60, (int) $earlyOvernight['early_departure_minutes']);
 });
 
 function attendance_overnight_schedule(PDO $pdo, int $employeeId, int $adminId): int

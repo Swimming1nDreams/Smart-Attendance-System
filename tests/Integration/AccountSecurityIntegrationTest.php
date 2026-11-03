@@ -273,6 +273,24 @@ test('database integration: valid employee account and profile update remains at
     assert_same(1, (int) $updated['session_version']);
 });
 
+test('database integration: existing account email remains immutable during normal employee update', function (): void {
+    [$database, $ids, $employees, $service] = account_security_fixture();
+    $before = $employees->findById($ids['employee_id']);
+    assert_true(is_array($before));
+
+    $submitted = account_security_data($employees, $ids['employee_id'], [
+        'email' => 'forged-replacement@example.test',
+        'name' => 'Email Must Stay Stable',
+    ]);
+    $service->updateEmployee($ids['admin_id'], $ids['employee_id'], $submitted, account_security_profile());
+
+    $after = $employees->findById($ids['employee_id']);
+    assert_true(is_array($after));
+    assert_same($before['email'], $after['email']);
+    assert_same('Email Must Stay Stable', $after['name']);
+    assert_same(0, account_security_audit_count($database->pdo(), 'employee.email_changed', $ids['employee_id']));
+});
+
 test('database integration: employee update audit includes employment profile fields', function (): void {
     [$database, $ids, $employees] = account_security_fixture();
     $service = new AccountManagementService(
@@ -358,7 +376,6 @@ test('database integration: employee creation rolls back when profile creation f
     $service = new AccountManagementService($pdo, $employees, $profiles, new PasswordPolicyService());
     $beforeUsers = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
     $beforeProfiles = (int) $pdo->query('SELECT COUNT(*) FROM employee_profiles')->fetchColumn();
-    $beforeSequence = (int) $pdo->query("SELECT next_number FROM staff_code_sequences WHERE sequence_key = 'employee'")->fetchColumn();
 
     try {
         $service->createEmployee(
@@ -369,7 +386,7 @@ test('database integration: employee creation rolls back when profile creation f
                 'department_id' => $ids['department_id'],
                 'position_id' => $ids['position_id'],
                 'status' => 'active',
-                'staff_code' => null,
+                'staff_code' => '654322',
                 'employment_type' => 'full-time',
                 'join_date' => null,
                 'expected_daily_work_hours' => 8.0,
@@ -385,7 +402,6 @@ test('database integration: employee creation rolls back when profile creation f
 
     assert_same($beforeUsers, (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn());
     assert_same($beforeProfiles, (int) $pdo->query('SELECT COUNT(*) FROM employee_profiles')->fetchColumn());
-    assert_same($beforeSequence, (int) $pdo->query("SELECT next_number FROM staff_code_sequences WHERE sequence_key = 'employee'")->fetchColumn());
     assert_same(0, (int) $pdo->query("SELECT COUNT(*) FROM users WHERE email = 'rollback.integration@sapas.test'")->fetchColumn());
 });
 

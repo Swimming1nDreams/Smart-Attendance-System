@@ -63,6 +63,8 @@ test('overtime review myanmar visible text does not leak confirmed english label
     assert_not_contains('Back to Workforce Policy Center', $visibleText);
     assert_not_contains('Workforce Policy Center', $visibleText);
     assert_not_contains('filter', $visibleText);
+
+    overtime_review_hotfix_set_locale('en');
 });
 
 test('overtime review service keeps attendance as the authoritative overtime source', function (): void {

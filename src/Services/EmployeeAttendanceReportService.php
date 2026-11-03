@@ -24,8 +24,9 @@ final class EmployeeAttendanceReportService
             return $empty;
         }
         $userId = (int) $filters['employee_id'];
-        $count = $this->attendance->countAll($userId, '', $filters['date_from'], $filters['date_to']);
-        $all = $count > 0 ? $this->attendance->findAll($userId, '', $filters['date_from'], $filters['date_to'], 1, $count) : [];
+        $departmentId = isset($filters['department_id']) ? (int) $filters['department_id'] : null;
+        $count = $this->attendance->countAll($userId, '', $filters['date_from'], $filters['date_to'], $departmentId, 'absent');
+        $all = $count > 0 ? $this->attendance->findAll($userId, '', $filters['date_from'], $filters['date_to'], 1, $count, $departmentId, 'absent') : [];
         $from = $filters['date_from'] ?? '1000-01-01';
         $to = $filters['date_to'] ?? '9999-12-31';
         $leaves = $this->leaveRequests->findApprovedRequestsForEmployeeInRange($userId, $from, $to);

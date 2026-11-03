@@ -16,3 +16,17 @@ config/mail.local.php
 /releases/
 .DS_Store
 *.log
+# Local diagnostics and one-off development artifacts
+/scratch/
+/debug_creation.txt
+/tests_output.txt
+/tests_final_output.txt
+/tests_final_output_2.txt
+
+
+storage/
+.uploads/
+*.bak
+*.phase5bak
+*.sql
+*.log

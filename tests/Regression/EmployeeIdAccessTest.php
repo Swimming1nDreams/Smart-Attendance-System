@@ -7,7 +7,8 @@ use App\Core\SessionManager;
 test('employee management routes keep all list create detail and mutation actions behind the admin guard', function (): void {
     $controller = project_path('src/Controllers/EmployeeController.php');
 
-    foreach (['index', 'create', 'store', 'show', 'edit', 'update', 'deactivate', 'resetPassword', 'resendVerification'] as $method) {
+    assert_method_contains($controller, 'index', '$this->ensureAdminOrDepartmentHead();');
+    foreach (['create', 'store', 'show', 'edit', 'update', 'deactivate', 'resetPassword', 'resendVerification'] as $method) {
         assert_method_contains($controller, $method, '$this->ensureAdmin();');
     }
 
@@ -60,12 +61,12 @@ test('attendance employee_id filters are admin-only and employee history uses th
     assert_method_order($controller, 'index', [
         '$this->sessionManager->requireAuthentication();',
         '$this->queryScalar($request, \'employee_id\')',
-        'elseif ($role === \'admin\')',
+        'elseif ($role === \'admin\' || $role === \'department_head\')',
         '$this->attendanceModel->countAll($selectedEmployeeId',
     ]);
-    assert_method_contains($controller, 'index', '$this->attendanceModel->countAll($userId, \'\', $fromDate, $toDate)');
-    assert_method_contains($controller, 'index', '$this->attendanceModel->findAll($userId, \'\', $fromDate, $toDate');
-    assert_method_contains($controller, 'index', '\'selectedEmployeeId\' => $role === \'admin\' ? $selectedEmployeeId : null');
+    assert_method_contains($controller, 'index', '$this->attendanceModel->countAll($userId, \'\', $fromDate, $toDate, null, \'absent\')');
+    assert_method_contains($controller, 'index', '$this->attendanceModel->findAll($userId, \'\', $fromDate, $toDate, $page, $perPage, null, \'absent\')');
+    assert_method_contains($controller, 'index', '\'selectedEmployeeId\' => ($role === \'admin\' || $role === \'department_head\') ? $selectedEmployeeId : null');
 });
 
 test('employee clock actions ignore client controlled employee identity and use the session user', function (): void {
@@ -74,13 +75,18 @@ test('employee clock actions ignore client controlled employee identity and use 
     foreach (['clockIn', 'clockOut'] as $method) {
         $source = method_source($controller, $method);
         assert_method_order($controller, $method, [
-            '$this->sessionManager->requireRole(\'employee\')',
+            '$this->sessionManager->requireAnyRole([\'employee\', \'department_head\'])',
             '$userId = $this->sessionManager->getUserId()',
             '$this->ensureActiveEmployee($userId)',
-            $method === 'clockIn' ? '->clockIn($userId' : '->clockOut($userId',
+            $method === 'clockIn' ? '->clockIn($userId' : 'requireAttendanceOperations()->clockOut(',
         ]);
         assert_not_contains('employee_id', $source, sprintf('%s must not accept employee_id from the request.', $method));
         assert_not_contains('user_id', $source, sprintf('%s must not accept user_id from the request.', $method));
-        assert_not_contains('getBodyParams()', $source, sprintf('%s identity must come from session, not POST data.', $method));
+        if ($method === 'clockIn') {
+            assert_not_contains('getBodyParams()', $source, 'clockIn identity must come from session, not POST data.');
+        } else {
+            assert_contains("['early_departure_reason']", $source);
+            assert_contains("['early_departure_note']", $source);
+        }
     }
 });

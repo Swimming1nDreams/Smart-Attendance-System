@@ -2,7 +2,7 @@
 
 Status: Workforce Policy Center foundation implemented for organization information, reusable policy versions, seven normalized weekday rows, company default assignment compatibility, effective schedule resolution, Attendance Policy V3 storage, centralized attendance/overtime calculation for new attendance writes, and final V3 read-side verification for dashboards, analytics, reports, PDF source data, and Excel source data.
 
-This document defines the Workforce Policy Center foundation for company profile data, policy versions, schedule assignments, Attendance Policy V3, and Overtime Policy V3 in SAPAS. The July 28, 2026 migrations preserve the current single-company PHP MVC architecture, existing routes, authentication, CSRF, audit logging, reports, PDF/Excel exports, and legacy attendance fields while adding authoritative policy-resolution fields.
+This document defines the Workforce Policy Center foundation for company profile data, policy versions, schedule assignments, Attendance Policy V3, and Overtime Policy V3 in OAAS. The July 28, 2026 migrations preserve the current single-company PHP MVC architecture, existing routes, authentication, CSRF, audit logging, reports, PDF/Excel exports, and legacy attendance fields while adding authoritative policy-resolution fields.
 
 New employee/admin attendance writes resolve the employee policy by business date and use centralized calculations for day type, status, lateness, regular minutes, overtime components, calculated overtime, and approved overtime. Historical attendance is diagnosed but not bulk rewritten.
 
@@ -36,12 +36,12 @@ Implemented in this phase:
 
 Seeded default configuration:
 
-- Company name: `Smart Attendance And Performance Analytic System`
-- Short name: `Smart Attendance`
+- Company name: `Office Attendance and Analytic System`
+- Short name: `OAAS`
 - Timezone: `Asia/Yangon`
 - Date format: `Y-m-d`
 - Time format: `H:i`
-- Default schedule: `SAPAS Standard Office`
+- Default schedule: `OAAS Standard Office`
 - Working days: Monday-Friday
 - Non-working days: Saturday-Sunday
 - Start/end: `09:00`-`17:00`
@@ -56,7 +56,7 @@ Remaining in this broader rollout:
 
 ## 1. Scope Decision
 
-SAPAS remains a single-company system. Do not introduce tenants, tenant IDs, or cross-company isolation rules.
+OAAS remains a single-company system. Do not introduce tenants, tenant IDs, or cross-company isolation rules.
 
 The company may configure multiple reusable schedules and assign them by employee, department, or company default. Schedule resolution priority is:
 
@@ -411,7 +411,7 @@ UI requirements:
 - Clear Save action
 - English and Myanmar support
 
-Do not make the UI resemble a large HR suite. Keep it operational, compact, and consistent with existing SAPAS admin forms.
+Do not make the UI resemble a large HR suite. Keep it operational, compact, and consistent with existing OAAS admin forms.
 
 ## 13. Database Migration Plan
 
@@ -599,7 +599,7 @@ Regression:
 
 The final acceptance pass on 2026-07-29 kept the policy architecture and database schema unchanged.
 
-- Current active policy remained `SAPAS Standard Office`.
+- Current active policy remained `OAAS Standard Office` in the presentation layer.
 - Test-only policy versions from the earlier UAT pass were cancelled or archived and cannot activate.
 - Overtime approval was tested with an isolated temporary employee policy assignment for after-hours, holiday, non-working-day, and below-minimum overtime cases.
 - `OvertimeReviewService` now rejects stale terminal decisions, preventing duplicate two-tab approval/rejection submissions while preserving approve, adjust, reset, and reject workflows.

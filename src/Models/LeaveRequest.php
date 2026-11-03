@@ -17,13 +17,14 @@ class LeaveRequest
         $this->connection = $connection;
     }
 
-    public function create(int $userId, string $leaveType, string $startDate, string $endDate, int $durationDays, ?string $reason, string $status = 'pending'): int
+    public function create(int $userId, string $leaveType, string $startDate, string $endDate, int $durationDays, ?string $reason, string $status = 'pending', ?string $reasonCategory = null): int
     {
         $statement = $this->connection->prepare(
-            'INSERT INTO leave_requests (user_id, leave_type, start_date, end_date, duration_days, reason, status) VALUES (:user_id, :leave_type, :start_date, :end_date, :duration_days, :reason, :status)'
+            'INSERT INTO leave_requests (user_id, leave_type, reason_category, start_date, end_date, duration_days, reason, status) VALUES (:user_id, :leave_type, :reason_category, :start_date, :end_date, :duration_days, :reason, :status)'
         );
         $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
         $statement->bindValue(':leave_type', $leaveType, PDO::PARAM_STR);
+        $statement->bindValue(':reason_category', $reasonCategory, $reasonCategory === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
         $statement->bindValue(':start_date', $startDate, PDO::PARAM_STR);
         $statement->bindValue(':end_date', $endDate, PDO::PARAM_STR);
         $statement->bindValue(':duration_days', $durationDays, PDO::PARAM_INT);
@@ -41,7 +42,7 @@ class LeaveRequest
     public function findById(int $id): ?array
     {
         $statement = $this->connection->prepare(
-            'SELECT lr.id, lr.user_id, lr.leave_type, lr.start_date, lr.end_date, lr.duration_days, lr.reason, lr.status, lr.reviewed_by, lr.reviewed_at, lr.review_note, lr.cancelled_by, lr.cancelled_at, lr.cancel_reason, lr.created_at, lr.updated_at, u.name AS employee_name, u.email AS employee_email, u.staff_code, reviewer.name AS reviewed_by_name, canceller.name AS cancelled_by_name FROM leave_requests lr JOIN users u ON u.id = lr.user_id LEFT JOIN users reviewer ON reviewer.id = lr.reviewed_by LEFT JOIN users canceller ON canceller.id = lr.cancelled_by WHERE lr.id = :id LIMIT 1'
+            'SELECT lr.id, lr.user_id, lr.leave_type, lr.reason_category, lr.start_date, lr.end_date, lr.duration_days, lr.reason, lr.status, lr.reviewed_by, lr.reviewed_at, lr.review_note, lr.cancelled_by, lr.cancelled_at, lr.cancel_reason, lr.created_at, lr.updated_at, u.name AS employee_name, u.email AS employee_email, u.staff_code, reviewer.name AS reviewed_by_name, canceller.name AS cancelled_by_name FROM leave_requests lr JOIN users u ON u.id = lr.user_id LEFT JOIN users reviewer ON reviewer.id = lr.reviewed_by LEFT JOIN users canceller ON canceller.id = lr.cancelled_by WHERE lr.id = :id LIMIT 1'
         );
         $statement->bindValue(':id', $id, PDO::PARAM_INT);
 
@@ -59,7 +60,7 @@ class LeaveRequest
     public function findRequestsForEmployee(int $userId, int $page = 1, int $perPage = 20, ?string $status = null, ?string $leaveType = null, ?string $fromDate = null, ?string $toDate = null): array
     {
         $offset = max(0, ($page - 1) * $perPage);
-        $sql = 'SELECT lr.id, lr.user_id, lr.leave_type, lr.start_date, lr.end_date, lr.duration_days, lr.reason, lr.status, lr.reviewed_by, lr.reviewed_at, lr.review_note, lr.cancelled_by, lr.cancelled_at, lr.cancel_reason, lr.created_at, lr.updated_at, u.name AS employee_name, u.staff_code FROM leave_requests lr JOIN users u ON u.id = lr.user_id WHERE lr.user_id = :user_id';
+        $sql = 'SELECT lr.id, lr.user_id, lr.leave_type, lr.reason_category, lr.start_date, lr.end_date, lr.duration_days, lr.reason, lr.status, lr.reviewed_by, lr.reviewed_at, lr.review_note, lr.cancelled_by, lr.cancelled_at, lr.cancel_reason, lr.created_at, lr.updated_at, u.name AS employee_name, u.staff_code FROM leave_requests lr JOIN users u ON u.id = lr.user_id WHERE lr.user_id = :user_id';
         $params = [':user_id' => $userId];
 
         if ($status !== null && $status !== '') {
@@ -137,15 +138,25 @@ class LeaveRequest
         }
     }
 
-    public function findAllRequestsForAdminListing(?int $userId = null, ?string $status = null, ?string $leaveType = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, int $page = 1, int $perPage = 20): array
+    public function findAllRequestsForAdminListing(?int $userId = null, ?string $status = null, ?string $leaveType = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, int $page = 1, int $perPage = 20, ?int $departmentId = null, ?string $requesterRole = null): array
     {
         $offset = max(0, ($page - 1) * $perPage);
-        $sql = 'SELECT lr.id, lr.user_id, lr.leave_type, lr.start_date, lr.end_date, lr.duration_days, lr.reason, lr.status, lr.reviewed_by, lr.reviewed_at, lr.review_note, lr.cancelled_by, lr.cancelled_at, lr.cancel_reason, lr.created_at, lr.updated_at, u.name AS employee_name, u.email AS employee_email, u.staff_code FROM leave_requests lr JOIN users u ON u.id = lr.user_id WHERE 1=1';
+        $sql = 'SELECT lr.id, lr.user_id, lr.leave_type, lr.reason_category, lr.start_date, lr.end_date, lr.duration_days, lr.reason, lr.status, lr.reviewed_by, lr.reviewed_at, lr.review_note, lr.cancelled_by, lr.cancelled_at, lr.cancel_reason, lr.created_at, lr.updated_at, u.name AS employee_name, u.email AS employee_email, u.staff_code FROM leave_requests lr JOIN users u ON u.id = lr.user_id WHERE 1=1';
         $params = [];
 
         if ($userId !== null) {
             $sql .= ' AND lr.user_id = :user_id';
             $params[':user_id'] = $userId;
+        }
+
+        if ($departmentId !== null) {
+            $sql .= ' AND u.department_id = :department_id';
+            $params[':department_id'] = $departmentId;
+        }
+
+        if ($requesterRole !== null && $requesterRole !== '') {
+            $sql .= ' AND u.role = :requester_role';
+            $params[':requester_role'] = $requesterRole;
         }
 
         if ($status !== null && $status !== '') {
@@ -195,7 +206,7 @@ class LeaveRequest
         }
     }
 
-    public function countAllRequestsForAdminListing(?int $userId = null, ?string $status = null, ?string $leaveType = null, string $search = '', ?string $fromDate = null, ?string $toDate = null): int
+    public function countAllRequestsForAdminListing(?int $userId = null, ?string $status = null, ?string $leaveType = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, ?int $departmentId = null, ?string $requesterRole = null): int
     {
         $sql = 'SELECT COUNT(*) FROM leave_requests lr JOIN users u ON u.id = lr.user_id WHERE 1=1';
         $params = [];
@@ -203,6 +214,16 @@ class LeaveRequest
         if ($userId !== null) {
             $sql .= ' AND lr.user_id = :user_id';
             $params[':user_id'] = $userId;
+        }
+
+        if ($departmentId !== null) {
+            $sql .= ' AND u.department_id = :department_id';
+            $params[':department_id'] = $departmentId;
+        }
+
+        if ($requesterRole !== null && $requesterRole !== '') {
+            $sql .= ' AND u.role = :requester_role';
+            $params[':requester_role'] = $requesterRole;
         }
 
         if ($status !== null && $status !== '') {
@@ -460,14 +481,14 @@ class LeaveRequest
         return $this->countRequestsForEmployee($userId);
     }
 
-    public function findAll(?int $userId = null, ?string $status = null, ?string $leaveType = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, int $page = 1, int $perPage = 20): array
+    public function findAll(?int $userId = null, ?string $status = null, ?string $leaveType = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, int $page = 1, int $perPage = 20, ?int $departmentId = null, ?string $requesterRole = null): array
     {
-        return $this->findAllRequestsForAdminListing($userId, $status, $leaveType, $search, $fromDate, $toDate, $page, $perPage);
+        return $this->findAllRequestsForAdminListing($userId, $status, $leaveType, $search, $fromDate, $toDate, $page, $perPage, $departmentId, $requesterRole);
     }
 
-    public function countAll(?int $userId = null, ?string $status = null, ?string $leaveType = null, string $search = '', ?string $fromDate = null, ?string $toDate = null): int
+    public function countAll(?int $userId = null, ?string $status = null, ?string $leaveType = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, ?int $departmentId = null, ?string $requesterRole = null): int
     {
-        return $this->countAllRequestsForAdminListing($userId, $status, $leaveType, $search, $fromDate, $toDate);
+        return $this->countAllRequestsForAdminListing($userId, $status, $leaveType, $search, $fromDate, $toDate, $departmentId, $requesterRole);
     }
 
     public function findRecentForAdminDashboard(int $limit = 5): array

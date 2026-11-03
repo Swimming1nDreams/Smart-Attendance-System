@@ -18,7 +18,7 @@ class SessionManager
     {
         if (session_status() === PHP_SESSION_NONE) {
             $this->ensureWritableSessionPath();
-            session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax']);
+            @session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax']);
         }
     }
 
@@ -88,7 +88,7 @@ class SessionManager
         $this->authenticatedSessionValidated = false;
     }
 
-    public function setAuthenticatedUser(int $id, string $name, string $email, string $role, int $sessionVersion): void
+    public function setAuthenticatedUser(int $id, string $name, string $email, string $role, int $sessionVersion, ?int $departmentId = null): void
     {
         $now = time();
 
@@ -97,6 +97,7 @@ class SessionManager
             'name' => $name,
             'email' => $email,
             'role' => $role,
+            'department_id' => $departmentId,
             'session_version' => $sessionVersion,
             'authenticated_at' => $now,
             'last_activity_at' => $now,
@@ -129,6 +130,11 @@ class SessionManager
     public function getUserRole(): ?string
     {
         return $_SESSION['auth']['role'] ?? null;
+    }
+
+    public function getUserDepartmentId(): ?int
+    {
+        return isset($_SESSION['auth']['department_id']) ? (int) $_SESSION['auth']['department_id'] : null;
     }
 
     public function setFlash(string $type, string $message): void
@@ -195,6 +201,17 @@ class SessionManager
         $this->requireAuthentication();
 
         if ($this->getUserRole() !== $role) {
+            header('Location: /access-denied');
+            exit;
+        }
+    }
+
+    /** @param list<string> $roles */
+    public function requireAnyRole(array $roles): void
+    {
+        $this->requireAuthentication();
+
+        if (!in_array($this->getUserRole(), $roles, true)) {
             header('Location: /access-denied');
             exit;
         }
@@ -384,7 +401,7 @@ class SessionManager
                 ];
             }
 
-            foreach (['id', 'name', 'email', 'role', 'session_version'] as $key) {
+            foreach (['id', 'name', 'email', 'role', 'department_id', 'session_version'] as $key) {
                 if (array_key_exists($key, $validatedUser)) {
                     $_SESSION['auth'][$key] = $validatedUser[$key];
                 }

@@ -1,0 +1,45 @@
+OAAS Notifications + Reports V2 (Phase 1) - Windows install
+============================================================
+
+1. Confirm this is the real project folder. It must contain public, src, tests,
+   migrations, and README.md:
+
+   cd "C:\Users\Lenovo\Downloads\OAAS\OAAS"
+   Get-ChildItem
+
+2. Extract the hotfix ZIP directly into that folder:
+
+   Expand-Archive -LiteralPath "$env:USERPROFILE\Downloads\OAAS-Notifications-Reports-V2-Phase1-20260821.zip" -DestinationPath "C:\Users\Lenovo\Downloads\OAAS\OAAS" -Force
+
+3. Apply the idempotent database migration:
+
+   php .\migrations\run_migrations.php
+
+4. Run the full regression suite:
+
+   php .\tests\run.php
+
+5. Reconcile tomorrow's policy reminder recipients:
+
+   php .\scripts\reconcile_policy_notifications.php
+
+Expected behavior
+-----------------
+- Notifications can be filtered by status, category, and priority.
+- Users can mark notifications read/unread and archive their own notifications.
+- Policy reminders are high priority, visible one day early, and reconciled for
+  everyone currently inside company/department/employee scope.
+- Attendance Summary and Employee Attendance Detail do not include absent rows.
+- Absence is available as its own Reports card/page.
+- The legacy Late/Absent Exception page now contains late attendance only.
+
+Recommended daily Windows Task Scheduler command
+------------------------------------------------
+Program/script:
+  C:\path\to\php.exe
+
+Arguments:
+  .\scripts\reconcile_policy_notifications.php
+
+Start in:
+  C:\Users\Lenovo\Downloads\OAAS\OAAS

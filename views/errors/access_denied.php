@@ -1,7 +1,11 @@
 <?php
 $t = $t ?? static fn (string $key): string => $key;
 $userRole = $userRole ?? 'employee';
-$dashboardUrl = $userRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard';
+$dashboardUrl = match ($userRole) {
+    'admin' => '/admin/dashboard',
+    'department_head' => '/department-head/dashboard',
+    default => '/employee/dashboard',
+};
 
 $layout = 'layouts/app';
 $title = $t('errors.access_denied.title');

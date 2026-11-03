@@ -23,6 +23,12 @@ $fieldError = static function (array $errors, string $field): string {
     return isset($errors[$field]) ? implode(' ', array_map('strval', (array) $errors[$field])) : '';
 };
 $required = '<span class="text-rose-600" aria-hidden="true">*</span><span class="sr-only">' . htmlspecialchars($t('common.required'), ENT_QUOTES, 'UTF-8') . '</span>';
+$identityValue = static fn (string $key, mixed $value): string => \App\Services\BrandingPresenter::companyValue(
+    $key,
+    $value,
+    $t('app.official_name'),
+    $t('app.acronym'),
+);
 ?>
 <div class="sapas-masterdata-form-shell">
     <?php $allErrors = $flattenErrors($errors); ?>
@@ -44,12 +50,12 @@ $required = '<span class="text-rose-600" aria-hidden="true">*</span><span class=
                 <div class="mt-4 grid gap-4 md:grid-cols-2">
                     <div>
                         <label for="company-name" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('company_profile.fields.company_name'), ENT_QUOTES, 'UTF-8') ?> <?= $required ?></label>
-                        <input id="company-name" class="mt-2 sapas-form-control" name="company_name" value="<?= htmlspecialchars((string) ($profile['company_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required>
+                        <input id="company-name" class="mt-2 sapas-form-control" name="company_name" value="<?= htmlspecialchars($identityValue('company_name', $profile['company_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required>
                         <?php if ($fieldError($errors, 'company_name') !== ''): ?><p class="mt-1 text-sm text-rose-700"><?= htmlspecialchars($fieldError($errors, 'company_name'), ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                     </div>
                     <div>
                         <label for="short-name" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('company_profile.fields.short_name'), ENT_QUOTES, 'UTF-8') ?></label>
-                        <input id="short-name" class="mt-2 sapas-form-control" name="short_name" value="<?= htmlspecialchars((string) ($profile['short_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                        <input id="short-name" class="mt-2 sapas-form-control" name="short_name" value="<?= htmlspecialchars($identityValue('short_name', $profile['short_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                     </div>
                 </div>
             </div>
@@ -87,12 +93,14 @@ $required = '<span class="text-rose-600" aria-hidden="true">*</span><span class=
                         <select id="date-format" class="mt-2 sapas-form-control" name="date_format">
                             <?php foreach ($dateFormats as $format): ?><option value="<?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?>" <?= (string) ($profile['date_format'] ?? '') === $format ? 'selected' : '' ?>><?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                         </select>
+                        <p class="mt-1 text-sm text-slate-500"><?= htmlspecialchars($t('company_profile.format_help'), ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                     <div>
                         <label for="time-format" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('company_profile.fields.time_format'), ENT_QUOTES, 'UTF-8') ?> <?= $required ?></label>
                         <select id="time-format" class="mt-2 sapas-form-control" name="time_format">
                             <?php foreach ($timeFormats as $format): ?><option value="<?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?>" <?= (string) ($profile['time_format'] ?? '') === $format ? 'selected' : '' ?>><?= htmlspecialchars($format, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                         </select>
+                        <p class="mt-1 text-sm text-slate-500"><?= htmlspecialchars($t('company_profile.format_help'), ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                 </div>
             </div>
@@ -102,8 +110,9 @@ $required = '<span class="text-rose-600" aria-hidden="true">*</span><span class=
                 <div class="mt-4 max-w-xl">
                     <label for="default-work-schedule" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('company_profile.fields.default_schedule'), ENT_QUOTES, 'UTF-8') ?> <?= $required ?></label>
                     <select id="default-work-schedule" class="mt-2 sapas-form-control" name="default_work_schedule_id" required>
-                        <?php foreach ($scheduleOptions as $schedule): ?><option value="<?= (int) $schedule['id'] ?>" <?= (int) ($profile['default_work_schedule_id'] ?? 0) === (int) $schedule['id'] ? 'selected' : '' ?>><?= htmlspecialchars((string) $schedule['name'], ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
+                        <?php foreach ($scheduleOptions as $schedule): ?><option value="<?= (int) $schedule['id'] ?>" <?= (int) ($profile['default_work_schedule_id'] ?? 0) === (int) $schedule['id'] ? 'selected' : '' ?>><?= htmlspecialchars(\App\Services\BrandingPresenter::policyName($schedule['name']), ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
                     </select>
+                    <p class="mt-1 text-sm text-slate-500"><?= htmlspecialchars($t('company_profile.default_schedule_help'), ENT_QUOTES, 'UTF-8') ?></p>
                     <?php if ($fieldError($errors, 'default_work_schedule_id') !== ''): ?><p class="mt-1 text-sm text-rose-700"><?= htmlspecialchars($fieldError($errors, 'default_work_schedule_id'), ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                 </div>
             </div>

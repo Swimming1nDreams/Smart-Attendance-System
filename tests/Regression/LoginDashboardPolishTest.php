@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-test('focused login and compact attendance overview presentation are enabled', function (): void {
+test('single-panel login identity and compact attendance presentation are enabled', function (): void {
     $loginView = file_get_contents(project_path('views/auth/login.php'));
     $guestLayout = file_get_contents(project_path('views/layouts/guest.php'));
     $brand = file_get_contents(project_path('views/partials/brand.php'));
@@ -19,40 +19,54 @@ test('focused login and compact attendance overview presentation are enabled', f
     assert_true(is_string($adminDashboard), 'Admin dashboard should be readable.');
     assert_true(is_string($css), 'Tailwind source should be readable.');
 
-    assert_contains('$showGuestVisual = true;', $loginView);
-    assert_contains('$guestCompactVisual = true;', $loginView);
-    assert_contains("'icon' => 'clock'", $loginView);
-    assert_contains("'icon' => 'leave'", $loginView);
-    assert_contains("'icon' => 'analytics'", $loginView);
+    assert_contains('$showGuestVisual = false;', $loginView);
+    assert_not_contains('$guestCompactVisual', $loginView);
+    assert_not_contains('$guestOverviewFeatures', $loginView);
+    assert_not_contains("'icon' => 'clock'", $loginView);
+    assert_not_contains("'icon' => 'leave'", $loginView);
+    assert_not_contains("'icon' => 'analytics'", $loginView);
     assert_contains("\$guestFrameVariant = 'focused-login';", $loginView);
-    assert_contains("\$guestDescription = \$t('app.official_name');", $loginView);
+    assert_contains("\$guestDescription = '';", $loginView);
     assert_contains("\$title = \$t('app.official_name');", $loginView);
     assert_contains("\$guestBrandWordmark = \$t('app.acronym');", $loginView);
+    assert_contains("\$guestBrandSubtitle = \$t('app.official_name');", $loginView);
+    assert_not_contains('$guestVisualShowBrand', $loginView);
+    assert_contains("\$guestFooterText = '';", $loginView);
     assert_contains('sapas-brand-mark', $brand);
+    assert_contains('<span>O</span>', $brand);
     assert_contains("\$t('app.official_name')", $brand);
     assert_contains("\$brandWordmark = \$t('app.acronym');", $sidebar);
     assert_contains("\$brandSubtitle = \$t('app.sidebar_subtitle');", $sidebar);
-    assert_contains("\$t('app.acronym')", $guestLayout);
-    assert_not_contains('auth.secure_sign_in', $loginView);
+    assert_contains("\$guestFooterText = (string) (\$guestFooterText ?? \$t('app.acronym'));", $guestLayout);
+    assert_contains("if (\$guestFooterText !== '')", $guestLayout);
+    assert_contains('auth.secure_sign_in', $loginView);
     assert_contains('auth.welcome_back', $loginView);
-    assert_contains('auth.login_visual_title', $loginView);
+    assert_not_contains('auth.login_visual_title', $loginView);
     assert_contains('auth.login_form_intro', $loginView);
-    assert_not_contains('auth.security_reassurance', $loginView);
+    assert_contains('auth.security_reassurance', $loginView);
     assert_contains('autocomplete="username"', $loginView);
     assert_contains('autocomplete="current-password"', $loginView);
+    assert_contains('<form method="post" action="/login"', $loginView);
+    assert_contains('name="csrf_token"', $loginView);
+    assert_contains('name="email"', $loginView);
+    assert_contains('name="password"', $loginView);
     assert_contains('is-focused-login', $guestLayout);
     assert_contains('.sapas-guest-frame.is-focused-login', $css);
     assert_contains('.sapas-login-submit', $css);
-    assert_contains("'copy' => ''", $loginView);
+    assert_contains('Final presentation pass', $css);
+    assert_contains('.sapas-guest-frame.is-focused-login .sapas-guest-language', $css);
+    assert_contains('.sapas-guest-frame.is-focused-login .sapas-brand-lockup-guest .sapas-brand-mark', $css);
+    assert_contains('max-width: 19rem;', $css);
+    assert_contains('text-wrap: balance;', $css);
+    assert_contains('is-single-panel', $guestLayout);
+    assert_contains('$guestVisualShowBrand = (bool) ($guestVisualShowBrand ?? false);', $guestLayout);
+    assert_contains('sapas-guest-visual-brand', $guestLayout);
+    assert_contains("\$brandSubtitle = \$t('app.official_name');", $guestLayout);
+    assert_contains('OAAS visual depth pass', $css);
     assert_contains('@media (max-width: 1023px)', $css);
-    assert_true(
-        (bool) preg_match('/\.sapas-guest-frame\.is-focused-login\s+\.sapas-guest-form-panel\s*\{[^}]*order:\s*1;/s', $css),
-        'Focused login should present the form before the promotional panel on narrow screens.'
-    );
-    assert_true(
-        (bool) preg_match('/@media\s*\(min-width:\s*1024px\)\s*\{.*?\.sapas-guest-frame\.is-focused-login\s+\.sapas-guest-form-panel\s*\{[^}]*order:\s*2;/s', $css),
-        'Focused login should restore the two-panel desktop order at large widths.'
-    );
+    assert_contains('.sapas-guest-frame.is-focused-login.is-single-panel', $css);
+    assert_contains('grid-template-columns: minmax(0, 1fr);', $css);
+    assert_contains('font-size: 2.75rem;', $css);
     assert_contains(':lang(my) .sapas-brand-subtitle', $css);
 
     assert_contains('sapas-dashboard-insight-grid', $adminDashboard);
@@ -66,17 +80,19 @@ test('focused login and compact attendance overview presentation are enabled', f
     assert_contains("renderIcon('building'", $adminDashboard);
 
     assert_same('Welcome back', $english['auth']['welcome_back'] ?? null);
-    assert_same('Smart Attendance and Performance Analytics System', $english['app']['official_name'] ?? null);
-    assert_same('SAPAS', $english['app']['name'] ?? null);
-    assert_same('SAPAS', $english['app']['acronym'] ?? null);
-    assert_same('Workforce Analytics', $english['app']['sidebar_subtitle'] ?? null);
+    assert_same('Office Attendance and Analytic System', $english['app']['official_name'] ?? null);
+    assert_same('OAAS', $english['app']['name'] ?? null);
+    assert_same('OAAS', $english['app']['acronym'] ?? null);
+    assert_same('Office Attendance and Analytic System', $english['app']['sidebar_subtitle'] ?? null);
     assert_same('Log in', $english['auth']['login_button'] ?? null);
+    assert_same('Office attendance and workforce performance, clearly managed.', $english['auth']['login_visual_title'] ?? null);
     assert_same('Your session has expired. Please log in again.', $english['flash']['session_expired'] ?? null);
     assert_true(isset($myanmar['auth']['welcome_back']), 'Myanmar login heading should exist.');
-    assert_same('SAPAS', $myanmar['app']['acronym'] ?? null);
-    assert_same('SAPAS', $myanmar['app']['name'] ?? null);
-    assert_same('စမတ် အလုပ်တက်ရောက်မှုနှင့် စွမ်းဆောင်ရည်ခွဲခြမ်းစိတ်ဖြာရေးစနစ်', $myanmar['app']['official_name'] ?? null);
-    assert_same('စမတ် အလုပ်တက်ရောက်မှုနှင့် စွမ်းဆောင်ရည်ခွဲခြမ်းစိတ်ဖြာရေးစနစ်', $myanmar['app']['title_suffix'] ?? null);
+    assert_true(isset($myanmar['auth']['login_visual_title']), 'Myanmar login positioning message should exist.');
+    assert_same('OAAS', $myanmar['app']['acronym'] ?? null);
+    assert_same('OAAS', $myanmar['app']['name'] ?? null);
+    assert_same('Office Attendance and Analytic System', $myanmar['app']['official_name'] ?? null);
+    assert_same('Office Attendance and Analytic System', $myanmar['app']['title_suffix'] ?? null);
     assert_true(isset($myanmar['app']['sidebar_subtitle']), 'Myanmar sidebar subtitle should exist.');
     assert_not_contains('View All Departments', $myanmar['dashboard']['admin']['view_all_departments'] ?? '');
 });

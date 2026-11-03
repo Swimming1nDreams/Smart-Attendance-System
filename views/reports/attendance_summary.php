@@ -147,16 +147,11 @@ $attendanceChartRows = [
         'value' => (int) ($totals['late_count'] ?? 0),
         'class' => 'is-amber',
     ],
-    [
-        'label' => $t('statuses.attendance.absent'),
-        'value' => (int) ($totals['absent_count'] ?? 0),
-        'class' => 'is-rose',
-    ],
 ];
-$attendanceTotal = max(1, (int) ($totals['present_count'] ?? 0) + (int) ($totals['absent_count'] ?? 0));
+$attendanceTotal = max(1, (int) ($totals['present_count'] ?? 0));
 $attendanceChartMax = max(1, ...array_map(static fn (array $row): int => (int) $row['value'], $attendanceChartRows));
 $presentRate = ((int) ($totals['present_count'] ?? 0) / $attendanceTotal) * 100;
-$exceptionRate = (((int) ($totals['late_count'] ?? 0) + (int) ($totals['absent_count'] ?? 0)) / $attendanceTotal) * 100;
+$exceptionRate = ((int) ($totals['late_count'] ?? 0) / $attendanceTotal) * 100;
 $hoursPerRecord = ((int) ($totals['total_records'] ?? 0)) > 0
     ? (((int) ($totals['total_work_minutes'] ?? 0) / 60) / max(1, (int) ($totals['total_records'] ?? 0)))
     : 0.0;
@@ -271,10 +266,6 @@ $hoursPerRecord = ((int) ($totals['total_records'] ?? 0)) > 0
         <div class="sapas-report-summary-card">
             <p class="sapas-report-summary-label"><?= htmlspecialchars($t('common.labels.late'), ENT_QUOTES, 'UTF-8') ?></p>
             <p class="sapas-report-summary-value text-amber-600"><?= (int) ($totals['late_count'] ?? 0) ?></p>
-        </div>
-        <div class="sapas-report-summary-card">
-            <p class="sapas-report-summary-label"><?= htmlspecialchars($t('statuses.attendance.absent'), ENT_QUOTES, 'UTF-8') ?></p>
-            <p class="sapas-report-summary-value text-rose-600"><?= (int) ($totals['absent_count'] ?? 0) ?></p>
         </div>
         <div class="sapas-report-summary-card">
             <p class="sapas-report-summary-label"><?= htmlspecialchars($t('reports.total_work_duration'), ENT_QUOTES, 'UTF-8') ?></p>

@@ -21,18 +21,25 @@ class Attendance
         $this->policy = $policy ?? new AttendancePolicyService();
     }
 
-    public function findAll(?int $userId = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, int $page = 1, int $perPage = 20): array
+    public function findAll(?int $userId = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, int $page = 1, int $perPage = 20, ?int $departmentId = null, ?string $excludeStatus = null, ?string $includeOnlyStatus = null): array
     {
         $offset = max(0, ($page - 1) * $perPage);
-        $sql = 'SELECT ar.*, u.name AS employee_name, u.email AS employee_email, u.staff_code, u.expected_daily_work_hours, u.overtime_eligible
+        $sql = 'SELECT ar.*, u.name AS employee_name, u.email AS employee_email, u.staff_code, u.expected_daily_work_hours, u.overtime_eligible,
+                    d.name AS department_name
                 FROM attendance_records ar
                 JOIN users u ON u.id = ar.user_id
+                LEFT JOIN departments d ON d.id = u.department_id
                 WHERE 1=1';
         $params = [];
 
         if ($userId !== null) {
             $sql .= ' AND ar.user_id = :user_id';
             $params[':user_id'] = $userId;
+        }
+
+        if ($departmentId !== null) {
+            $sql .= ' AND u.department_id = :department_id';
+            $params[':department_id'] = $departmentId;
         }
 
         if ($search !== '') {
@@ -51,6 +58,16 @@ class Attendance
         if ($toDate !== null) {
             $sql .= ' AND ar.attendance_date <= :to_date';
             $params[':to_date'] = $toDate;
+        }
+
+        if ($excludeStatus !== null) {
+            $sql .= ' AND ar.status != :exclude_status';
+            $params[':exclude_status'] = $excludeStatus;
+        }
+
+        if ($includeOnlyStatus !== null) {
+            $sql .= ' AND ar.status = :include_status';
+            $params[':include_status'] = $includeOnlyStatus;
         }
 
         $sql .= ' ORDER BY ar.attendance_date DESC, u.name ASC, ar.id DESC LIMIT :limit OFFSET :offset';
@@ -73,7 +90,7 @@ class Attendance
         }
     }
 
-    public function countAll(?int $userId = null, string $search = '', ?string $fromDate = null, ?string $toDate = null): int
+    public function countAll(?int $userId = null, string $search = '', ?string $fromDate = null, ?string $toDate = null, ?int $departmentId = null, ?string $excludeStatus = null, ?string $includeOnlyStatus = null): int
     {
         $sql = 'SELECT COUNT(*) FROM attendance_records ar JOIN users u ON u.id = ar.user_id WHERE 1=1';
         $params = [];
@@ -81,6 +98,11 @@ class Attendance
         if ($userId !== null) {
             $sql .= ' AND ar.user_id = :user_id';
             $params[':user_id'] = $userId;
+        }
+
+        if ($departmentId !== null) {
+            $sql .= ' AND u.department_id = :department_id';
+            $params[':department_id'] = $departmentId;
         }
 
         if ($search !== '') {
@@ -99,6 +121,16 @@ class Attendance
         if ($toDate !== null) {
             $sql .= ' AND ar.attendance_date <= :to_date';
             $params[':to_date'] = $toDate;
+        }
+
+        if ($excludeStatus !== null) {
+            $sql .= ' AND ar.status != :exclude_status';
+            $params[':exclude_status'] = $excludeStatus;
+        }
+
+        if ($includeOnlyStatus !== null) {
+            $sql .= ' AND ar.status = :include_status';
+            $params[':include_status'] = $includeOnlyStatus;
         }
 
         $statement = $this->connection->prepare($sql);
@@ -268,8 +300,8 @@ class Attendance
                 FROM attendance_records ar
                 JOIN users u ON u.id = ar.user_id
                 LEFT JOIN departments d ON d.id = u.department_id
-                WHERE u.role = :role';
-        $params = [':role' => 'employee'];
+                WHERE u.role = :role AND ar.status <> :excluded_absent_status';
+        $params = [':role' => 'employee', ':excluded_absent_status' => 'absent'];
 
         $this->applyAttendanceSummaryReportFilters($sql, $params, $fromDate, $toDate, $departmentId, $employeeId);
 
@@ -296,8 +328,8 @@ class Attendance
         $sql = 'SELECT COUNT(*)
                 FROM attendance_records ar
                 JOIN users u ON u.id = ar.user_id
-                WHERE u.role = :role';
-        $params = [':role' => 'employee'];
+                WHERE u.role = :role AND ar.status <> :excluded_absent_status';
+        $params = [':role' => 'employee', ':excluded_absent_status' => 'absent'];
 
         $this->applyAttendanceSummaryReportFilters($sql, $params, $fromDate, $toDate, $departmentId, $employeeId);
         $statement = $this->connection->prepare($sql);
@@ -328,11 +360,12 @@ class Attendance
                     END), 0) AS total_work_minutes
                 FROM attendance_records ar
                 JOIN users u ON u.id = ar.user_id
-                WHERE u.role = :role';
+                WHERE u.role = :role AND ar.status <> :excluded_absent_status';
         $params = [
             ':present_status' => 'present',
             ':absent_status' => 'absent',
             ':role' => 'employee',
+            ':excluded_absent_status' => 'absent',
         ];
 
         $this->applyAttendanceSummaryReportFilters($sql, $params, $fromDate, $toDate, $departmentId, $employeeId);
@@ -686,19 +719,11 @@ class Attendance
     private function applyLateAbsentExceptionReportFilters(string &$sql, array &$params, ?string $fromDate, ?string $toDate, ?int $departmentId, ?int $employeeId, string $exceptionType): void
     {
         $this->applyAttendanceSummaryReportFilters($sql, $params, $fromDate, $toDate, $departmentId, $employeeId);
-
-        if ($exceptionType === 'late') {
-            $sql .= ' AND ar.late_minutes > 0';
-            return;
-        }
-
         if ($exceptionType === 'absent') {
-            $sql .= ' AND ar.status = :exception_absent_status';
-            $params[':exception_absent_status'] = 'absent';
+            $sql .= ' AND 1 = 0';
             return;
         }
-
-        $sql .= ' AND (ar.late_minutes > 0 OR ar.status = :exception_absent_status)';
+        $sql .= ' AND ar.late_minutes > 0 AND ar.status <> :exception_absent_status';
         $params[':exception_absent_status'] = 'absent';
     }
 }

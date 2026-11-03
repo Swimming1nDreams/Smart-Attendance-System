@@ -12,10 +12,15 @@ if (!isset($leaveRequests)) {
 if (!isset($employees)) {
     $employees = [];
 }
+if (!isset($departments)) {
+    $departments = [];
+}
+$departmentScopeLocked = isset($departmentScopeLocked) && $departmentScopeLocked;
 if (!isset($filters)) {
     $filters = [
         'date_from' => '',
         'date_to' => '',
+        'department_id' => null,
         'employee_id' => null,
         'status' => null,
         'leave_type' => null,
@@ -42,9 +47,10 @@ $rowNumberStart = ((max(1, (int) $page) - 1) * max(1, (int) $perPage)) + 1;
 $paginationQuery = array_filter([
     'date_from' => (string) ($filters['date_from'] ?? ''),
     'date_to' => (string) ($filters['date_to'] ?? ''),
-    'employee_id' => $filters['employee_id'] !== null ? (string) $filters['employee_id'] : '',
-    'status' => $filters['status'] !== null ? (string) $filters['status'] : '',
-    'leave_type' => $filters['leave_type'] !== null ? (string) $filters['leave_type'] : '',
+    'department_id' => ($filters['department_id'] ?? null) !== null ? (string) $filters['department_id'] : '',
+    'employee_id' => ($filters['employee_id'] ?? null) !== null ? (string) $filters['employee_id'] : '',
+    'status' => ($filters['status'] ?? null) !== null ? (string) $filters['status'] : '',
+    'leave_type' => ($filters['leave_type'] ?? null) !== null ? (string) $filters['leave_type'] : '',
 ], static fn (string $value): bool => $value !== '');
 $pdfExportUrl = '/admin/reports/leave-requests/pdf' . ($paginationQuery === [] ? '' : '?' . http_build_query($paginationQuery));
 $excelExportUrl = '/admin/reports/leave-requests/excel' . ($paginationQuery === [] ? '' : '?' . http_build_query($paginationQuery));
@@ -79,6 +85,7 @@ function reportLeaveCancelReasonLabel(string $cancelReason): string
 
     return match ($cancelReason) {
         'leave.cancel_reasons.admin', 'Cancelled by admin' => $localization->translate('leave.cancel_reasons.admin'),
+        'leave.cancel_reasons.department_head', 'Cancelled by department head' => $localization->translate('leave.cancel_reasons.department_head'),
         'leave.cancel_reasons.employee', 'Cancelled by employee' => $localization->translate('leave.cancel_reasons.employee'),
         default => $cancelReason,
     };
@@ -107,6 +114,10 @@ $employeeNames = [];
 foreach ($employees as $employee) {
     $employeeNames[(int) $employee['id']] = (string) $employee['name'];
 }
+$departmentNames = [];
+foreach ($departments as $department) {
+    $departmentNames[(int) $department['id']] = (string) $department['name'];
+}
 
 $activeFilters = [];
 if (($filters['date_from'] ?? '') !== '') {
@@ -114,6 +125,10 @@ if (($filters['date_from'] ?? '') !== '') {
 }
 if (($filters['date_to'] ?? '') !== '') {
     $activeFilters[] = $t('common.labels.date_to') . ': ' . (string) $filters['date_to'];
+}
+if (($filters['department_id'] ?? null) !== null) {
+    $departmentId = (int) $filters['department_id'];
+    $activeFilters[] = $t('common.labels.department') . ': ' . ($departmentNames[$departmentId] ?? ('ID #' . $departmentId));
 }
 if (($filters['employee_id'] ?? null) !== null) {
     $employeeId = (int) $filters['employee_id'];
@@ -148,6 +163,16 @@ if (($filters['leave_type'] ?? null) !== null) {
             <div>
                 <label for="date_to" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.date_to'), ENT_QUOTES, 'UTF-8') ?></label>
                 <input type="date" id="date_to" name="date_to" value="<?= htmlspecialchars((string) ($filters['date_to'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" class="sapas-form-control mt-2">
+            </div>
+            <div>
+                <label for="department_id" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?></label>
+                <?php if ($departmentScopeLocked): ?><input type="hidden" name="department_id" value="<?= (int) ($filters['department_id'] ?? 0) ?>"><?php endif; ?>
+                <select id="department_id" name="<?= $departmentScopeLocked ? '' : 'department_id' ?>" class="sapas-form-control mt-2" <?= $departmentScopeLocked ? 'disabled aria-disabled="true"' : '' ?>>
+                    <?php if (!$departmentScopeLocked): ?><option value=""><?= htmlspecialchars($t('reports_module.all_departments'), ENT_QUOTES, 'UTF-8') ?></option><?php endif; ?>
+                    <?php foreach ($departments as $department): ?>
+                        <option value="<?= (int) $department['id'] ?>" <?= (int) ($filters['department_id'] ?? 0) === (int) $department['id'] ? 'selected' : '' ?>><?= htmlspecialchars((string) $department['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div>
                 <label for="employee_id" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?></label>
@@ -248,6 +273,7 @@ if (($filters['leave_type'] ?? null) !== null) {
                             <th class="sapas-col-number"><?= htmlspecialchars($t('common.labels.duration'), ENT_QUOTES, 'UTF-8') ?></th>
                             <th class="sapas-col-status"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
                             <th class="sapas-col-leave-submitted"><?= htmlspecialchars($t('common.labels.submitted'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="sapas-col-leave-reason"><?= htmlspecialchars($t('common.labels.reason'), ENT_QUOTES, 'UTF-8') ?></th>
                             <th class="sapas-col-report-note"><?= htmlspecialchars($t('reports_module.review_cancel_note'), ENT_QUOTES, 'UTF-8') ?></th>
                         </tr>
                     </thead>
@@ -263,6 +289,8 @@ if (($filters['leave_type'] ?? null) !== null) {
                             $submittedParts = preg_split('/\s+/', $submittedAt, 2) ?: [];
                             $submittedDate = (string) ($submittedParts[0] ?? '');
                             $submittedTime = (string) ($submittedParts[1] ?? '');
+                            $requestReason = trim((string) ($leaveRequest['reason'] ?? ''));
+                            $requestReason = $requestReason !== '' ? $requestReason : $t('leave_module.no_reason_provided');
                             $notePreview = reportLeaveNotePreview($leaveRequest['review_note'] ?? null, $leaveRequest['cancel_reason'] ?? null);
                             ?>
                             <tr>
@@ -275,7 +303,10 @@ if (($filters['leave_type'] ?? null) !== null) {
                                         <p class="sapas-person-email" title="<?= htmlspecialchars($employeeEmail, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($employeeEmail, ENT_QUOTES, 'UTF-8') ?></p>
                                     </div>
                                 </td>
-                                <td><span class="sapas-leave-type-chip"><?= htmlspecialchars(reportLeaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span></td>
+                                <td>
+                                    <span class="sapas-leave-type-chip"><?= htmlspecialchars(reportLeaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
+                                    <p class="mt-2 text-xs text-slate-500"><?= htmlspecialchars(\App\Services\LeaveReasonCatalog::label((string) ($leaveRequest['reason_category'] ?? ''), $t), ENT_QUOTES, 'UTF-8') ?></p>
+                                </td>
                                 <td>
                                     <p class="sapas-leave-date-range">
                                         <span><?= htmlspecialchars((string) ($leaveRequest['start_date'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
@@ -293,6 +324,7 @@ if (($filters['leave_type'] ?? null) !== null) {
                                         <?php endif; ?>
                                     </div>
                                 </td>
+                                <td><p class="sapas-leave-reason" title="<?= htmlspecialchars($requestReason, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(mb_strlen($requestReason) > 120 ? mb_substr($requestReason, 0, 117) . '...' : $requestReason, ENT_QUOTES, 'UTF-8') ?></p></td>
                                 <td><p class="sapas-leave-reason" title="<?= htmlspecialchars($notePreview, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($notePreview, ENT_QUOTES, 'UTF-8') ?></p></td>
                             </tr>
                         <?php endforeach; ?>

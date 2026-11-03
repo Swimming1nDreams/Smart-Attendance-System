@@ -113,11 +113,8 @@ test('analytics expected working days are calculated per employee without cross 
     $resolver = new WorkScheduleResolverService($pdo);
     $analytics = new AnalyticsService($employee, $attendance, $holidays, $leaves, $policy, $resolver);
 
-    // Mock today to be Saturday 2026-08-08
-    // Note: The AnalyticsService natively uses date('Y-m-d') inside generate(). We rely on the system date or we just assume today is >= sat for the loop limit.
-    // Wait, if today is not 2026-08-08, the test might fail depending on when it's run!
-    // But since the current system date is 2026-08-08, it will pass right now.
-    $res = $analytics->generate(['month' => $month]);
+    $asOf = new DateTimeImmutable('2026-08-08 12:00:00', new DateTimeZone('Asia/Yangon'));
+    $res = $analytics->generate(['month' => $month], $asOf);
 
     $u1a = null; $u2a = null; $u3a = null; $u4a = null; $u5a = null;
     foreach ($res['employee_analytics'] as $e) {

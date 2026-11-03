@@ -386,6 +386,9 @@ final class WorkScheduleService
         if ((int) $data['maximum_attendance_minutes'] < 1 || (int) $data['maximum_attendance_minutes'] > self::MAX_MINUTES) {
             $errors['maximum_attendance_minutes'][] = $this->t('work_schedules.validation.maximum_attendance_invalid');
         }
+        if ((int) $data['early_departure_grace_minutes'] < 0 || (int) $data['early_departure_grace_minutes'] > self::MAX_GRACE_MINUTES) {
+            $errors['early_departure_grace_minutes'][] = $this->t('work_schedules.validation.early_departure_grace_invalid');
+        }
         if ($errors !== []) {
             return ['ok' => false, 'errors' => $errors, 'data' => $data];
         }
@@ -399,9 +402,10 @@ final class WorkScheduleService
                      allow_holiday_check_in = :allow_holiday_check_in,
                      allow_overnight_attendance = :allow_overnight_attendance,
                      maximum_attendance_minutes = :maximum_attendance_minutes,
-                     missing_check_out_mode = :missing_check_out_mode,
-                     early_departure_enabled = :early_departure_enabled,
-                     manual_override_allowed = :manual_override_allowed,
+                      missing_check_out_mode = :missing_check_out_mode,
+                      early_departure_enabled = :early_departure_enabled,
+                      early_departure_grace_minutes = :early_departure_grace_minutes,
+                      manual_override_allowed = :manual_override_allowed,
                      override_reason_required = :override_reason_required,
                      updated_at = CURRENT_TIMESTAMP
                  WHERE work_schedule_template_id = :template_id'
@@ -746,6 +750,7 @@ final class WorkScheduleService
             'maximum_attendance_minutes' => $this->intValue($input['maximum_attendance_minutes'] ?? 960),
             'missing_check_out_mode' => (string) ($input['missing_check_out_mode'] ?? 'mark_incomplete'),
             'early_departure_enabled' => isset($input['early_departure_enabled']) ? 1 : 0,
+            'early_departure_grace_minutes' => $this->intValue($input['early_departure_grace_minutes'] ?? 0),
             'manual_override_allowed' => isset($input['manual_override_allowed']) ? 1 : 0,
             'override_reason_required' => isset($input['override_reason_required']) ? 1 : 0,
         ];
@@ -833,8 +838,8 @@ final class WorkScheduleService
     {
         $this->connection->prepare(
             'INSERT INTO attendance_policy_settings
-             (work_schedule_template_id, allow_non_working_day_check_in, allow_holiday_check_in, allow_overnight_attendance, maximum_attendance_minutes, missing_check_out_mode, early_departure_enabled, manual_override_allowed, override_reason_required)
-             SELECT :target_id, allow_non_working_day_check_in, allow_holiday_check_in, allow_overnight_attendance, maximum_attendance_minutes, missing_check_out_mode, early_departure_enabled, manual_override_allowed, override_reason_required
+             (work_schedule_template_id, allow_non_working_day_check_in, allow_holiday_check_in, allow_overnight_attendance, maximum_attendance_minutes, missing_check_out_mode, early_departure_enabled, early_departure_grace_minutes, manual_override_allowed, override_reason_required)
+             SELECT :target_id, allow_non_working_day_check_in, allow_holiday_check_in, allow_overnight_attendance, maximum_attendance_minutes, missing_check_out_mode, early_departure_enabled, early_departure_grace_minutes, manual_override_allowed, override_reason_required
              FROM attendance_policy_settings WHERE work_schedule_template_id = :source_id'
         )->execute([':target_id' => $targetId, ':source_id' => $sourceId]);
 

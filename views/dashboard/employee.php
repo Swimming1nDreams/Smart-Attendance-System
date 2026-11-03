@@ -10,6 +10,8 @@ if (!isset($hasApprovedLeaveToday)) {
 if (!isset($clockInBlockReason)) {
     $clockInBlockReason = null;
 }
+$earlyCheckoutPreview ??= null;
+$earlyDepartureReasonCodes ??= [];
 
 $resolvedTodayStatus = (string) ($todayStatus ?? 'present');
 $specialDayClockInBlocked = in_array($clockInBlockReason, ['holiday_blocked', 'non_working_day_blocked'], true);
@@ -34,6 +36,7 @@ $statusClass = static function (string $status): string {
         'absent' => 'sapas-badge sapas-badge-danger',
         'holiday' => 'sapas-badge sapas-badge-info',
         'weekend' => 'sapas-badge sapas-badge-neutral',
+        'out_of_schedule' => 'sapas-badge sapas-badge-info',
         default => 'sapas-badge sapas-badge-neutral',
     };
 };
@@ -91,7 +94,7 @@ $summaryCards = [
         'variant' => 'is-attention',
     ],
     [
-        'label' => $t('common.labels.overtime'),
+        'label' => $t('attendance.approved_overtime'),
         'value' => $formatOvertimeMinutes($totalOvertimeMinutes ?? 0),
         'color' => 'text-amber-600',
         'icon' => 'timer',
@@ -109,15 +112,15 @@ $summaryCards = [
 <div class="sapas-dashboard-stack">
     <section class="sapas-dashboard-hero sapas-dashboard-hero-personal">
         <div class="sapas-dashboard-hero-content">
-            <div class="sapas-dashboard-personal-grid">
-                <div class="space-y-5 lg:col-span-3">
+            <div class="space-y-6">
+                <div class="space-y-5">
                     <div>
                         <p class="sapas-dashboard-eyebrow"><?= htmlspecialchars($t('dashboard.common.today'), ENT_QUOTES, 'UTF-8') ?></p>
                         <p class="sapas-dashboard-date"><?= htmlspecialchars((string) $today, ENT_QUOTES, 'UTF-8') ?></p>
                         <p class="mt-3 text-sm leading-6 text-slate-600"><?= htmlspecialchars($t('dashboard.employee.status_description'), ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
 
-                    <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <div class="sapas-dashboard-mini-card">
                             <div class="sapas-card-heading">
                                 <span class="sapas-card-icon"><?= $renderIcon('leave', 'sapas-icon') ?></span>
@@ -145,7 +148,7 @@ $summaryCards = [
                         <div class="sapas-dashboard-mini-card">
                             <div class="sapas-card-heading">
                                 <span class="sapas-card-icon"><?= $renderIcon('calendar', 'sapas-icon') ?></span>
-                                <p class="sapas-dashboard-card-title"><?= htmlspecialchars($t('employees_module.work_policy') ?? 'Current Work Policy', ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="sapas-dashboard-card-title"><?= htmlspecialchars($t('employees_module.work_policy'), ENT_QUOTES, 'UTF-8') ?></p>
                             </div>
                             <?php if (!empty($resolvedWorkPolicy['available'])): ?>
                                 <p class="mt-2 text-sm font-semibold leading-6 text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['name'], ENT_QUOTES, 'UTF-8') ?></p>
@@ -157,11 +160,15 @@ $summaryCards = [
                             <?php else: ?>
                                 <p class="mt-2 text-sm leading-6 text-slate-600">No current work policy could be resolved.</p>
                             <?php endif; ?>
+                            <a href="/my-work-policy" class="mt-3 inline-flex items-center text-sm font-semibold text-brand-700 hover:text-brand-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2">
+                                <?= htmlspecialchars($t('work_policy.view_policy'), ENT_QUOTES, 'UTF-8') ?>
+                                <span class="ml-1" aria-hidden="true">→</span>
+                            </a>
                         </div>
                     </div>
                 </div>
 
-                <div class="sapas-dashboard-status-panel lg:col-span-2">
+                <div class="sapas-dashboard-status-panel">
                     <div class="sapas-card-heading">
                         <span class="sapas-card-icon is-brand"><?= $renderIcon('clock', 'sapas-icon') ?></span>
                         <p class="sapas-dashboard-eyebrow text-brand-700"><?= htmlspecialchars($t('dashboard.employee.status_title'), ENT_QUOTES, 'UTF-8') ?></p>
@@ -173,7 +180,7 @@ $summaryCards = [
                         </p>
                     <?php else: ?>
                         <?php $recordStatus = (string) ($todayRecord['attendance_display_status'] ?? $todayRecord['status'] ?? ''); ?>
-                        <div class="sapas-dashboard-status-grid">
+                        <div class="mt-4 grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                             <div>
                                 <p class="text-sm font-medium text-slate-600"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></p>
                                 <p class="mt-2"><span class="<?= $statusClass($recordStatus) ?>"><?= htmlspecialchars($statusLabel($recordStatus), ENT_QUOTES, 'UTF-8') ?></span></p>
@@ -183,8 +190,9 @@ $summaryCards = [
                                 <p class="mt-1 text-lg font-semibold text-slate-950"><?= htmlspecialchars((string) ($todayRecord['working_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></p>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-slate-600"><?= htmlspecialchars($t('common.labels.overtime'), ENT_QUOTES, 'UTF-8') ?></p>
-                                <p class="mt-1 text-lg font-semibold text-slate-950"><?= htmlspecialchars((string) ($todayRecord['overtime_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></p>
+                                <?php $todayOvertimePending = (string) ($todayRecord['overtime_approval_status'] ?? '') === 'pending'; ?>
+                                <p class="text-sm font-medium text-slate-600"><?= htmlspecialchars($t($todayOvertimePending ? 'attendance.overtime_candidate_pending' : 'attendance.approved_overtime'), ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="mt-1 text-lg font-semibold text-slate-950"><?= htmlspecialchars((string) ($todayOvertimePending ? ($todayRecord['calculated_overtime_duration'] ?? '—') : ($todayRecord['approved_overtime_duration'] ?? $todayRecord['overtime_duration'] ?? '—')), ENT_QUOTES, 'UTF-8') ?></p>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-slate-600"><?= htmlspecialchars($t('dashboard.common.clock_in_time'), ENT_QUOTES, 'UTF-8') ?></p>
@@ -196,6 +204,13 @@ $summaryCards = [
                             </div>
                         </div>
 
+                        <?php if ((int) ($todayRecord['out_of_schedule_work_minutes'] ?? 0) > 0): ?>
+                            <div class="mt-4 sapas-dashboard-note is-info">
+                                <p class="text-sm font-semibold text-sky-800"><?= htmlspecialchars($t('attendance.out_of_schedule_work'), ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars((string) ($todayRecord['out_of_schedule_work_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></p>
+                                <?php if (($todayRecord['scheduled_attendance_status'] ?? '') === 'pending'): ?><p class="mt-1 text-sm text-sky-700"><?= htmlspecialchars($t('attendance.scheduled_shift_pending'), ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+
                         <?php if ($recordStatus === 'incomplete'): ?>
                             <div class="mt-4 sapas-dashboard-note is-warning">
                                 <p class="text-sm leading-6 text-amber-800"><?= htmlspecialchars($t('attendance.missing_check_out'), ENT_QUOTES, 'UTF-8') ?></p>
@@ -204,6 +219,13 @@ $summaryCards = [
                         <?php if ((int) ($todayRecord['late_minutes'] ?? 0) > 0): ?>
                             <div class="rounded-lg bg-amber-50 p-4 sapas-dashboard-card-hover mt-4 border border-amber-200">
                                 <p class="text-sm leading-6 text-amber-800"><?= htmlspecialchars($t('dashboard.employee.late_by'), ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($todayRecord['late_duration'] ?? '0 min', ENT_QUOTES, 'UTF-8') ?></p>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ((int) ($todayRecord['is_early_departure'] ?? 0) === 1): ?>
+                            <div class="rounded-lg bg-amber-50 p-4 sapas-dashboard-card-hover mt-4 border border-amber-200">
+                                <p class="text-sm font-semibold text-amber-900"><?= htmlspecialchars($t('attendance.early_departure'), ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars((string) ($todayRecord['early_departure_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></p>
+                                <p class="mt-1 text-sm leading-6 text-amber-800"><?= htmlspecialchars($t('attendance.early_checkout.reason'), ENT_QUOTES, 'UTF-8') ?>: <?= !empty($todayRecord['early_departure_reason']) ? htmlspecialchars($t('attendance.early_departure_reasons.' . (string) $todayRecord['early_departure_reason']), ENT_QUOTES, 'UTF-8') : '—' ?></p>
+                                <?php if (!empty($todayRecord['early_departure_note'])): ?><p class="mt-1 text-sm leading-6 text-slate-600"><?= nl2br(htmlspecialchars((string) $todayRecord['early_departure_note'], ENT_QUOTES, 'UTF-8')) ?></p><?php endif; ?>
                             </div>
                         <?php endif; ?>
                         <?php if ((int) ($todayRecord['overtime_minutes'] ?? 0) > 0): ?>
@@ -252,13 +274,14 @@ $summaryCards = [
                     </form>
                 <?php endif; ?>
                 <?php if ($canClockOut): ?>
-                    <form method="post" action="/attendance/clock-out">
-                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '', ENT_QUOTES, 'UTF-8') ?>">
-                        <button type="submit" class="sapas-btn sapas-btn-danger">
-                            <?= $renderIcon('log-out', 'sapas-action-icon') ?>
-                            <?= htmlspecialchars($t('dashboard.common.clock_out'), ENT_QUOTES, 'UTF-8') ?>
-                        </button>
-                    </form>
+                    <?php
+                    $checkoutButtonClass = 'sapas-btn sapas-btn-danger';
+                    $checkoutButtonLabel = $t('dashboard.common.clock_out');
+                    $checkoutButtonDisabled = false;
+                    $checkoutButtonIcon = true;
+                    require __DIR__ . '/../partials/early_departure_checkout.php';
+                    unset($checkoutButtonClass, $checkoutButtonLabel, $checkoutButtonDisabled, $checkoutButtonIcon);
+                    ?>
                 <?php endif; ?>
                 <a href="/attendance" class="sapas-btn sapas-btn-secondary">
                     <?= $renderIcon('clock', 'sapas-action-icon') ?>
@@ -344,11 +367,14 @@ $summaryCards = [
                                     <span class="<?= $statusClass($recordStatus) ?>">
                                         <?= htmlspecialchars($statusLabel($recordStatus), ENT_QUOTES, 'UTF-8') ?>
                                     </span>
+                                    <?php if ((int) ($record['late_minutes'] ?? 0) > 0): ?><span class="mt-1 block text-xs font-medium text-amber-700"><?= htmlspecialchars($t('attendance.late'), ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars((string) ($record['late_duration'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
+                                    <?php if ((int) ($record['is_early_departure'] ?? 0) === 1): ?><span class="mt-1 block text-xs font-medium text-amber-700"><?= htmlspecialchars($t('attendance.early_departure'), ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars((string) ($record['early_departure_duration'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
+                                    <?php if ((int) ($record['out_of_schedule_work_minutes'] ?? 0) > 0): ?><span class="mt-1 block text-xs font-medium text-sky-700"><?= htmlspecialchars($t('attendance.out_of_schedule_work'), ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars((string) ($record['out_of_schedule_work_duration'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
                                 </td>
                                 <td class="px-4 py-4 text-sm text-slate-600"><?= !empty($record['clock_in_time']) ? htmlspecialchars((string) $record['clock_in_time'], ENT_QUOTES, 'UTF-8') : '—' ?></td>
                                 <td class="px-4 py-4 text-sm text-slate-600"><?= !empty($record['clock_out_time']) ? htmlspecialchars((string) $record['clock_out_time'], ENT_QUOTES, 'UTF-8') : '—' ?></td>
                                 <td class="px-4 py-4 text-sm text-slate-600"><?= htmlspecialchars((string) ($record['working_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                                <td class="px-4 py-4 text-sm text-slate-600"><?= htmlspecialchars((string) ($record['overtime_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td class="px-4 py-4 text-sm text-slate-600"><?php if ((string) ($record['overtime_approval_status'] ?? '') === 'pending'): ?><?= htmlspecialchars((string) ($record['calculated_overtime_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?><span class="block text-xs text-amber-700"><?= htmlspecialchars($t('workforce_policy.pending_overtime'), ENT_QUOTES, 'UTF-8') ?></span><?php else: ?><?= htmlspecialchars((string) ($record['approved_overtime_duration'] ?? $record['overtime_duration'] ?? '—'), ENT_QUOTES, 'UTF-8') ?><?php endif; ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

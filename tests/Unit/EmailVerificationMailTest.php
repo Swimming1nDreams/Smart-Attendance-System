@@ -12,8 +12,8 @@ test('verification email contains a six-digit code and no verification link', fu
         15,
     ]);
 
-    assert_same('Verify your Smart Attendance account email', call_private($mailer, 'verificationSubject'));
-    assert_contains('Smart Attendance', $body);
+    assert_same('Your Office Attendance and Analytic System verification code', call_private($mailer, 'verificationSubject'));
+    assert_contains('Office Attendance and Analytic System (OAAS)', $body);
     assert_contains('Your verification code is: 012345', $body);
     assert_contains('This code expires in 15 minutes.', $body);
     assert_contains('contact your HR administrator', $body);
@@ -31,6 +31,8 @@ test('verification endpoint and screen use a posted six-digit code', function ()
     assert_not_contains("addRoute('GET', '/email-verification/verify'", $bootstrap);
     assert_contains('name="code"', $view);
     assert_contains('pattern="[0-9]{6}"', $view);
+    assert_contains("\$guestBrandSubtitle = \$t('app.official_name');", $view);
+    assert_contains("\$guestFrameVariant = 'verification';", $view);
     assert_contains("renderVerificationScreen(\$sent ? 'pending' : 'delivery_failed')", $controller);
 });
 

@@ -45,7 +45,7 @@ class WorkPolicyDisplayPresenter
 
         return [
             'available' => true,
-            'name' => $resolution['policy_name'] ?? 'Unknown Policy',
+            'name' => BrandingPresenter::policyName($resolution['policy_name'] ?? 'Unknown Policy'),
             'source_label' => $sourceLabel,
             'is_working_day' => $isWorkingDay,
             'schedule_label' => $scheduleLabel,

@@ -14,8 +14,10 @@ test('add employee form exposes scoped account, employment, and work-rule option
     }
 
     assert_contains('id="staff_code"', $view);
-    assert_contains('readonly aria-readonly="true"', $view);
-    assert_not_contains('name="staff_code"', $view);
+    assert_contains('name="staff_code"', $view);
+    assert_contains('pattern="[0-9]{6}"', $view);
+    assert_contains('inputmode="numeric"', $view);
+    assert_not_contains('readonly aria-readonly="true"', $view);
 
     assert_contains('\'send_verification_code\' => $sendVerificationCode', $validationService);
     assert_contains('$this->employeeValidationService->validate(', $controller);

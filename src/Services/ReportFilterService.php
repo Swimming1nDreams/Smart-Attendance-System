@@ -12,7 +12,7 @@ final class ReportFilterService
 {
     private const LEAVE_STATUSES = ['pending', 'approved', 'rejected', 'cancelled'];
     private const LEAVE_TYPES = ['casual', 'medical', 'unpaid', 'other'];
-    private const EXCEPTION_TYPES = ['all', 'late', 'absent'];
+    private const EXCEPTION_TYPES = ['all', 'late'];
 
     public function __construct(
         private DateValidationService $dateValidator,
@@ -34,6 +34,7 @@ final class ReportFilterService
     public function employeeAttendance(array $input): array
     {
         $filters = $this->dateAndPagination($input);
+        $this->resolveDepartment($filters, $input);
         $this->resolveEmployee($filters, $input, true);
         return $filters;
     }
@@ -42,9 +43,19 @@ final class ReportFilterService
     public function leaveRequests(array $input): array
     {
         $filters = $this->dateAndPagination($input);
+        $this->resolveDepartment($filters, $input);
         $this->resolveEmployee($filters, $input, false);
         $this->resolveAllowed($filters, $input, 'status', self::LEAVE_STATUSES, 'validation.leave_status_filter_invalid');
         $this->resolveAllowed($filters, $input, 'leave_type', self::LEAVE_TYPES, 'validation.leave_type_filter_invalid');
+        return $filters;
+    }
+
+    /** @param array<string, mixed> $input */
+    public function absences(array $input): array
+    {
+        $filters = $this->dateAndPagination($input);
+        $this->resolveDepartment($filters, $input);
+        $this->resolveEmployee($filters, $input, false);
         return $filters;
     }
 
@@ -113,7 +124,9 @@ final class ReportFilterService
         $toInput = trim((string) ($input['date_to'] ?? ''));
         $from = $this->dateValidator->normalizeOptionalDate($fromInput);
         $to = $this->dateValidator->normalizeOptionalDate($toInput);
-        $errors = [];
+        $errors = is_array($input['errors'] ?? null)
+            ? array_values(array_filter($input['errors'], 'is_string'))
+            : [];
         if ($fromInput !== '' && $from === null) {
             $errors[] = $this->t('validation.date_from_invalid');
         }
@@ -169,6 +182,11 @@ final class ReportFilterService
             $employee = $this->employees->findById((int) $filters['employee_id']);
             if ($employee === null || ($employee['role'] ?? '') !== 'employee') {
                 $filters['errors'][] = $this->t('validation.employee_not_found');
+                $filters['employee_id'] = null;
+            } elseif (($filters['department_id'] ?? null) !== null
+                && (int) ($employee['department_id'] ?? 0) !== (int) $filters['department_id']) {
+                $filters['errors'][] = $this->t('validation.unauthorized_employee');
+                $filters['employee_id'] = null;
             } else {
                 $filters['employee'] = $employee;
             }

@@ -25,14 +25,18 @@ final class AnalyticsController extends MasterDataController
 
     public function index(Request $request): void
     {
-        $this->ensureAdmin();
-        $filters = $this->filters->analytics($request->getQueryParams());
+        $this->ensureAdminOrDepartmentHead();
+        $input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));
+        $filters = $this->filters->analytics($input);
+        if (isset($input['errors']) && is_array($input['errors']) && $input['errors'] !== []) {
+            $filters['errors'] = array_merge($filters['errors'], $input['errors']);
+        }
         $result = $this->analytics->generate($filters);
 
         $this->render('analytics/index', [
             'title' => $this->t('analytics_module.title'),
             'month' => $filters['month'],
-            'departments' => $this->departments->findAll(''),
+            'departments' => $this->filterAllowedDepartments($this->departments->findAll(''), $input['department_id'] ?? null),
             'filterEmployees' => $result['filter_employees'],
             'selectedDepartmentId' => $filters['department_id'] ?? null,
             'selectedEmployeeId' => $filters['employee_id'] ?? null,

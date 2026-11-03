@@ -39,6 +39,7 @@ function adminLeaveDetailCancelReasonLabel(string $cancelReason): string
 
     return match ($cancelReason) {
         'leave.cancel_reasons.admin', 'Cancelled by admin' => $localization->translate('leave.cancel_reasons.admin'),
+        'leave.cancel_reasons.department_head', 'Cancelled by department head' => $localization->translate('leave.cancel_reasons.department_head'),
         'leave.cancel_reasons.employee', 'Cancelled by employee' => $localization->translate('leave.cancel_reasons.employee'),
         default => $cancelReason,
     };
@@ -47,6 +48,7 @@ function adminLeaveDetailCancelReasonLabel(string $cancelReason): string
 $employeeName = (string) ($leaveRequest['employee_name'] ?? '');
 $employeeEmail = (string) ($leaveRequest['employee_email'] ?? '');
 $leaveType = (string) ($leaveRequest['leave_type'] ?? '');
+$reasonCategoryLabel = \App\Services\LeaveReasonCatalog::label((string) ($leaveRequest['reason_category'] ?? ''), $t);
 $startDate = (string) ($leaveRequest['start_date'] ?? '');
 $endDate = (string) ($leaveRequest['end_date'] ?? '');
 $durationDays = (int) ($leaveRequest['duration_days'] ?? 0);
@@ -87,6 +89,10 @@ $hasCancellationContext = $cancelledAt !== '' || $cancelledBy !== '' || $cancelR
                 <p class="mt-2 text-lg font-semibold text-slate-900"><?= htmlspecialchars(adminLeaveDetailTypeLabel($leaveType), ENT_QUOTES, 'UTF-8') ?></p>
             </div>
             <div class="sapas-operation-detail">
+                <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('leave_module.reason_category'), ENT_QUOTES, 'UTF-8') ?></p>
+                <p class="mt-2 text-lg font-semibold text-slate-900"><?= htmlspecialchars($reasonCategoryLabel, ENT_QUOTES, 'UTF-8') ?></p>
+            </div>
+            <div class="sapas-operation-detail">
                 <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('common.labels.start_date'), ENT_QUOTES, 'UTF-8') ?></p>
                 <p class="mt-2 text-lg font-semibold text-slate-900"><?= htmlspecialchars($startDate, ENT_QUOTES, 'UTF-8') ?></p>
             </div>
@@ -106,7 +112,7 @@ $hasCancellationContext = $cancelledAt !== '' || $cancelledBy !== '' || $cancelR
 
         <div class="mt-6 sapas-operation-detail bg-white">
             <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('common.labels.reason'), ENT_QUOTES, 'UTF-8') ?></p>
-            <p class="mt-2 text-slate-700"><?= htmlspecialchars($reason !== '' ? $reason : '-', ENT_QUOTES, 'UTF-8') ?></p>
+            <p class="mt-2 whitespace-pre-line text-slate-700"><?= htmlspecialchars($reason !== '' ? $reason : $t('leave_module.no_reason_provided'), ENT_QUOTES, 'UTF-8') ?></p>
         </div>
 
         <?php if (!empty($attachment)): ?>

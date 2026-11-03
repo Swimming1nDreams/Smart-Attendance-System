@@ -15,11 +15,12 @@ use App\Models\Notification;
 use App\Services\DateValidationService;
 use App\Services\LeaveOperationException;
 use App\Services\LeaveOperationService;
+use App\Services\LeaveReasonCatalog;
 use DateTimeImmutable;
 use DateInterval;
 use App\Services\WorkScheduleResolverService;
 
-class LeaveController extends Controller
+class LeaveController extends MasterDataController
 {
     private const ALLOWED_LEAVE_TYPES = ['casual', 'medical', 'unpaid', 'other'];
     private const MAX_ADMIN_NOTE_LENGTH = 1000;
@@ -31,9 +32,9 @@ class LeaveController extends Controller
     private DateValidationService $dateValidator;
     private ?LeaveOperationService $leaveOperations;
 
-    public function __construct(LeaveRequest $leaveRequestModel, Holiday $holidayModel, Employee $employeeModel, SessionManager $sessionManager, Application $app, ?Notification $notificationModel = null, ?DateValidationService $dateValidator = null, ?LeaveOperationService $leaveOperations = null, private ?WorkScheduleResolverService $scheduleResolver = null)
+    public function __construct(LeaveRequest $leaveRequestModel, Holiday $holidayModel, Employee $employeeModel, SessionManager $sessionManager, Application $app, ?Notification $notificationModel = null, ?DateValidationService $dateValidator = null, ?LeaveOperationService $leaveOperations = null, private ?WorkScheduleResolverService $scheduleResolver = null, private ?\App\Models\Department $departmentModel = null)
     {
-        parent::__construct($app, $sessionManager);
+        parent::__construct($sessionManager, $app);
 
         $this->leaveRequestModel = $leaveRequestModel;
         $this->holidayModel = $holidayModel;
@@ -45,7 +46,7 @@ class LeaveController extends Controller
 
     public function index(Request $request): void
     {
-        $this->sessionManager->requireRole('employee');
+        $this->sessionManager->requireAnyRole(['employee', 'department_head']);
         $this->ensureActiveEmployee();
 
         $userId = $this->sessionManager->getUserId();
@@ -92,7 +93,12 @@ class LeaveController extends Controller
 
     public function adminIndex(Request $request): void
     {
-        $this->sessionManager->requireRole('admin');
+        $this->ensureAdminOrDepartmentHead();
+
+        $scopeFilters = $this->resolveScopeFilters($request);
+        $selectedEmployeeId = $scopeFilters['employee_id'];
+        $selectedDepartmentId = $scopeFilters['department_id'];
+        $selectedEmployeeId = $this->normalizeEmployeeForDepartment($this->employeeModel, $selectedEmployeeId, $selectedDepartmentId);
 
         $page = max(1, (int) $request->query('page', 1));
         $requestedPerPage = (int) $request->query('per_page', 20);
@@ -105,15 +111,22 @@ class LeaveController extends Controller
         $fromDate = $this->dateValidator->normalizeOptionalDate($fromInput);
         $toDate = $this->dateValidator->normalizeOptionalDate($toInput);
         $filterErrors = $this->dateFilterErrors($fromInput, $toInput, $fromDate, $toDate);
+        if ($scopeFilters['errors'] !== []) {
+            $filterErrors = array_merge($filterErrors, $scopeFilters['errors']);
+        }
 
         if ($search !== '') {
             $search = mb_substr($search, 0, 100);
         }
 
-        $totalRequests = $filterErrors === [] ? $this->leaveRequestModel->countAll(null, $status, $leaveType, $search, $fromDate, $toDate) : 0;
+        $managedRequesterRole = $this->sessionManager->getUserRole() === 'department_head' ? 'employee' : null;
+        $totalRequests = $filterErrors === [] ? $this->leaveRequestModel->countAll($selectedEmployeeId, $status, $leaveType, $search, $fromDate, $toDate, $selectedDepartmentId, $managedRequesterRole) : 0;
         $lastPage = max(1, (int) ceil($totalRequests / $perPage));
         $page = min($page, $lastPage);
-        $leaveRequests = $filterErrors === [] ? $this->leaveRequestModel->findAll(null, $status, $leaveType, $search, $fromDate, $toDate, $page, $perPage) : [];
+        $leaveRequests = $filterErrors === [] ? $this->leaveRequestModel->findAll($selectedEmployeeId, $status, $leaveType, $search, $fromDate, $toDate, $page, $perPage, $selectedDepartmentId, $managedRequesterRole) : [];
+
+        $departments = $this->departmentModel ? $this->filterAllowedDepartments($this->departmentModel->findAll(''), $selectedDepartmentId) : [];
+        $employees = $this->employeeModel->findReportEmployees($selectedDepartmentId);
 
         $this->renderView('leave/admin_index', [
             'leaveRequests' => $leaveRequests,
@@ -126,17 +139,23 @@ class LeaveController extends Controller
                 'search' => $search,
                 'from' => $fromDate ?? '',
                 'to' => $toDate ?? '',
+                'department_id' => $selectedDepartmentId,
+                'employee_id' => $selectedEmployeeId,
             ],
             'title' => $this->t('leave_module.admin_title'),
             'pageTitle' => $this->t('leave_module.admin_title'),
             'pageDescription' => $this->t('leave_module.admin_description'),
             'errors' => $filterErrors,
+            'departments' => $departments ?? [],
+            'employees' => $employees ?? [],
+            'departmentScopeLocked' => $this->sessionManager->getUserRole() === 'department_head',
+            'canManageLeave' => in_array($this->sessionManager->getUserRole(), ['admin', 'department_head'], true),
         ]);
     }
 
     public function adminShow(Request $request): void
     {
-        $this->sessionManager->requireRole('admin');
+        $this->ensureAdminOrDepartmentHead();
 
         $leaveId = max(0, (int) $request->query('id', 0));
 
@@ -154,6 +173,10 @@ class LeaveController extends Controller
             exit;
         }
 
+        if (!$this->canManageLeaveRequester((int) ($leaveRequest['user_id'] ?? 0))) {
+            $this->denyOutOfScopeManagement();
+        }
+
         $attachment = $this->leaveRequestModel->getAttachment($leaveId);
 
         $this->renderView('leave/admin_show', [
@@ -168,7 +191,7 @@ class LeaveController extends Controller
 
     public function adminApprove(Request $request): void
     {
-        $this->sessionManager->requireRole('admin');
+        $this->ensureAdminOrDepartmentHead();
         $this->validateCsrfToken($request);
 
         $leaveId = $this->parsePostedLeaveId($request);
@@ -178,6 +201,10 @@ class LeaveController extends Controller
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->t('flash.leave_admin_approve_not_found'));
         }
 
+        if (!$this->canManageLeaveRequester((int) ($leaveRequest['user_id'] ?? 0))) {
+            $this->denyOutOfScopeManagement();
+        }
+
         if (($leaveRequest['status'] ?? '') !== 'pending') {
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->t('flash.leave_admin_approve_pending_only'));
         }
@@ -185,7 +212,7 @@ class LeaveController extends Controller
         $employeeId = (int) ($leaveRequest['user_id'] ?? 0);
         $employee = $this->employeeModel->findById($employeeId);
 
-        if ($employee === null || ($employee['role'] ?? '') !== 'employee' || ($employee['status'] ?? '') !== 'active') {
+        if ($employee === null || !in_array(($employee['role'] ?? ''), ['employee', 'department_head'], true) || ($employee['status'] ?? '') !== 'active') {
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->t('flash.leave_admin_approve_inactive_employee'));
         }
 
@@ -200,15 +227,15 @@ class LeaveController extends Controller
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->t('flash.leave_admin_overlap'));
         }
 
-        $adminId = $this->sessionManager->getUserId();
+        $reviewerId = $this->sessionManager->getUserId();
 
-        if ($adminId === null) {
+        if ($reviewerId === null) {
             header('Location: /login');
             exit;
         }
 
         try {
-            $this->requireLeaveOperations()->approve($leaveId, $adminId, (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'), $this->auditContext($request));
+            $this->requireLeaveOperations()->approve($leaveId, $reviewerId, (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'), $this->auditContext($request));
             $this->notifyEmployeeOfLeaveEvent($employeeId, $leaveId, 'leave_approved');
             $this->redirectAdminLeaveWithFlash($leaveId, 'success', $this->t('flash.leave_admin_approve_success'));
         } catch (LeaveOperationException $exception) {
@@ -218,7 +245,7 @@ class LeaveController extends Controller
 
     public function adminReject(Request $request): void
     {
-        $this->sessionManager->requireRole('admin');
+        $this->ensureAdminOrDepartmentHead();
         $this->validateCsrfToken($request);
 
         $leaveId = $this->parsePostedLeaveId($request);
@@ -227,6 +254,10 @@ class LeaveController extends Controller
 
         if ($leaveRequest === null) {
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->t('flash.leave_admin_reject_not_found'));
+        }
+
+        if (!$this->canManageLeaveRequester((int) ($leaveRequest['user_id'] ?? 0))) {
+            $this->denyOutOfScopeManagement();
         }
 
         if (($leaveRequest['status'] ?? '') !== 'pending') {
@@ -241,15 +272,15 @@ class LeaveController extends Controller
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->t('flash.leave_admin_rejection_note_too_long'));
         }
 
-        $adminId = $this->sessionManager->getUserId();
+        $reviewerId = $this->sessionManager->getUserId();
 
-        if ($adminId === null) {
+        if ($reviewerId === null) {
             header('Location: /login');
             exit;
         }
 
         try {
-            $this->requireLeaveOperations()->reject($leaveId, $adminId, (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'), $reviewNote, $this->auditContext($request));
+            $this->requireLeaveOperations()->reject($leaveId, $reviewerId, (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'), $reviewNote, $this->auditContext($request));
             $this->notifyEmployeeOfLeaveEvent((int) ($leaveRequest['user_id'] ?? 0), $leaveId, 'leave_rejected');
             $this->redirectAdminLeaveWithFlash($leaveId, 'success', $this->t('flash.leave_admin_reject_success'));
         } catch (LeaveOperationException $exception) {
@@ -259,7 +290,7 @@ class LeaveController extends Controller
 
     public function adminCancel(Request $request): void
     {
-        $this->sessionManager->requireRole('admin');
+        $this->ensureAdminOrDepartmentHead();
         $this->validateCsrfToken($request);
 
         $leaveId = $this->parsePostedLeaveId($request);
@@ -269,22 +300,29 @@ class LeaveController extends Controller
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->t('flash.leave_admin_cancel_not_found'));
         }
 
+        if (!$this->canManageLeaveRequester((int) ($leaveRequest['user_id'] ?? 0))) {
+            $this->denyOutOfScopeManagement();
+        }
+
         $status = (string) ($leaveRequest['status'] ?? '');
 
         if (!in_array($status, ['pending', 'approved'], true)) {
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->t('flash.leave_admin_cancel_allowed_status'));
         }
 
-        $adminId = $this->sessionManager->getUserId();
+        $actorId = $this->sessionManager->getUserId();
 
-        if ($adminId === null) {
+        if ($actorId === null) {
             header('Location: /login');
             exit;
         }
 
         try {
-            $this->requireLeaveOperations()->cancelByAdmin($leaveId, $adminId, (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'), 'leave.cancel_reasons.admin', $this->auditContext($request));
-            $this->notifyEmployeeOfLeaveEvent((int) ($leaveRequest['user_id'] ?? 0), $leaveId, 'leave_cancelled_by_admin');
+            $isDepartmentHead = $this->sessionManager->getUserRole() === 'department_head';
+            $cancelReason = $isDepartmentHead ? 'leave.cancel_reasons.department_head' : 'leave.cancel_reasons.admin';
+            $event = $isDepartmentHead ? 'leave_cancelled_by_department_head' : 'leave_cancelled_by_admin';
+            $this->requireLeaveOperations()->cancelByAdmin($leaveId, $actorId, (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'), $cancelReason, $this->auditContext($request));
+            $this->notifyEmployeeOfLeaveEvent((int) ($leaveRequest['user_id'] ?? 0), $leaveId, $event);
             $this->redirectAdminLeaveWithFlash($leaveId, 'success', $this->t('flash.leave_admin_cancel_success'));
         } catch (LeaveOperationException $exception) {
             $this->redirectAdminLeaveWithFlash($leaveId, 'error', $this->leaveOperationMessage($exception->reason(), 'flash.leave_admin_cancel_failed'));
@@ -293,13 +331,14 @@ class LeaveController extends Controller
 
     public function create(Request $request): void
     {
-        $this->sessionManager->requireRole('employee');
+        $this->sessionManager->requireAnyRole(['employee', 'department_head']);
         $this->ensureActiveEmployee();
 
         $this->renderView('leave/form', [
             'errors' => [],
             'leaveRequest' => [
                 'leave_type' => '',
+                'reason_category' => '',
                 'start_date' => '',
                 'end_date' => '',
                 'reason' => '',
@@ -313,7 +352,7 @@ class LeaveController extends Controller
 
     public function show(Request $request): void
     {
-        $this->sessionManager->requireRole('employee');
+        $this->sessionManager->requireAnyRole(['employee', 'department_head']);
         $this->ensureActiveEmployee();
 
         $leaveId = max(0, (int) $request->query('id', 0));
@@ -353,7 +392,7 @@ class LeaveController extends Controller
 
     public function cancel(Request $request): void
     {
-        $this->sessionManager->requireRole('employee');
+        $this->sessionManager->requireAnyRole(['employee', 'department_head']);
         $this->ensureActiveEmployee();
         $this->validateCsrfToken($request);
 
@@ -401,7 +440,7 @@ class LeaveController extends Controller
 
     public function store(Request $request): void
     {
-        $this->sessionManager->requireRole('employee');
+        $this->sessionManager->requireAnyRole(['employee', 'department_head']);
         $this->ensureActiveEmployee();
         $this->validateCsrfToken($request);
 
@@ -413,11 +452,12 @@ class LeaveController extends Controller
         }
 
         $leaveType = trim((string) ($request->getBodyParams()['leave_type'] ?? ''));
+        $reasonCategory = trim((string) ($request->getBodyParams()['reason_category'] ?? ''));
         $startDate = trim((string) ($request->getBodyParams()['start_date'] ?? ''));
         $endDate = trim((string) ($request->getBodyParams()['end_date'] ?? ''));
         $reason = trim((string) ($request->getBodyParams()['reason'] ?? ''));
 
-        $errors = $this->validateLeaveRequest($userId, $leaveType, $startDate, $endDate, $reason);
+        $errors = $this->validateLeaveRequestFields($userId, $leaveType, $reasonCategory, $startDate, $endDate, $reason);
 
         if (!empty($errors)) {
             $this->sessionManager->setFlash('error', $this->t('flash.leave_form_invalid'));
@@ -425,6 +465,7 @@ class LeaveController extends Controller
                 'errors' => $errors,
                 'leaveRequest' => [
                     'leave_type' => $leaveType,
+                    'reason_category' => $reasonCategory,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'reason' => $reason,
@@ -449,6 +490,7 @@ class LeaveController extends Controller
                     'errors' => $errors,
                     'leaveRequest' => [
                         'leave_type' => $leaveType,
+                        'reason_category' => $reasonCategory,
                         'start_date' => $startDate,
                         'end_date' => $endDate,
                         'reason' => $reason,
@@ -464,7 +506,7 @@ class LeaveController extends Controller
         }
 
         try {
-            $createdId = $this->requireLeaveOperations()->createRequest($userId, $leaveType, $startDate, $endDate, $durationDays, $reason, $attachmentData);
+            $createdId = $this->requireLeaveOperations()->createRequest($userId, $leaveType, $startDate, $endDate, $durationDays, $reason, $reasonCategory, $attachmentData);
         } catch (LeaveOperationException $exception) {
             $errors = [$this->leaveOperationMessage($exception->reason(), 'flash.leave_submit_failed')];
             $this->sessionManager->setFlash('error', $this->t('flash.leave_submit_failed'));
@@ -472,6 +514,7 @@ class LeaveController extends Controller
                 'errors' => $errors,
                 'leaveRequest' => [
                     'leave_type' => $leaveType,
+                    'reason_category' => $reasonCategory,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'reason' => $reason,
@@ -485,12 +528,17 @@ class LeaveController extends Controller
         }
 
         $this->sessionManager->setFlash('success', $this->t('flash.leave_submit_success'));
-        $this->notifyAdminsOfLeaveSubmission($createdId, $userId);
+        $this->notifyLeaveReviewersOfSubmission($createdId, $userId);
         header('Location: /leave');
         exit;
     }
 
-    private function validateLeaveRequest(int $userId, string $leaveType, string $startDate, string $endDate, string $reason): array
+    private function validateLeaveRequest(int $userId, string $leaveType, string $reasonCategory, string $startDate, string $endDate, string $reason): array
+    {
+        return $this->validateLeaveRequestFields($userId, $leaveType, $reasonCategory, $startDate, $endDate, $reason);
+    }
+
+    private function validateLeaveRequestFields(int $userId, string $leaveType, string $reasonCategory, string $startDate, string $endDate, string $reason): array
     {
         $errors = [];
 
@@ -498,6 +546,12 @@ class LeaveController extends Controller
             $errors[] = $this->t('validation.leave_type_required');
         } elseif (!in_array($leaveType, self::ALLOWED_LEAVE_TYPES, true)) {
             $errors[] = $this->t('validation.leave_type_invalid');
+        }
+
+        if ($reasonCategory === '') {
+            $errors[] = $this->t('validation.reason_category_required');
+        } elseif (!LeaveReasonCatalog::isValid($leaveType, $reasonCategory)) {
+            $errors[] = $this->t('validation.reason_category_invalid');
         }
 
         if ($startDate === '') {
@@ -528,7 +582,7 @@ class LeaveController extends Controller
             $errors[] = $this->t('validation.leave_past_date');
         }
 
-        if ($reason === '') {
+        if (trim($reason) === '') {
             $errors[] = $this->t('validation.reason_required');
         } elseif (mb_strlen($reason) > 1000) {
             $errors[] = $this->t('validation.reason_too_long');
@@ -578,24 +632,34 @@ class LeaveController extends Controller
         return in_array($value, $allowedValues, true) ? $value : null;
     }
 
-    private function notifyAdminsOfLeaveSubmission(int $leaveId, int $employeeId): void
+    private function notifyLeaveReviewersOfSubmission(int $leaveId, int $requesterId): void
     {
         if ($this->notificationModel === null || $leaveId <= 0) {
             return;
         }
 
-        $adminIds = array_map(
+        $reviewerIds = array_map(
             static fn (array $admin): int => (int) ($admin['id'] ?? 0),
             $this->employeeModel->findByRoleAndStatus('admin', 'active', 500)
         );
 
+        $requester = $this->employeeModel->findById($requesterId);
+        $requesterDepartmentId = (int) ($requester['department_id'] ?? 0);
+        if (($requester['role'] ?? '') === 'employee' && $requesterDepartmentId > 0) {
+            foreach ($this->employeeModel->findByRoleAndStatus('department_head', 'active', 500) as $departmentHead) {
+                if ((int) ($departmentHead['department_id'] ?? 0) === $requesterDepartmentId) {
+                    $reviewerIds[] = (int) ($departmentHead['id'] ?? 0);
+                }
+            }
+        }
+
         $this->notificationModel->createForUsers(
-            $adminIds,
+            array_values(array_unique(array_filter($reviewerIds, static fn (int $id): bool => $id > 0))),
             'leave_request_submitted',
             'notifications.events.leave_request_submitted.title',
             'notifications.events.leave_request_submitted.message',
             '/admin/leave/show?id=' . $leaveId,
-            $employeeId,
+            $requesterId,
             $leaveId
         );
     }
@@ -606,7 +670,7 @@ class LeaveController extends Controller
             return;
         }
 
-        if (!in_array($event, ['leave_approved', 'leave_rejected', 'leave_cancelled_by_admin'], true)) {
+        if (!in_array($event, ['leave_approved', 'leave_rejected', 'leave_cancelled_by_admin', 'leave_cancelled_by_department_head'], true)) {
             return;
         }
 
@@ -742,7 +806,7 @@ class LeaveController extends Controller
     }
 
     /** @return array{ip_address: string, user_agent: string} */
-    private function auditContext(Request $request): array
+    protected function auditContext(Request $request): array
     {
         return [
             'ip_address' => (string) $request->getServerParam('REMOTE_ADDR', ''),
@@ -757,6 +821,7 @@ class LeaveController extends Controller
             'attendance_conflict' => $this->t('validation.leave_attendance_conflict'),
             'concurrent_update' => $this->t('validation.concurrent_record_update'),
             'employee_invalid' => $this->t('flash.leave_admin_approve_inactive_employee'),
+            'authorization_denied' => $this->t('validation.department_scope_denied'),
             'not_found' => $this->t('flash.leave_not_found'),
             default => $this->t($fallbackKey),
         };
@@ -768,35 +833,51 @@ class LeaveController extends Controller
      */
     private function handleAttachmentUpload(array $fileData): array
     {
-        if ($fileData['error'] !== UPLOAD_ERR_OK) {
+        $uploadError = (int) ($fileData['error'] ?? UPLOAD_ERR_NO_FILE);
+        if (in_array($uploadError, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+            return ['error' => $this->t('validation.file_too_large')];
+        }
+
+        if ($uploadError !== UPLOAD_ERR_OK) {
             return ['error' => $this->t('validation.upload_failed')];
         }
 
-        $size = (int) $fileData['size'];
+        $size = (int) ($fileData['size'] ?? 0);
         if ($size > 5 * 1024 * 1024) {
             return ['error' => $this->t('validation.file_too_large')];
         }
 
-        $tmpPath = $fileData['tmp_name'];
-        if (!is_uploaded_file($tmpPath)) {
-            return ['error' => $this->t('validation.upload_failed')];
-        }
-
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $tmpPath);
-        finfo_close($finfo);
-
-        $allowedMimes = ['image/jpeg', 'image/png', 'application/pdf'];
-        if (!in_array($mimeType, $allowedMimes, true)) {
-            return ['error' => $this->t('validation.invalid_file_type')];
-        }
-
-        $originalName = basename($fileData['name']);
+        $originalName = basename(str_replace('\\', '/', (string) ($fileData['name'] ?? '')));
         $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
 
         if (!in_array($extension, $allowedExtensions, true)) {
             return ['error' => $this->t('validation.invalid_file_extension')];
+        }
+
+        $tmpPath = (string) ($fileData['tmp_name'] ?? '');
+        if ($tmpPath === '' || !$this->isHttpUploadedFile($tmpPath)) {
+            return ['error' => $this->t('validation.upload_failed')];
+        }
+
+        $actualSize = filesize($tmpPath);
+        if ($actualSize === false) {
+            return ['error' => $this->t('validation.upload_failed')];
+        }
+        if ($actualSize > 5 * 1024 * 1024) {
+            return ['error' => $this->t('validation.file_too_large')];
+        }
+        $size = $actualSize;
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo === false ? false : finfo_file($finfo, $tmpPath);
+        if ($finfo !== false) {
+            finfo_close($finfo);
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'application/pdf'];
+        if (!is_string($mimeType) || !in_array($mimeType, $allowedMimes, true)) {
+            return ['error' => $this->t('validation.invalid_file_type')];
         }
 
         $storageDir = dirname(__DIR__, 2) . '/storage/private/leave_attachments';
@@ -807,7 +888,7 @@ class LeaveController extends Controller
         $storedName = bin2hex(random_bytes(16)) . '.' . $extension;
         $storedPath = $storageDir . '/' . $storedName;
 
-        if (!move_uploaded_file($tmpPath, $storedPath)) {
+        if (!$this->moveHttpUploadedFile($tmpPath, $storedPath)) {
             return ['error' => $this->t('validation.upload_failed')];
         }
 
@@ -821,16 +902,57 @@ class LeaveController extends Controller
 
     public function downloadAttachment(Request $request): void
     {
+        if (!$this->sessionManager->isAuthenticated()) {
+            http_response_code(401);
+            echo 'Authentication required.';
+            exit;
+        }
+
         $userId = $this->sessionManager->getUserId();
-        if ($userId === null) {
-            header('HTTP/1.1 401 Unauthorized');
+        $role = $this->sessionManager->getUserRole();
+        if ($userId === null || $role === null) {
+            http_response_code(401);
+            echo 'Authentication required.';
             exit;
         }
 
         $attachmentId = max(0, (int) $request->query('id', 0));
         if ($attachmentId <= 0) {
-            header('HTTP/1.1 404 Not Found');
+            http_response_code(404);
+            echo 'File not found.';
             exit;
+        }
+
+        $download = $this->prepareAttachmentDownload($attachmentId, $userId, $role);
+        http_response_code($download['status']);
+
+        if ($download['status'] !== 200) {
+            echo $download['message'];
+            exit;
+        }
+
+        $attachment = $download['attachment'];
+        $fullPath = $download['full_path'];
+        $allowedMimes = ['image/jpeg', 'image/png', 'application/pdf'];
+        $mimeType = in_array($attachment['mime_type'], $allowedMimes, true)
+            ? $attachment['mime_type']
+            : 'application/octet-stream';
+
+        header('Content-Type: ' . $mimeType);
+        header('Content-Disposition: ' . $this->buildAttachmentContentDisposition((string) $attachment['original_name']));
+        header('Content-Length: ' . (string) filesize($fullPath));
+        header('Cache-Control: private, no-store, max-age=0, must-revalidate');
+        header('X-Content-Type-Options: nosniff');
+
+        readfile($fullPath);
+        exit;
+    }
+
+    /** @return array{status:int,message:string,full_path?:string,attachment?:array} */
+    private function prepareAttachmentDownload(int $attachmentId, int $userId, string $role): array
+    {
+        if (!in_array($role, ['admin', 'department_head', 'employee'], true)) {
+            return ['status' => 403, 'message' => 'Access denied.'];
         }
 
         $statement = $this->app->getDatabase()->getConnection()->prepare(
@@ -840,38 +962,103 @@ class LeaveController extends Controller
         $attachment = $statement->fetch();
 
         if ($attachment === false) {
-            header('HTTP/1.1 404 Not Found');
-            exit;
+            return ['status' => 404, 'message' => 'File not found.'];
         }
 
-        $isAdmin = $this->sessionManager->hasRole('admin');
+        $isAdmin = $role === 'admin';
         $isOwner = ((int) $attachment['user_id']) === $userId;
+        $isDepartmentManager = $role === 'department_head'
+            && $this->departmentHeadCanAccessEmployeeAttachment($userId, (int) $attachment['user_id']);
 
-        if (!$isAdmin && !$isOwner) {
-            header('HTTP/1.1 403 Forbidden');
-            exit;
+        if (!$isAdmin && !$isOwner && !$isDepartmentManager) {
+            return ['status' => 403, 'message' => 'Access denied.'];
         }
 
-        $baseStoragePath = dirname(__DIR__, 2) . '/storage/private';
-        $fullPath = realpath($baseStoragePath . '/' . $attachment['file_path']);
-
-        if ($fullPath === false || !str_starts_with($fullPath, realpath($baseStoragePath))) {
-            header('HTTP/1.1 404 Not Found');
-            exit;
+        $relativePath = str_replace('\\', '/', (string) ($attachment['file_path'] ?? ''));
+        if (preg_match('/\Aleave_attachments\/[A-Za-z0-9][A-Za-z0-9._-]*\z/D', $relativePath) !== 1) {
+            return ['status' => 404, 'message' => 'File not found.'];
         }
 
-        if (!file_exists($fullPath)) {
-            header('HTTP/1.1 404 Not Found');
-            exit;
+        $attachmentRoot = realpath(dirname(__DIR__, 2) . '/storage/private/leave_attachments');
+        $fullPath = realpath(dirname(__DIR__, 2) . '/storage/private/' . $relativePath);
+
+        if (
+            $attachmentRoot === false
+            || $fullPath === false
+            || !str_starts_with($fullPath, $attachmentRoot . DIRECTORY_SEPARATOR)
+            || !is_file($fullPath)
+        ) {
+            return ['status' => 404, 'message' => 'File not found.'];
         }
 
-        header('Content-Type: ' . $attachment['mime_type']);
-        header('Content-Disposition: inline; filename="' . addslashes($attachment['original_name']) . '"');
-        header('Content-Length: ' . $attachment['file_size']);
-        header('Cache-Control: private, max-age=0, must-revalidate');
-        header('Pragma: public');
+        return [
+            'status' => 200,
+            'message' => '',
+            'full_path' => $fullPath,
+            'attachment' => $attachment,
+        ];
+    }
 
-        readfile($fullPath);
-        exit;
+    private function canManageLeaveRequester(int $requesterId): bool
+    {
+        return $this->canManageUserInScope(
+            $this->employeeModel,
+            $requesterId,
+            ['employee', 'department_head']
+        );
+    }
+
+    private function departmentHeadCanAccessEmployeeAttachment(int $managerId, int $employeeId): bool
+    {
+        $statement = $this->app->getDatabase()->getConnection()->prepare(
+            "SELECT 1
+             FROM users manager
+             JOIN users employee ON employee.id = :employee_id
+             WHERE manager.id = :manager_id
+               AND manager.role = 'department_head'
+               AND manager.status = 'active'
+               AND employee.role = 'employee'
+               AND manager.department_id IS NOT NULL
+               AND manager.department_id = employee.department_id
+             LIMIT 1"
+        );
+        $statement->execute([
+            ':manager_id' => $managerId,
+            ':employee_id' => $employeeId,
+        ]);
+
+        return $statement->fetchColumn() !== false;
+    }
+
+    private function buildAttachmentContentDisposition(string $originalName): string
+    {
+        $cleanName = preg_replace('/[\x{0000}-\x{001F}\x{007F}-\x{009F}]/u', '', $originalName);
+        if (!is_string($cleanName)) {
+            $cleanName = 'attachment';
+        }
+
+        $cleanName = basename(str_replace('\\', '/', trim($cleanName)));
+        if ($cleanName === '' || $cleanName === '.' || $cleanName === '..') {
+            $cleanName = 'attachment';
+        }
+
+        $asciiFallback = preg_replace('/[^A-Za-z0-9._-]+/', '_', $cleanName);
+        $asciiFallback = is_string($asciiFallback) ? trim($asciiFallback, '._-') : '';
+        if ($asciiFallback === '') {
+            $extension = preg_replace('/[^A-Za-z0-9]+/', '', pathinfo($cleanName, PATHINFO_EXTENSION));
+            $asciiFallback = 'attachment' . ($extension !== '' ? '.' . $extension : '');
+        }
+
+        return 'inline; filename="' . $asciiFallback . '"; filename*=UTF-8\'\'' . rawurlencode($cleanName);
+    }
+
+    protected function isHttpUploadedFile(string $path): bool
+    {
+        return is_uploaded_file($path);
+    }
+
+    protected function moveHttpUploadedFile(string $source, string $destination): bool
+    {
+        return move_uploaded_file($source, $destination);
     }
 }

@@ -1,0 +1,61 @@
+OAPAS / SAPAS Phase 5 - Transactional Multi-Session Write Cutover
+Date: 2026-08-13
+
+Purpose
+-------
+This patch switches employee self-service Check In / Check Out from one physical
+interval stored on attendance_records to authoritative attendance_sessions child
+writes. The unique daily attendance_records parent remains the compatibility and
+daily summary row.
+
+Implemented
+-----------
+- Production bootstrap explicitly opts AttendanceOperationService into session writes.
+- Only one open physical session is allowed per employee across dates.
+- A completed same-day session no longer blocks a later Check In.
+- Check Out closes only the active child session.
+- Checkout preview and final daily values use the union of all daily sessions.
+- Parent first Check In / final Check Out / union work / attendance / overtime are
+  recalculated atomically from child sessions.
+- Early Departure is provisional until scheduled end. The existing modal captures
+  the reason; a later Check In can clear the candidate; reports/analytics finalize
+  it after the scheduled end if the employee does not return.
+- A reviewed approval-required overtime result is reset to pending if later physical
+  work makes the result active/non-final or changes the candidate; reset history is
+  appended to overtime_decisions.
+- Dashboard and attendance action state checks the actual global open child session,
+  including an overnight session attached to the prior business date.
+- Audit values include session id/count for employee session writes.
+
+Intentionally unchanged
+-----------------------
+- attendance_records UNIQUE(user_id, attendance_date) remains.
+- No migration is added by this patch.
+- Admin manual attendance create/edit is not converted into session correction UI.
+- Phase 6 downstream cleanup and Phase 7 admin/session UI are not included.
+- Phase 4 backfill/live-backfill safety tooling remains unchanged.
+
+Tests
+-----
+Four Phase 5 integration cases are added:
+1. pre-shift + normal same-day sessions, union totals, duplicate-open protection,
+2. early checkout candidate cleared by a later return,
+3. provisional Early Departure becoming final after scheduled end if no return,
+4. reviewed overtime reset to pending when a later session reopens the day.
+
+The previous Windows checkpoint was 375/375. With this patch the expected WAMP
+suite total is 379 tests. Run from the project root:
+
+    php tests/run.php
+
+Expected on the user's configured WAMP test environment:
+
+    SAPAS regression tests: 379 passed, 0 failed, 0 skipped, 379 total
+
+Sandbox verification note
+-------------------------
+All 245 PHP files under the checked source/test/runtime directories passed syntax
+lint here. This Linux sandbox lacks pdo_mysql/mbstring/PHP ZIP, so its full-suite
+DB/extension failures are environmental. The number of non-DB tests passing stayed
+identical to the reconstructed pre-Phase-5 baseline (224); Windows/WAMP is the
+authoritative integration run.

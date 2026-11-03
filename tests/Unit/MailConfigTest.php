@@ -23,8 +23,9 @@ test('mail config defaults to log mode and exposes SMTP fields', function (): vo
         assert_same('log', $config['transport']);
         assert_same('', $config['host']);
         assert_same(587, $config['port']);
-        assert_same('Smart Attendance', $config['from_name']);
-        assert_same('Verify your Smart Attendance account email', $config['verification_subject']);
+        assert_same('no-reply@oaas.local', $config['from_email']);
+        assert_same('Office Attendance and Analytic System (OAAS)', $config['from_name']);
+        assert_same('Your Office Attendance and Analytic System verification code', $config['verification_subject']);
         assert_same('', $config['local_host']);
         assert_true(array_key_exists('username', $config));
         assert_true(array_key_exists('password', $config));

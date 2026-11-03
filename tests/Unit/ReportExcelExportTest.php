@@ -43,7 +43,7 @@ function assertInlineStringCell(string $worksheetXml, string $reference, string 
 
 test('Excel export service creates a real styled XLSX workbook with Unicode-safe inline cells', function (): void {
     $service = new ReportExcelExportService();
-    $projectName = 'Smart Attendance and Performance Analytics System (SAPAS)';
+    $projectName = 'Office Attendance and Analytic System (OAAS)';
     $xlsx = $service->build([
         'project_name' => $projectName,
         'generated_at_label' => 'Generated at',
@@ -125,7 +125,7 @@ test('Excel export keeps hostile formula prefixes literal across report text fie
     }
 
     $xlsx = (new ReportExcelExportService())->build([
-        'project_name' => 'SAPAS <Reports> & Security',
+        'project_name' => 'OAAS <Reports> & Security',
         'generated_at_label' => 'Generated at',
         'active_filters_label' => 'Active Filters',
         'filter_summary' => $filterSummary,
@@ -165,7 +165,7 @@ test('Excel export keeps hostile formula prefixes literal across report text fie
 
 test('Excel QA preserves special-day attendance, overtime durations, localized text, and safe worksheet names', function (): void {
     $service = new ReportExcelExportService();
-    $projectName = 'Smart Attendance and Performance Analytics System (SAPAS)';
+    $projectName = 'Office Attendance and Analytic System (OAAS)';
     $xlsx = $service->build([
         'project_name' => $projectName,
         'generated_at_label' => 'Generated at',

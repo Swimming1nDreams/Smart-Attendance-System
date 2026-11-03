@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 test('employee dashboard self-attendance actions stay server-authoritative and show missing checkout context', function (): void {
     $view = file_get_contents(project_path('views/dashboard/employee.php'));
+    $checkoutPartial = file_get_contents(project_path('views/partials/early_departure_checkout.php'));
+    $renderedStructure = (string) $view . (string) $checkoutPartial;
     $english = require project_path('lang/en.php');
     $myanmar = require project_path('lang/my.php');
 
     assert_true(is_string($view), 'Employee dashboard view should be readable.');
     assert_contains('action="/attendance/clock-in"', $view);
-    assert_contains('action="/attendance/clock-out"', $view);
-    assert_contains('name="csrf_token"', $view);
+    assert_contains('action="/attendance/clock-out"', $renderedStructure);
+    assert_contains('name="csrf_token"', $renderedStructure);
+    assert_contains("early_departure_candidate_minutes", $checkoutPartial);
+    assert_contains("early_departure_provisional", $checkoutPartial);
     assert_contains("attendance.missing_check_out", $view);
     assert_contains('$clockInBlockReason', $view);
     assert_contains('dashboard.employee.no_clock_actions_holiday', $view);
@@ -37,7 +41,7 @@ test('employee dashboard self-attendance actions stay server-authoritative and s
         'policy_version',
         'calculation_version',
     ] as $field) {
-        assert_not_contains('name="' . $field . '"', $view);
+        assert_not_contains('name="' . $field . '"', $renderedStructure);
     }
 
     $englishValues = [
@@ -73,6 +77,12 @@ test('employee dashboard self-attendance actions stay server-authoritative and s
     assert_not_contains('check_out', $myanmar['attendance']['missing_check_out'] ?? '');
     assert_not_contains('Your employee profile', $myanmar['attendance']['no_clock_actions_profile'] ?? '');
     assert_not_contains('company holidays', $myanmar['validation']['attendance_holiday_check_in_blocked'] ?? '');
+    assert_contains("employees_module.work_policy", $view);
+    assert_not_contains("?? 'Current Work Policy'", $view);
+    assert_same('Work Policy', $english['employees_module']['work_policy'] ?? null);
+    assert_same('အလုပ်မူဝါဒ', $myanmar['employees_module']['work_policy'] ?? null);
+    assert_not_contains('employees_module.work_policy', $english['employees_module']['work_policy'] ?? '');
+    assert_not_contains('employees_module.work_policy', $myanmar['employees_module']['work_policy'] ?? '');
 });
 
 test('employee attendance list uses centralized self check-in block reason for action state', function (): void {
@@ -87,6 +97,8 @@ test('employee attendance list uses centralized self check-in block reason for a
     assert_contains('$this->attendanceOperations->selfClockInBlockReason', $dashboard);
     assert_contains('$clockInBlockReason === null', $controller);
     assert_contains('$clockInBlockReason === null', $dashboard);
+    assert_contains('$this->attendanceOperations?->hasOpenSessionForEmployee($userId)', $controller);
+    assert_contains('$this->attendanceOperations?->hasOpenSessionForEmployee($userId)', $dashboard);
     assert_contains('attendance.no_clock_actions_holiday', $attendanceView);
     assert_contains('attendance.no_clock_actions_non_working_day', $attendanceView);
     assert_contains('attendance.no_clock_actions_profile', $attendanceView);

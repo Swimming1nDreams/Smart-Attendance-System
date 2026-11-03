@@ -63,6 +63,7 @@ test('workforce seed uses the configured safe demo domain and covers attendance 
     $source = file_get_contents(project_path('seeds/seed_demo_data.php'));
 
     assert_true($source !== false);
+    assert_contains("OAAS_DEMO_EMAIL_DOMAIN", $source);
     assert_contains("SAPAS_DEMO_EMAIL_DOMAIN", $source);
     assert_contains("'silveroakhr.com'", $source);
     assert_contains("buildSeedDates('2026-06-01', '2026-07-21')", $source);
@@ -85,6 +86,8 @@ test('employee check-in persists resolved weekend or holiday status instead of f
     assert_contains('$status = (string) $calculation[\'status\'];', $clockInMethod);
     assert_contains('$lateMinutes = (int) $calculation[\'late_minutes\'];', $clockInMethod);
     assert_contains('$this->insertAttendance($userId, $attendanceDate, $clockInTime, null, 0.0, $status, $lateMinutes, null, $calculation);', $clockInMethod);
-    assert_contains("':status' => \$status", $clockInMethod);
+    assert_contains('$sessionId = $this->attendanceSessions->create', $clockInMethod);
+    assert_contains('$calculation = $this->calculateSessionSummary', $clockInMethod);
+    assert_contains('$this->persistSessionSummary', $clockInMethod);
     assert_not_contains("':status' => 'present'", $clockInMethod);
 });

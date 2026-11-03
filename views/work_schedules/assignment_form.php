@@ -4,6 +4,9 @@ $assignment = $assignment ?? [];
 $errors = $errors ?? [];
 $options = $options ?? ['policies' => [], 'departments' => [], 'employees' => []];
 $action = $action ?? '/admin/work-schedules/assignments';
+$selectedScope = in_array(($assignment['scope_type'] ?? 'company'), ['company', 'department', 'employee'], true)
+    ? (string) $assignment['scope_type']
+    : 'company';
 $layout = 'layouts/app';
 $pageTitle = $title ?? $t('workforce_policy.assignments.create_title');
 $pageDescription = $t('workforce_policy.assignments.form_description');
@@ -16,7 +19,9 @@ $fieldError = static function (string $field) use ($errors): string {
 $employeeLabel = static function (array $employee): string {
     $name = trim((string) ($employee['name'] ?? ''));
     $code = trim((string) ($employee['staff_code'] ?? ''));
-    return $name . ($code !== '' ? ' (' . $code . ')' : '');
+    $department = trim((string) ($employee['department_name'] ?? ''));
+    $identity = $name . ($code !== '' ? ' (' . $code . ')' : '');
+    return $identity . ($department !== '' ? ' — ' . $department : '');
 };
 ?>
 
@@ -32,9 +37,9 @@ $employeeLabel = static function (array $employee): string {
     <div class="grid gap-5 md:grid-cols-2">
         <div>
             <label class="block text-sm font-medium text-slate-700" for="scope-type"><?= htmlspecialchars($t('workforce_policy.assignments.scope'), ENT_QUOTES, 'UTF-8') ?></label>
-            <select id="scope-type" name="scope_type" class="mt-1 sapas-form-control">
+            <select id="scope-type" name="scope_type" class="mt-1 sapas-form-control" required>
                 <?php foreach (['company', 'department', 'employee'] as $scope): ?>
-                    <option value="<?= $scope ?>" <?= ($assignment['scope_type'] ?? 'company') === $scope ? 'selected' : '' ?>><?= htmlspecialchars($t('workforce_policy.assignments.scope_' . $scope), ENT_QUOTES, 'UTF-8') ?></option>
+                    <option value="<?= $scope ?>" <?= $selectedScope === $scope ? 'selected' : '' ?>><?= htmlspecialchars($t('workforce_policy.assignments.scope_' . $scope), ENT_QUOTES, 'UTF-8') ?></option>
                 <?php endforeach; ?>
             </select>
             <?= $fieldError('scope_type') ?>
@@ -45,15 +50,15 @@ $employeeLabel = static function (array $employee): string {
             <select id="policy-id" name="work_schedule_template_id" class="mt-1 sapas-form-control" required>
                 <option value=""><?= htmlspecialchars($t('workforce_policy.assignments.choose_policy'), ENT_QUOTES, 'UTF-8') ?></option>
                 <?php foreach ($options['policies'] as $policy): ?>
-                    <option value="<?= (int) $policy['id'] ?>" <?= (int) ($assignment['work_schedule_template_id'] ?? 0) === (int) $policy['id'] ? 'selected' : '' ?>><?= htmlspecialchars((string) $policy['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                    <option value="<?= (int) $policy['id'] ?>" <?= (int) ($assignment['work_schedule_template_id'] ?? 0) === (int) $policy['id'] ? 'selected' : '' ?>><?= htmlspecialchars(\App\Services\BrandingPresenter::policyName($policy['name']), ENT_QUOTES, 'UTF-8') ?></option>
                 <?php endforeach; ?>
             </select>
             <?= $fieldError('work_schedule_template_id') ?>
         </div>
 
-        <div data-assignment-target="department">
-            <label class="block text-sm font-medium text-slate-700" for="department-id"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?></label>
-            <select id="department-id" name="department_id" class="mt-1 sapas-form-control">
+        <div data-assignment-target="department" <?= $selectedScope === 'department' ? '' : 'hidden' ?>>
+            <label class="block text-sm font-medium text-slate-700" for="department-id"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?> <span class="text-red-600" aria-hidden="true">*</span></label>
+            <select id="department-id" name="department_id" class="mt-1 sapas-form-control" <?= $selectedScope === 'department' ? 'required' : 'disabled' ?>>
                 <option value=""><?= htmlspecialchars($t('workforce_policy.assignments.only_department_scope'), ENT_QUOTES, 'UTF-8') ?></option>
                 <?php foreach ($options['departments'] as $department): ?>
                     <option value="<?= (int) $department['id'] ?>" <?= (int) ($assignment['department_id'] ?? 0) === (int) $department['id'] ? 'selected' : '' ?>><?= htmlspecialchars((string) $department['name'], ENT_QUOTES, 'UTF-8') ?></option>
@@ -62,9 +67,9 @@ $employeeLabel = static function (array $employee): string {
             <?= $fieldError('department_id') ?>
         </div>
 
-        <div data-assignment-target="employee">
-            <label class="block text-sm font-medium text-slate-700" for="employee-id"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?></label>
-            <select id="employee-id" name="employee_id" class="mt-1 sapas-form-control">
+        <div data-assignment-target="employee" <?= $selectedScope === 'employee' ? '' : 'hidden' ?>>
+            <label class="block text-sm font-medium text-slate-700" for="employee-id"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?> <span class="text-red-600" aria-hidden="true">*</span></label>
+            <select id="employee-id" name="employee_id" class="mt-1 sapas-form-control" <?= $selectedScope === 'employee' ? 'required' : 'disabled' ?>>
                 <option value=""><?= htmlspecialchars($t('workforce_policy.assignments.only_employee_scope'), ENT_QUOTES, 'UTF-8') ?></option>
                 <?php foreach ($options['employees'] as $employee): ?>
                     <option value="<?= (int) $employee['id'] ?>" <?= (int) ($assignment['employee_id'] ?? 0) === (int) $employee['id'] ? 'selected' : '' ?>><?= htmlspecialchars($employeeLabel($employee), ENT_QUOTES, 'UTF-8') ?></option>
@@ -110,7 +115,13 @@ $employeeLabel = static function (array $employee): string {
     const syncTargets = () => {
         const selected = scope ? scope.value : 'company';
         targets.forEach((target) => {
-            target.hidden = target.dataset.assignmentTarget !== selected;
+            const isSelected = target.dataset.assignmentTarget === selected;
+            const select = target.querySelector('select');
+            target.hidden = !isSelected;
+            if (select) {
+                select.disabled = !isSelected;
+                select.required = isSelected;
+            }
         });
     };
 

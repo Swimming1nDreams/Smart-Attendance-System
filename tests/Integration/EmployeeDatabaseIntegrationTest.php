@@ -50,6 +50,19 @@ test('database integration: employee list search includes staff code and exact s
     assert_same(0, $employees->countAll('Staff Code Search', null, null, 'active'));
 });
 
+test('database integration: employee list role filter is applied to rows and counts', function (): void {
+    $database = integration_database();
+    $ids = $database->resetAndSeed();
+    $employees = new Employee($database->pdo());
+
+    $employeeRows = $employees->findAll('', null, null, null, 1, 100, 'employee');
+    assert_true(count($employeeRows) >= 1);
+    foreach ($employeeRows as $row) {
+        assert_same('employee', $row['role']);
+    }
+    assert_same(count($employeeRows), $employees->countAll('', null, null, null, 'employee'));
+});
+
 test('database integration: employee employment and work-rule options are stored with practical defaults', function (): void {
     $database = integration_database();
     $ids = $database->resetAndSeed();

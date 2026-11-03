@@ -24,12 +24,12 @@ test('employee check-in and check-out enforce office network before attendance w
 
     foreach (['clockIn' => 'clock_in', 'clockOut' => 'clock_out'] as $method => $operation) {
         assert_method_order($controller, $method, [
-            '$this->sessionManager->requireRole(\'employee\')',
+            '$this->sessionManager->requireAnyRole([\'employee\', \'department_head\'])',
             '$this->validateCsrfToken($request)',
             '$userId = $this->sessionManager->getUserId()',
             '$this->ensureActiveEmployee($userId)',
             '$this->selfAttendanceNetworkAllowed($request, $userId, \'' . $operation . '\')',
-            $method === 'clockIn' ? '->clockIn($userId' : '->clockOut($userId',
+            $method === 'clockIn' ? '->clockIn($userId' : 'requireAttendanceOperations()->clockOut(',
         ]);
         assert_method_contains($controller, $method, "flash.attendance_office_network_required");
     }
@@ -38,7 +38,7 @@ test('employee check-in and check-out enforce office network before attendance w
     assert_method_contains($controller, 'selfAttendanceNetworkAllowed', '->authorizeSelfAttendance(');
 });
 
-test('office network guard ignores forwarded headers and does not affect administrator corrections', function (): void {
+test('office network guard ignores forwarded headers and does not affect authorized manager corrections', function (): void {
     $controller = project_path('src/Controllers/AttendanceController.php');
     $networkService = file_get_contents(project_path('src/Services/AttendanceNetworkAccessService.php'));
     $selfGuard = method_source($controller, 'selfAttendanceNetworkAllowed');
@@ -52,7 +52,7 @@ test('office network guard ignores forwarded headers and does not affect adminis
     foreach (['store', 'update'] as $method) {
         assert_not_contains('selfAttendanceNetworkAllowed', method_source($controller, $method));
         assert_method_order($controller, $method, [
-            '$this->ensureAdmin();',
+            '$this->ensureAdminOrDepartmentHead();',
             '$this->validateCsrfToken($request);',
             $method === 'store' ? '->createRecord(' : '->updateRecord(',
         ]);
@@ -80,5 +80,5 @@ test('office network failure message and deployment documentation are bilingual 
     assert_contains('ATTENDANCE_OFFICE_NETWORK_ENABLED=0', $readme);
     assert_contains('uses only `REMOTE_ADDR`', $readme);
     assert_contains('AttendanceNetworkAccessService', $developmentMap);
-    assert_contains('admin attendance corrections remain unrestricted', $developmentMap);
+    assert_contains('authorized manager attendance corrections remain unrestricted', $developmentMap);
 });

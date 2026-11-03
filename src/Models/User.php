@@ -18,7 +18,7 @@ class User
 
     public function findByEmail(string $email): ?array
     {
-        $sql = 'SELECT id, name, email, password, role, status, session_version, email_verified_at, email_verification_code_hash, email_verification_expires_at, email_verification_sent_at, email_verification_attempts, created_at FROM users WHERE email = :email LIMIT 1';
+        $sql = 'SELECT id, name, email, password, role, status, session_version, department_id, email_verified_at, email_verification_code_hash, email_verification_expires_at, email_verification_sent_at, email_verification_attempts, created_at FROM users WHERE email = :email LIMIT 1';
         $statement = $this->connection->prepare($sql);
         $statement->bindValue(':email', $email, PDO::PARAM_STR);
 
@@ -36,7 +36,7 @@ class User
     public function findAuthenticationStateById(int $id): ?array
     {
         $statement = $this->connection->prepare(
-            'SELECT id, name, email, role, status, session_version FROM users WHERE id = :id LIMIT 1'
+            'SELECT id, name, email, role, status, session_version, department_id FROM users WHERE id = :id LIMIT 1'
         );
         $statement->bindValue(':id', $id, PDO::PARAM_INT);
 

@@ -13,12 +13,12 @@ test('approved leave attendance conflict wording is localized and add attendance
     $controller = file_get_contents(project_path('src/Controllers/AttendanceController.php'));
     assert_true(is_string($controller));
     $store = phase4d1_attendance_method_source($controller, 'store');
-    assert_contains('$this->ensureAdmin();', $store);
+    assert_contains('$this->ensureAdminOrDepartmentHead();', $store);
     assert_contains('$this->validateCsrfToken($request);', $store);
     assert_contains('isApprovedLeaveAttendanceConflict', $store);
 });
 
-test('admin leave decisions provide audit context before calling transactional service', function (): void {
+test('authorized manager leave decisions provide audit context before calling transactional service', function (): void {
     $controller = file_get_contents(project_path('src/Controllers/LeaveController.php'));
     assert_true(is_string($controller));
 
@@ -28,9 +28,10 @@ test('admin leave decisions provide audit context before calling transactional s
         assert_contains('$this->auditContext($request)', $source);
     }
 
-    assert_contains('private function auditContext(Request $request): array', $controller);
-    assert_contains('\'ip_address\' => (string) $request->getServerParam(\'REMOTE_ADDR\', \'\')', $controller);
-    assert_contains('\'user_agent\' => (string) $request->getServerParam(\'HTTP_USER_AGENT\', \'\')', $controller);
+    $masterController = file_get_contents(project_path('src/Controllers/MasterDataController.php'));
+    assert_contains('protected function auditContext(Request $request): array', $masterController);
+    assert_contains('\'ip_address\' => (string) $request->getServerParam(\'REMOTE_ADDR\', \'\')', $masterController);
+    assert_contains('\'user_agent\' => (string) $request->getServerParam(\'HTTP_USER_AGENT\', \'\')', $masterController);
 });
 
 function phase4d1_attendance_method_source(string $source, string $methodName): string

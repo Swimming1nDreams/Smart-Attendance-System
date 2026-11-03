@@ -89,8 +89,8 @@ test('workforce policy center UI navigation localization and docs are present', 
     assert_contains('Workforce Policy Center', (string) $spec);
     assert_contains('Workforce Policy Center', (string) $readme);
     assert_contains('Seeded default presentation values', (string) $readme);
-    assert_contains('- Company: `Smart Attendance and Performance Analytics System`', (string) $readme);
-    assert_contains('- Short name: `SAPAS`', (string) $readme);
+    assert_contains('- Company: `Office Attendance and Analytic System`', (string) $readme);
+    assert_contains('- Short name: `OAAS`', (string) $readme);
     assert_contains('Workforce Policy Center', (string) $map);
     assert_same('Workforce Policy Center', $english['nav']['workforce_policy_center'] ?? null);
     assert_true(isset($myanmar['nav']['workforce_policy_center']));

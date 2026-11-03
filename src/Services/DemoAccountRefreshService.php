@@ -37,10 +37,10 @@ final class DemoAccountRefreshService
         private ?AuditLogService $auditLog = null,
         ?string $domain = null,
     ) {
-        $environmentDomain = getenv('SAPAS_DEMO_EMAIL_DOMAIN');
+        $environmentDomain = getenv('OAAS_DEMO_EMAIL_DOMAIN') ?: getenv('SAPAS_DEMO_EMAIL_DOMAIN');
         $domain = mb_strtolower(trim($domain ?? (is_string($environmentDomain) && $environmentDomain !== '' ? $environmentDomain : self::DEFAULT_DOMAIN)));
         if (preg_match('/^(?!-)[a-z0-9.-]+(?<!-)\.[a-z]{2,}$/', $domain) !== 1) {
-            throw new RuntimeException('SAPAS_DEMO_EMAIL_DOMAIN must be a valid domain name.');
+            throw new RuntimeException('OAAS_DEMO_EMAIL_DOMAIN must be a valid domain name.');
         }
         $this->domain = $domain;
     }
@@ -89,7 +89,7 @@ final class DemoAccountRefreshService
                  ON DUPLICATE KEY UPDATE phone = VALUES(phone), address = VALUES(address)'
             );
             $processed = 0;
-            $failAfter = max(0, (int) getenv('SAPAS_DEMO_REFRESH_FAIL_AFTER'));
+            $failAfter = max(0, (int) (getenv('OAAS_DEMO_REFRESH_FAIL_AFTER') ?: getenv('SAPAS_DEMO_REFRESH_FAIL_AFTER')));
             foreach ($accounts as $account) {
                 $updateUser->execute([
                     ':email' => $account['email'], ':password' => password_hash((string) $account['temporary_password'], PASSWORD_DEFAULT),
@@ -213,7 +213,7 @@ final class DemoAccountRefreshService
 
     public function credentialText(array $accounts): string
     {
-        $lines = ['SAPAS DEMONSTRATION ACCOUNTS', '', '| Staff Code | Name | Role | Email | Phone | Address | Temporary Password |',
+        $lines = ['OAAS DEMONSTRATION ACCOUNTS', '', '| Staff Code | Name | Role | Email | Phone | Address | Temporary Password |',
             '| --- | --- | --- | --- | --- | --- | --- |'];
         foreach ($accounts as $account) {
             $cells = array_map(static fn (mixed $value): string => str_replace('|', '\\|', (string) $value), [

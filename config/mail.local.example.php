@@ -12,9 +12,9 @@ return [
     'username' => 'your-smtp-username',
     'password' => 'change-me',
     'encryption' => 'tls',
-    'from_email' => 'no-reply@sapas.local',
-    'from_name' => 'Smart Attendance',
-    'verification_subject' => 'Verify your Smart Attendance account email',
+    'from_email' => 'no-reply@oaas.local',
+    'from_name' => 'Office Attendance and Analytic System (OAAS)',
+    'verification_subject' => 'Your Office Attendance and Analytic System verification code',
 
     // Hostname used by SMTP EHLO. Do not include a port.
     'local_host' => 'localhost',

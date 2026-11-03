@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Core;
 
 use App\Models\Notification;
+use App\Models\EmployeeProfile;
+use App\Services\ProfilePhotoStorageService;
 
 abstract class Controller
 {
@@ -48,6 +50,13 @@ abstract class Controller
         if (!array_key_exists('currentPath', $data)) {
             $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
             $data['currentPath'] = parse_url($requestUri, PHP_URL_PATH) ?: '/';
+        }
+
+        if (!array_key_exists('topbarAvatarUrl', $data)) {
+            $data['topbarAvatarUrl'] = $this->resolveTopbarAvatarUrl(
+                is_string($data['userRole'] ?? null) ? $data['userRole'] : null,
+                is_int($data['userId'] ?? null) ? $data['userId'] : null,
+            );
         }
 
         $localization = Localization::current();
@@ -110,9 +119,11 @@ abstract class Controller
             return '/login';
         }
 
-        return $this->sessionManager->getUserRole() === 'admin'
-            ? '/admin/dashboard'
-            : '/employee/dashboard';
+        return match ($this->sessionManager->getUserRole()) {
+            'admin' => '/admin/dashboard',
+            'department_head' => '/department-head/dashboard',
+            default => '/employee/dashboard',
+        };
     }
 
     private function resolveUnreadNotificationCount(): int
@@ -128,6 +139,28 @@ abstract class Controller
             return $notificationModel->countUnreadForUser($userId);
         } catch (\Throwable) {
             return 0;
+        }
+    }
+
+    protected function resolveTopbarAvatarUrl(?string $role, ?int $userId): ?string
+    {
+        if (!in_array($role, ['admin', 'department_head', 'employee'], true) || $userId === null || $userId <= 0) {
+            return null;
+        }
+
+        try {
+            $profileModel = new EmployeeProfile($this->app->getDatabase()->getConnection());
+            $profile = $profileModel->findByUserId($userId);
+            $filename = trim((string) ($profile['profile_photo_filename'] ?? ''));
+
+            if ($filename === '' || (new ProfilePhotoStorageService())->resolve($filename) === null) {
+                return null;
+            }
+
+            $version = rawurlencode((string) ($profile['updated_at'] ?? ''));
+            return '/profile/photo' . ($version !== '' ? '?v=' . $version : '');
+        } catch (\Throwable) {
+            return null;
         }
     }
 }

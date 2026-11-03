@@ -42,14 +42,14 @@ test('employee leave detail and hidden-id cancellation verify ownership before e
     $controller = project_path('src/Controllers/LeaveController.php');
 
     assert_method_order($controller, 'show', [
-        '$this->sessionManager->requireRole(\'employee\')',
+        '$this->sessionManager->requireAnyRole([\'employee\', \'department_head\'])',
         '$request->query(\'id\', 0)',
         '$userId = $this->sessionManager->getUserId()',
         '$this->fetchOwnedLeaveRequest($leaveId, $userId)',
         '$this->renderView(\'leave/show\'',
     ]);
     assert_method_order($controller, 'cancel', [
-        '$this->sessionManager->requireRole(\'employee\')',
+        '$this->sessionManager->requireAnyRole([\'employee\', \'department_head\'])',
         '$this->validateCsrfToken($request)',
         '$userId = $this->sessionManager->getUserId()',
         '$request->getBodyParams()[\'id\']',
@@ -63,8 +63,10 @@ test('leave cancellation service rechecks ownership and scopes the update to the
     $source = method_source($service, 'cancelByEmployee');
 
     assert_method_order($service, 'cancelByEmployee', [
+        '$this->findLeave($leaveId, false)',
+        '(int) $snapshot[\'user_id\'] !== $userId',
+        '$this->lockLeaveRequester($userId, true)',
         '$this->findLeave($leaveId, true)',
-        '(int) $leave[\'user_id\'] !== $userId',
         'WHERE id = :id AND user_id = :user_id AND status = :current_status',
         '\':user_id\' => $userId',
         '\'leave.cancelled_by_employee\'',
@@ -93,6 +95,7 @@ test('structural guard: leave cancellation reasons are stored as localization ke
     assert_true(is_string($source), 'LeaveController.php should be readable.');
 
     assert_contains("'leave.cancel_reasons.admin'", $source);
+    assert_contains("'leave.cancel_reasons.department_head'", $source);
     assert_contains("'leave.cancel_reasons.employee'", $source);
     assert_not_contains("'Cancelled by admin'", $source);
     assert_not_contains("'Cancelled by employee'", $source);

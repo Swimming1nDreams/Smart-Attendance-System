@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$env:SAPAS_ALLOW_DEMO_SEED = '1'
+$env:OAAS_ALLOW_DEMO_SEED = '1'
 
 Write-Host 'Adding/updating realistic 2026 holidays...'
 php seeds\seed_2026_holidays.php

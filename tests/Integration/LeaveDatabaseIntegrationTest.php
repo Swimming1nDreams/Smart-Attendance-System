@@ -4,6 +4,38 @@ declare(strict_types=1);
 
 use App\Models\LeaveRequest;
 
+test('database integration: employee leave reason is stored and historical null reason remains readable', function (): void {
+    $database = integration_database();
+    $ids = $database->resetAndSeed();
+    $leaveRequests = new LeaveRequest($database->pdo());
+    $reason = "Family appointment in Yangon.\nI need the full working day.";
+
+    $withReasonId = $leaveRequests->create($ids['employee_id'], 'casual', '2026-09-14', '2026-09-14', 1, $reason, 'pending', 'family_matter');
+    $withoutReasonId = $leaveRequests->create($ids['employee_id'], 'medical', '2026-09-15', '2026-09-15', 1, null, 'approved');
+    $legacyCategoryId = $leaveRequests->create($ids['employee_id'], 'medical', '2026-09-16', '2026-09-16', 1, 'Historical request', 'approved', 'medical_sick');
+
+    assert_same($reason, $leaveRequests->findById($withReasonId)['reason']);
+    assert_same('family_matter', $leaveRequests->findById($withReasonId)['reason_category']);
+    assert_null($leaveRequests->findById($withoutReasonId)['reason']);
+    assert_null($leaveRequests->findById($withoutReasonId)['reason_category']);
+    assert_same('medical_sick', $leaveRequests->findById($legacyCategoryId)['reason_category']);
+
+    assert_true($leaveRequests->rejectPendingRequest($withReasonId, $ids['admin_id'], '2026-08-15 10:00:00', 'Admin decision note'));
+    $reviewed = $leaveRequests->findById($withReasonId);
+    assert_same($reason, $reviewed['reason']);
+    assert_same('family_matter', $reviewed['reason_category']);
+    assert_same('Admin decision note', $reviewed['review_note']);
+
+    $employeeRows = $leaveRequests->findRequestsForEmployee($ids['employee_id']);
+    $reasonsById = [];
+    foreach ($employeeRows as $row) {
+        $reasonsById[(int) $row['id']] = $row['reason'];
+    }
+
+    assert_same($reason, $reasonsById[$withReasonId]);
+    assert_null($reasonsById[$withoutReasonId]);
+});
+
 test('database integration: admin leave search works with native prepared statements and leave-date filters', function (): void {
     $database = integration_database();
     $ids = $database->resetAndSeed();

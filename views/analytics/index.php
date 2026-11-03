@@ -37,6 +37,8 @@ if (!isset($summary)) {
         'average_attendance' => 0.0,
         'total_present_days' => 0,
         'total_late_arrivals' => 0,
+        'total_early_departures' => 0,
+        'total_early_departure_minutes' => 0,
         'total_absent_days' => 0,
         'total_approved_leave_days' => 0,
         'total_working_hours' => 0.0,
@@ -172,8 +174,8 @@ function analyticsChartWidth(float $value, float $max = 100.0): string
 
 $attentionRows = $employeeAnalytics;
 usort($attentionRows, static function (array $a, array $b): int {
-    $aRisk = ((int) ($a['absent_days'] ?? 0) * 4) + ((int) ($a['late_days'] ?? 0) * 2) + ((int) ($a['late_minutes_total'] ?? 0) / 15) - ((float) ($a['attendance_percentage'] ?? 0) / 12);
-    $bRisk = ((int) ($b['absent_days'] ?? 0) * 4) + ((int) ($b['late_days'] ?? 0) * 2) + ((int) ($b['late_minutes_total'] ?? 0) / 15) - ((float) ($b['attendance_percentage'] ?? 0) / 12);
+    $aRisk = ((int) ($a['absent_days'] ?? 0) * 4) + ((int) ($a['late_days'] ?? 0) * 2) + ((int) ($a['early_departure_count'] ?? 0) * 2) + ((int) ($a['late_minutes_total'] ?? 0) / 15) - ((float) ($a['attendance_percentage'] ?? 0) / 12);
+    $bRisk = ((int) ($b['absent_days'] ?? 0) * 4) + ((int) ($b['late_days'] ?? 0) * 2) + ((int) ($b['early_departure_count'] ?? 0) * 2) + ((int) ($b['late_minutes_total'] ?? 0) / 15) - ((float) ($b['attendance_percentage'] ?? 0) / 12);
 
     return $bRisk <=> $aRisk;
 });
@@ -218,6 +220,7 @@ $attentionRows = array_values(array_filter($attentionRows, static fn (array $row
     || (float) ($row['attendance_percentage'] ?? 0) < 90
     || (int) ($row['absent_days'] ?? 0) > 0
     || (int) ($row['late_days'] ?? 0) > 0
+    || (int) ($row['early_departure_count'] ?? 0) > 0
 ));
 $attentionCount = count($attentionRows);
 $perfectAttendanceEmployees = array_filter($employeeAnalytics, static fn (array $row): bool => $row['has_100_percent_attendance'] ?? false);
@@ -304,8 +307,8 @@ $perfectAttendanceCount = count($perfectAttendanceEmployees);
             </article>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-            <article class="sapas-analytics-attention-panel flex flex-col h-full !mt-0">
+        <div class="sapas-analytics-feature-panels grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6 items-start">
+            <article class="sapas-analytics-attention-panel !mt-0">
                 <div class="sapas-analytics-attention-header">
                     <div>
                         <p class="sapas-workspace-eyebrow"><?= htmlspecialchars($t('analytics_module.manager_action'), ENT_QUOTES, 'UTF-8') ?></p>
@@ -317,7 +320,7 @@ $perfectAttendanceCount = count($perfectAttendanceEmployees);
                 <?php if (empty($attentionRows)): ?>
                     <div class="sapas-analytics-all-clear flex-1"><span><?= $renderIcon('check', 'sapas-icon') ?></span><div><strong><?= htmlspecialchars($t('analytics_module.all_clear_title'), ENT_QUOTES, 'UTF-8') ?></strong><p><?= htmlspecialchars($t('analytics_module.all_clear_help'), ENT_QUOTES, 'UTF-8') ?></p></div></div>
                 <?php else: ?>
-                    <div class="sapas-analytics-attention-grid sapas-analytics-scroll-region flex-1" tabindex="0" role="region" aria-label="<?= htmlspecialchars($t('analytics_module.attention_title'), ENT_QUOTES, 'UTF-8') ?>">
+                    <div class="sapas-analytics-review-list sapas-analytics-scroll-region" tabindex="0" role="region" aria-label="<?= htmlspecialchars($t('analytics_module.attention_title'), ENT_QUOTES, 'UTF-8') ?>">
                         <?php foreach ($attentionRows as $row): ?>
                             <?php
                             $detailsUrl = '/attendance?' . http_build_query([
@@ -325,11 +328,18 @@ $perfectAttendanceCount = count($perfectAttendanceEmployees);
                                 'from' => $firstDayOfMonth,
                                 'to' => $lastDayOfMonth,
                             ]);
+                            $reviewContext = array_values(array_unique(array_filter([
+                                trim((string) ($row['department_name'] ?? '')),
+                                trim((string) ($row['position_name'] ?? '')),
+                            ], static fn (string $value): bool => $value !== '')));
+                            $reviewContextLabel = $reviewContext !== []
+                                ? implode(' / ', $reviewContext)
+                                : analyticsFallbackLabel(null, 'analytics_module.no_department');
                             ?>
                             <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="sapas-analytics-attention-card">
                                 <div class="sapas-analytics-attention-card-head">
                                     <span class="sapas-analytics-person-icon"><?= $renderIcon('user', 'sapas-icon') ?></span>
-                                    <div class="min-w-0"><strong><?= htmlspecialchars((string) ($row['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></strong><span><?= htmlspecialchars(analyticsFallbackLabel($row['department_name'] ?? null, 'analytics_module.no_department'), ENT_QUOTES, 'UTF-8') ?></span></div>
+                                    <div class="sapas-analytics-review-identity"><strong><?= htmlspecialchars((string) ($row['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></strong><span><?= htmlspecialchars($reviewContextLabel, ENT_QUOTES, 'UTF-8') ?></span></div>
                                     <?php if ((int) ($row['recorded_days'] ?? 0) > 0): ?>
                                         <span class="<?= analyticsAttendanceClasses((float) ($row['attendance_percentage'] ?? 0)) ?>"><?= number_format((float) ($row['attendance_percentage'] ?? 0), 1) ?>%</span>
                                     <?php else: ?>
@@ -341,6 +351,8 @@ $perfectAttendanceCount = count($perfectAttendanceEmployees);
                                         <span><strong><?= (int) ($row['absent_days'] ?? 0) ?></strong> <?= htmlspecialchars($t('analytics_module.absent'), ENT_QUOTES, 'UTF-8') ?></span>
                                         <span><strong><?= (int) ($row['late_days'] ?? 0) ?></strong> <?= htmlspecialchars($t('analytics_module.late'), ENT_QUOTES, 'UTF-8') ?></span>
                                         <span><strong><?= (int) ($row['late_minutes_total'] ?? 0) ?></strong> <?= htmlspecialchars($t('analytics_module.minutes_unit'), ENT_QUOTES, 'UTF-8') ?></span>
+                                        <?php if ((int) ($row['early_departure_count'] ?? 0) > 0): ?><span><strong><?= (int) ($row['early_departure_count'] ?? 0) ?></strong> <?= htmlspecialchars($t('analytics_module.early_departures'), ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
+                                        <?php if ((int) ($row['early_departure_minutes'] ?? 0) > 0): ?><span><strong><?= (int) ($row['early_departure_minutes'] ?? 0) ?></strong> <?= htmlspecialchars($t('analytics_module.early_minutes'), ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
                                     </div>
                                 <?php else: ?>
                                     <p class="sapas-analytics-data-gap"><?= htmlspecialchars($t('analytics_module.no_records_help'), ENT_QUOTES, 'UTF-8') ?></p>
@@ -351,23 +363,23 @@ $perfectAttendanceCount = count($perfectAttendanceEmployees);
                 <?php endif; ?>
             </article>
 
-            <article class="sapas-workspace-card sapas-analytics-recognition-panel flex flex-col h-full border border-amber-200 bg-amber-50/40">
+            <article class="sapas-workspace-card sapas-analytics-recognition-panel border border-amber-200 bg-amber-50/40">
                 <div class="sapas-analytics-attention-header border-b border-amber-200 pb-4 mb-4">
                     <div>
-                        <p class="sapas-workspace-eyebrow text-amber-700"><?= htmlspecialchars($t('analytics_module.top_performers') ?? 'Top Performers', ENT_QUOTES, 'UTF-8') ?></p>
-                        <h3 class="sapas-chart-title text-amber-900"><?= htmlspecialchars($t('analytics_module.recognition_title') ?? 'Attendance Recognition', ENT_QUOTES, 'UTF-8') ?></h3>
-                        <p class="sapas-chart-copy text-amber-800"><?= htmlspecialchars($t('analytics_module.recognition_help') ?? 'Employees with perfect attendance', ENT_QUOTES, 'UTF-8') ?></p>
+                        <p class="sapas-workspace-eyebrow text-amber-700"><?= htmlspecialchars($t('analytics_module.top_performers'), ENT_QUOTES, 'UTF-8') ?></p>
+                        <h3 class="sapas-chart-title text-amber-900"><?= htmlspecialchars($t('analytics_module.recognition_title'), ENT_QUOTES, 'UTF-8') ?></h3>
+                        <p class="sapas-chart-copy text-amber-800"><?= htmlspecialchars($t('analytics_module.recognition_help'), ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-base font-bold text-amber-700 ring-1 ring-amber-400/30"><?= $perfectAttendanceCount ?></span>
+                    <span class="sapas-analytics-recognition-count"><?= $perfectAttendanceCount ?></span>
                 </div>
                 <?php if (empty($perfectAttendanceEmployees)): ?>
                     <div class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white/50 rounded-xl border border-amber-100/50">
                         <span class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100/50 text-amber-400 mb-4"><?= $renderIcon('check', 'sapas-icon') ?></span>
-                        <strong class="text-sm font-medium text-amber-900"><?= htmlspecialchars($t('analytics_module.no_recognition_title') ?? 'No Perfect Attendance', ENT_QUOTES, 'UTF-8') ?></strong>
-                        <p class="mt-1 text-sm text-amber-700/80"><?= htmlspecialchars($t('analytics_module.no_recognition_help') ?? 'No employees achieved 100% attendance this period.', ENT_QUOTES, 'UTF-8') ?></p>
+                        <strong class="text-sm font-medium text-amber-900"><?= htmlspecialchars($t('analytics_module.no_recognition_title'), ENT_QUOTES, 'UTF-8') ?></strong>
+                        <p class="mt-1 text-sm text-amber-700/80"><?= htmlspecialchars($t('analytics_module.no_recognition_help'), ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                 <?php else: ?>
-                    <div class="sapas-analytics-attention-grid sapas-analytics-scroll-region flex-1" tabindex="0" role="region" aria-label="Attendance Recognition">
+                    <div class="sapas-analytics-recognition-list sapas-analytics-scroll-region" tabindex="0" role="region" aria-label="<?= htmlspecialchars($t('analytics_module.recognition_title'), ENT_QUOTES, 'UTF-8') ?>">
                         <?php foreach ($perfectAttendanceEmployees as $row): ?>
                             <?php
                             $detailsUrl = '/attendance?' . http_build_query([
@@ -375,14 +387,21 @@ $perfectAttendanceCount = count($perfectAttendanceEmployees);
                                 'from' => $firstDayOfMonth,
                                 'to' => $lastDayOfMonth,
                             ]);
+                            $recognitionContext = array_values(array_unique(array_filter([
+                                trim((string) ($row['department_name'] ?? '')),
+                                trim((string) ($row['position_name'] ?? '')),
+                            ], static fn (string $value): bool => $value !== '')));
+                            $recognitionContextLabel = $recognitionContext !== []
+                                ? implode(' / ', $recognitionContext)
+                                : analyticsFallbackLabel(null, 'analytics_module.no_department');
                             ?>
-                            <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="flex items-center gap-4 rounded-xl border border-amber-200 bg-white p-4 transition hover:border-amber-400 hover:shadow-sm">
-                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-xl ring-1 ring-inset ring-amber-600/20">⭐</span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-bold text-slate-900"><?= htmlspecialchars((string) ($row['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
-                                    <p class="truncate text-xs font-medium text-slate-500"><?= htmlspecialchars(analyticsFallbackLabel($row['department_name'] ?? null, 'analytics_module.no_department'), ENT_QUOTES, 'UTF-8') ?></p>
+                            <a href="<?= htmlspecialchars($detailsUrl, ENT_QUOTES, 'UTF-8') ?>" class="sapas-analytics-recognition-card">
+                                <span class="sapas-analytics-recognition-star" aria-hidden="true">&#9733;</span>
+                                <div class="sapas-analytics-recognition-identity">
+                                    <p class="sapas-analytics-recognition-name"><?= htmlspecialchars((string) ($row['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
+                                    <p class="sapas-analytics-recognition-context"><?= htmlspecialchars($recognitionContextLabel, ENT_QUOTES, 'UTF-8') ?></p>
                                 </div>
-                                <span class="inline-flex items-center rounded-md bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-600/20">100%</span>
+                                <span class="sapas-analytics-recognition-score">100%</span>
                             </a>
                         <?php endforeach; ?>
                     </div>
@@ -527,7 +546,7 @@ $perfectAttendanceCount = count($perfectAttendanceEmployees);
                 <div><span class="sapas-analytics-metric-icon"><?= $renderIcon('briefcase', 'sapas-icon') ?></span><div><p><?= htmlspecialchars($t('common.labels.working_hours'), ENT_QUOTES, 'UTF-8') ?></p><strong><?= number_format((float) $summary['total_working_hours'], 1) ?></strong></div></div>
                 <div><span class="sapas-analytics-metric-icon"><?= $renderIcon('timer', 'sapas-icon') ?></span><div><p><?= htmlspecialchars($t('analytics_module.average_hours_day'), ENT_QUOTES, 'UTF-8') ?></p><strong><?= number_format($averageHoursPerPresentDay, 1) ?></strong></div></div>
                 <div><span class="sapas-analytics-metric-icon"><?= $renderIcon('leave', 'sapas-icon') ?></span><div><p><?= htmlspecialchars($t('analytics_module.approved_leave_days'), ENT_QUOTES, 'UTF-8') ?></p><strong><?= $totalLeaveDays ?></strong></div></div>
-                <div><span class="sapas-analytics-metric-icon"><?= $renderIcon('clock', 'sapas-icon') ?></span><div><p><?= htmlspecialchars($t('common.labels.overtime'), ENT_QUOTES, 'UTF-8') ?></p><strong><?= htmlspecialchars(analyticsFormatMinutes($summary['total_overtime_minutes'] ?? 0), ENT_QUOTES, 'UTF-8') ?></strong></div></div>
+                <div><span class="sapas-analytics-metric-icon"><?= $renderIcon('clock', 'sapas-icon') ?></span><div><p><?= htmlspecialchars($t('attendance.approved_overtime'), ENT_QUOTES, 'UTF-8') ?></p><strong><?= htmlspecialchars(analyticsFormatMinutes($summary['total_overtime_minutes'] ?? 0), ENT_QUOTES, 'UTF-8') ?></strong></div></div>
             </div>
         </div>
     </section>
@@ -580,8 +599,8 @@ $perfectAttendanceCount = count($perfectAttendanceEmployees);
                         <col class="sapas-col-percent">
                         <col class="sapas-col-number">
                         <col class="sapas-col-number">
-                        <col class="sapas-col-number-wide">
-                        <col class="sapas-col-number">
+                        <col class="sapas-col-approved-leave">
+                        <col class="sapas-col-late">
                         <col class="sapas-col-hours">
                         <col class="sapas-col-overtime">
                         <col class="sapas-col-action">

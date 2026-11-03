@@ -77,9 +77,9 @@ test('attendance summary screen and PDF consume the same formatted duration whil
     assert_contains('thead{display:table-header-group;}', $pdfHtml);
     assert_contains('<thead><tr>', $pdfHtml);
     assert_contains('Employee: Example', $pdfHtml);
-    $projectName = 'Smart Attendance and Performance Analytics System (SAPAS)';
+    $projectName = 'Office Attendance and Analytic System (OAAS)';
     assert_contains('<header class="report-header"><h1>' . $projectName . '</h1><h2>Attendance Summary</h2>', $pdfHtml);
-    assert_not_contains('<h1>SAPAS</h1>', $pdfHtml);
+    assert_not_contains('<h1>OAPAS</h1>', $pdfHtml);
     assert_true(strpos($pdfHtml, $projectName) < strpos($pdfHtml, 'Attendance Summary'));
 
     attendance_summary_set_locale('my');

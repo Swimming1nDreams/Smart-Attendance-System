@@ -335,7 +335,7 @@ $kpis = [
                                 <span class="block font-semibold leading-6 text-slate-950"><?= htmlspecialchars($notificationText((string) ($notification['title_key'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
                                 <span class="mt-1 block text-sm leading-6 text-slate-600"><?= htmlspecialchars($notificationText((string) ($notification['message_key'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
                             </span>
-                            <span class="sapas-meta-text"><?= htmlspecialchars((string) ($notification['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
+                            <span class="sapas-meta-text"><?= htmlspecialchars((string) ($notification['available_at'] ?? ($notification['created_at'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
                         </a>
                     <?php endforeach; ?>
                 </div>

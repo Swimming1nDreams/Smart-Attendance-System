@@ -91,6 +91,29 @@ test('database integration: valid active account with matching session version r
     assert_same('employee', $nextRequest->getUserRole());
 });
 
+test('database integration: department-head sessions remain valid and refresh their department scope', function (): void {
+    [$database, $ids] = session_security_fixture();
+    session_security_insert_department_head($database->pdo(), $ids['department_id']);
+
+    $session = session_security_login($database->pdo(), 'session.depthead.integration@sapas.test');
+    assert_true($session->isAuthenticated());
+    assert_same('department_head', $session->getUserRole());
+    assert_same($ids['department_id'], $session->getUserDepartmentId());
+
+    $database->pdo()->exec("INSERT INTO departments (name) VALUES ('Session Security Department')");
+    $newDepartmentId = (int) $database->pdo()->lastInsertId();
+    $statement = $database->pdo()->prepare('UPDATE users SET department_id = :department_id WHERE email = :email');
+    $statement->execute([
+        ':department_id' => $newDepartmentId,
+        ':email' => 'session.depthead.integration@sapas.test',
+    ]);
+
+    $nextRequest = session_security_manager($database->pdo());
+    assert_true($nextRequest->isAuthenticated());
+    assert_same('department_head', $nextRequest->getUserRole());
+    assert_same($newDepartmentId, $nextRequest->getUserDepartmentId());
+});
+
 test('database integration: login stores the current database session version', function (): void {
     [$database] = session_security_fixture();
     $database->pdo()->exec(
@@ -181,6 +204,20 @@ function session_security_insert_admin(PDO $pdo): int
          VALUES ('Session Integration Admin', 'session.admin.integration@sapas.test', :password, 'admin', 'active', 'SAP-9002', NOW())"
     );
     $statement->execute([':password' => password_hash('Password123!', PASSWORD_DEFAULT)]);
+
+    return (int) $pdo->lastInsertId();
+}
+
+function session_security_insert_department_head(PDO $pdo, int $departmentId): int
+{
+    $statement = $pdo->prepare(
+        "INSERT INTO users (name, email, password, role, department_id, status, staff_code, email_verified_at)
+         VALUES ('Session Integration Department Head', 'session.depthead.integration@sapas.test', :password, 'department_head', :department_id, 'active', 'SAP-9003', NOW())"
+    );
+    $statement->execute([
+        ':password' => password_hash('Password123!', PASSWORD_DEFAULT),
+        ':department_id' => $departmentId,
+    ]);
 
     return (int) $pdo->lastInsertId();
 }

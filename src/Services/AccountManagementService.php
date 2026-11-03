@@ -28,10 +28,16 @@ final class AccountManagementService
     public function createEmployee(array $account, array $profile, string $password, string $passwordConfirmation, ?int $actorUserId = null, array $auditContext = []): int
     {
         $this->passwordPolicy->assertValid($password, $passwordConfirmation);
+        $staffCode = trim((string) ($account['staff_code'] ?? ''));
+        if (preg_match('/\A[0-9]{6}\z/D', $staffCode) !== 1) {
+            throw new RuntimeException('Staff code must contain exactly 6 digits.');
+        }
         $this->connection->beginTransaction();
 
         try {
-            $staffCode = $this->nextStaffCode();
+            if ($this->employeeModel->existsByStaffCode($staffCode)) {
+                throw new RuntimeException('Staff code is already in use.');
+            }
             $userId = $this->employeeModel->create(
                 (string) $account['name'],
                 (string) $account['email'],
@@ -110,8 +116,20 @@ final class AccountManagementService
                 throw new AccountSecurityException(AccountSecurityException::ACCOUNT_NOT_FOUND);
             }
 
+            // Account email is an identity field after creation. Keep it tied to
+            // the locked database record even if a caller submits a stale or
+            // forged replacement value.
+            $account['email'] = (string) $current['email'];
+
             $newRole = (string) $account['role'];
             $newStatus = (string) $account['status'];
+            $staffCode = trim((string) ($account['staff_code'] ?? ''));
+            if (preg_match('/\A[0-9]{6}\z/D', $staffCode) !== 1 && $staffCode !== trim((string) ($current['staff_code'] ?? ''))) {
+                throw new RuntimeException('Staff code must contain exactly 6 digits.');
+            }
+            if ($this->employeeModel->existsByStaffCode($staffCode, $targetUserId)) {
+                throw new RuntimeException('Staff code is already in use.');
+            }
             $securityChangeRequested = (string) $current['role'] !== $newRole
                 || (string) $current['status'] !== $newStatus
                 || $password !== null;
@@ -141,7 +159,7 @@ final class AccountManagementService
                 $account['department_id'] === null ? null : (int) $account['department_id'],
                 $account['position_id'] === null ? null : (int) $account['position_id'],
                 $newStatus,
-                (string) $current['staff_code'],
+                $staffCode,
                 (string) $account['employment_type'],
                 $account['join_date'] === null ? null : (string) $account['join_date'],
                 (float) $account['expected_daily_work_hours'],
@@ -164,7 +182,7 @@ final class AccountManagementService
 
             $newState = [
                 'name' => (string) $account['name'], 'email' => (string) $account['email'], 'role' => $newRole,
-                'status' => $newStatus, 'staff_code' => (string) $current['staff_code'],
+                'status' => $newStatus, 'staff_code' => $staffCode,
                 'department_id' => $account['department_id'], 'position_id' => $account['position_id'],
                 'employment_type' => (string) $account['employment_type'],
                 'join_date' => $account['join_date'],
@@ -188,9 +206,9 @@ final class AccountManagementService
             $this->auditLog?->record($authenticatedUserId, 'employee.updated', 'user', $targetUserId, 'Employee account and profile updated', $oldState, $newState, $auditContext);
             foreach ([
                 'role' => 'employee.role_changed',
-                'email' => 'employee.email_changed',
                 'phone' => 'employee.phone_changed',
                 'address' => 'employee.address_changed',
+                'staff_code' => 'employee.staff_code_changed',
             ] as $field => $action) {
                 if (($oldState[$field] ?? null) !== ($newState[$field] ?? null)) {
                     $this->auditLog?->record($authenticatedUserId, $action, 'user', $targetUserId, ucfirst($field) . ' changed',
@@ -374,17 +392,4 @@ final class AccountManagementService
         }
     }
 
-    private function nextStaffCode(): string
-    {
-        $statement = $this->connection->prepare('SELECT next_number FROM staff_code_sequences WHERE sequence_key = :sequence_key LIMIT 1 FOR UPDATE');
-        $statement->execute([':sequence_key' => 'employee']);
-        $next = $statement->fetchColumn();
-        if ($next === false) {
-            throw new RuntimeException('Staff code sequence is not initialized.');
-        }
-        $next = (int) $next;
-        $update = $this->connection->prepare('UPDATE staff_code_sequences SET next_number = :next_number WHERE sequence_key = :sequence_key');
-        $update->execute([':next_number' => $next + 1, ':sequence_key' => 'employee']);
-        return 'SAP-' . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
-    }
 }

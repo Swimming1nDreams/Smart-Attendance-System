@@ -18,6 +18,9 @@ if (!isset($departmentId)) {
 if (!isset($positionId)) {
     $positionId = null;
 }
+if (!isset($role)) {
+    $role = '';
+}
 if (!isset($status)) {
     $status = '';
 }
@@ -30,15 +33,19 @@ if (!isset($perPage)) {
 if (!isset($total)) {
     $total = 0;
 }
+$canManageUsers = isset($canManageUsers) ? (bool) $canManageUsers : (($userRole ?? 'admin') === 'admin');
+$departmentScopeLocked = isset($departmentScopeLocked) ? (bool) $departmentScopeLocked : false;
 
 $layout = 'layouts/app';
 $title = $t('employees_module.title');
 $pageDescription = $t('employees_module.filters_help');
-$pageActions = '<a href="/employees/create" class="sapas-btn sapas-btn-primary">' . htmlspecialchars($t('employees_module.add_employee'), ENT_QUOTES, 'UTF-8') . '</a>';
+$pageActions = $canManageUsers
+    ? '<a href="/employees/create" class="sapas-btn sapas-btn-primary">' . htmlspecialchars($t('employees_module.add_employee'), ENT_QUOTES, 'UTF-8') . '</a>'
+    : '';
 
 $pages = max(1, (int) ceil($total / $perPage));
 $visibleCount = count($employees);
-$hasFilters = $search !== '' || $departmentId !== null || $positionId !== null || $status !== '';
+$hasFilters = $search !== '' || $departmentId !== null || $positionId !== null || $role !== '' || $status !== '';
 $rowNumberStart = ((max(1, (int) $page) - 1) * max(1, (int) $perPage)) + 1;
 
 $departmentNames = [];
@@ -61,6 +68,9 @@ if ($departmentId !== null && isset($departmentNames[(int) $departmentId])) {
 if ($positionId !== null && isset($positionNames[(int) $positionId])) {
     $activeFilters[] = $t('common.labels.position') . ': ' . $positionNames[(int) $positionId];
 }
+if ($role !== '') {
+    $activeFilters[] = $t('common.labels.role') . ': ' . $t('roles.' . $role);
+}
 if ($status !== '') {
     $activeFilters[] = $t('common.labels.status') . ': ' . $t('statuses.account.' . $status);
 }
@@ -75,6 +85,9 @@ if ($departmentId !== null) {
 if ($positionId !== null) {
     $paginationQuery['position_id'] = (string) $positionId;
 }
+if ($role !== '') {
+    $paginationQuery['role'] = $role;
+}
 if ($status !== '') {
     $paginationQuery['status'] = $status;
 }
@@ -85,6 +98,7 @@ function employeeRoleClasses(string $role): string
 {
     return match ($role) {
         'admin' => 'sapas-badge sapas-badge-info',
+        'department_head' => 'sapas-badge sapas-badge-info',
         'employee' => 'sapas-badge sapas-badge-neutral',
         default => 'sapas-badge sapas-badge-neutral',
     };
@@ -117,12 +131,21 @@ function employeeStatusClasses(string $status): string
             </div>
             <div>
                 <label class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?></label>
-                <select name="department_id" class="mt-2 sapas-form-control">
-                    <option value=""><?= htmlspecialchars($t('common.all') . ' ' . $t('nav.departments'), ENT_QUOTES, 'UTF-8') ?></option>
-                    <?php foreach ($departments as $department): ?>
-                        <option value="<?= (int) $department['id'] ?>" <?= ((int) $departmentId === (int) $department['id']) ? 'selected' : '' ?>><?= htmlspecialchars($department['name'], ENT_QUOTES, 'UTF-8') ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <?php if ($departmentScopeLocked): ?>
+                    <input type="hidden" name="department_id" value="<?= (int) ($departmentId ?? 0) ?>">
+                    <select class="mt-2 sapas-form-control" disabled aria-disabled="true">
+                        <?php foreach ($departments as $department): ?>
+                            <option selected><?= htmlspecialchars((string) $department['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php else: ?>
+                    <select name="department_id" class="mt-2 sapas-form-control">
+                        <option value=""><?= htmlspecialchars($t('common.all') . ' ' . $t('nav.departments'), ENT_QUOTES, 'UTF-8') ?></option>
+                        <?php foreach ($departments as $department): ?>
+                            <option value="<?= (int) $department['id'] ?>" <?= ((int) $departmentId === (int) $department['id']) ? 'selected' : '' ?>><?= htmlspecialchars($department['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php endif; ?>
             </div>
             <div>
                 <label class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.position'), ENT_QUOTES, 'UTF-8') ?></label>
@@ -133,6 +156,19 @@ function employeeStatusClasses(string $status): string
                     <?php endforeach; ?>
                 </select>
             </div>
+            <?php if ($canManageUsers): ?>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.role'), ENT_QUOTES, 'UTF-8') ?></label>
+                    <select name="role" class="mt-2 sapas-form-control">
+                        <option value=""><?= htmlspecialchars($t('employees_module.all_roles'), ENT_QUOTES, 'UTF-8') ?></option>
+                        <option value="admin" <?= $role === 'admin' ? 'selected' : '' ?>><?= htmlspecialchars($t('roles.admin'), ENT_QUOTES, 'UTF-8') ?></option>
+                        <option value="department_head" <?= $role === 'department_head' ? 'selected' : '' ?>><?= htmlspecialchars($t('roles.department_head'), ENT_QUOTES, 'UTF-8') ?></option>
+                        <option value="employee" <?= $role === 'employee' ? 'selected' : '' ?>><?= htmlspecialchars($t('roles.employee'), ENT_QUOTES, 'UTF-8') ?></option>
+                    </select>
+                </div>
+            <?php else: ?>
+                <input type="hidden" name="role" value="employee">
+            <?php endif; ?>
             <div>
                 <label class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></label>
                 <select name="status" class="mt-2 sapas-form-control">
@@ -197,7 +233,9 @@ function employeeStatusClasses(string $status): string
                         <th class="sapas-col-employee-role whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.role'), ENT_QUOTES, 'UTF-8') ?></th>
                         <th class="sapas-col-employee-status whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
                         <th class="sapas-col-employee-verification whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('employees_module.email_verification'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-employee-actions whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.actions'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <?php if ($canManageUsers): ?>
+                            <th class="sapas-col-employee-actions whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.actions'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
@@ -230,6 +268,7 @@ function employeeStatusClasses(string $status): string
                             <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="<?= employeeRoleClasses($role) ?>"><?= htmlspecialchars($t('roles.' . $role), ENT_QUOTES, 'UTF-8') ?></span></td>
                             <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="<?= employeeStatusClasses($accountStatus) ?>"><?= htmlspecialchars($t('statuses.account.' . $accountStatus), ENT_QUOTES, 'UTF-8') ?></span></td>
                             <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="<?= $isEmailVerified ? 'sapas-badge sapas-badge-success' : 'sapas-badge sapas-badge-warning' ?>"><?= htmlspecialchars($isEmailVerified ? $t('employees_module.email_verified') : $t('employees_module.email_unverified'), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <?php if ($canManageUsers): ?>
                             <td class="px-4 py-4 text-sm font-medium sapas-table-action">
                                 <div class="sapas-employee-actions">
                                     <a href="/employees/show?id=<?= (int) $employee['id'] ?>" class="sapas-btn sapas-btn-primary"><?= htmlspecialchars($t('common.actions.view'), ENT_QUOTES, 'UTF-8') ?></a>
@@ -244,6 +283,7 @@ function employeeStatusClasses(string $status): string
                                     <?php endif; ?>
                                 </div>
                             </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

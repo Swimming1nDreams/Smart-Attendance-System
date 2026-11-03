@@ -16,13 +16,13 @@ final class TestDatabase
     public static function connect(?string $databaseName = null): self
     {
         $settings = require project_path('config/database.php');
-        $databaseName ??= getenv('SAPAS_TEST_DB_NAME') ?: 'sapas_test';
+        $databaseName ??= getenv('OAAS_TEST_DB_NAME') ?: getenv('SAPAS_TEST_DB_NAME') ?: 'sapas_test';
         self::assertSafeTestDatabaseName($databaseName, (string) ($settings['name'] ?? ''));
 
-        $host = (string) (getenv('SAPAS_TEST_DB_HOST') ?: $settings['host']);
-        $user = (string) (getenv('SAPAS_TEST_DB_USER') ?: $settings['user']);
-        $pass = (string) (getenv('SAPAS_TEST_DB_PASS') ?: $settings['pass']);
-        $charset = (string) (getenv('SAPAS_TEST_DB_CHARSET') ?: $settings['charset']);
+        $host = (string) (getenv('OAAS_TEST_DB_HOST') ?: getenv('SAPAS_TEST_DB_HOST') ?: $settings['host']);
+        $user = (string) (getenv('OAAS_TEST_DB_USER') ?: getenv('SAPAS_TEST_DB_USER') ?: $settings['user']);
+        $pass = (string) (getenv('OAAS_TEST_DB_PASS') ?: getenv('SAPAS_TEST_DB_PASS') ?: $settings['pass']);
+        $charset = (string) (getenv('OAAS_TEST_DB_CHARSET') ?: getenv('SAPAS_TEST_DB_CHARSET') ?: $settings['charset']);
         $options = $settings['options'];
 
         $server = new PDO(
@@ -47,13 +47,13 @@ final class TestDatabase
     public static function connectWithQueryCounter(?string $databaseName = null): self
     {
         $settings = require project_path('config/database.php');
-        $databaseName ??= getenv('SAPAS_TEST_DB_NAME') ?: 'sapas_test';
+        $databaseName ??= getenv('OAAS_TEST_DB_NAME') ?: getenv('SAPAS_TEST_DB_NAME') ?: 'sapas_test';
         self::assertSafeTestDatabaseName($databaseName, (string) ($settings['name'] ?? ''));
 
-        $host = (string) (getenv('SAPAS_TEST_DB_HOST') ?: $settings['host']);
-        $user = (string) (getenv('SAPAS_TEST_DB_USER') ?: $settings['user']);
-        $pass = (string) (getenv('SAPAS_TEST_DB_PASS') ?: $settings['pass']);
-        $charset = (string) (getenv('SAPAS_TEST_DB_CHARSET') ?: $settings['charset']);
+        $host = (string) (getenv('OAAS_TEST_DB_HOST') ?: getenv('SAPAS_TEST_DB_HOST') ?: $settings['host']);
+        $user = (string) (getenv('OAAS_TEST_DB_USER') ?: getenv('SAPAS_TEST_DB_USER') ?: $settings['user']);
+        $pass = (string) (getenv('OAAS_TEST_DB_PASS') ?: getenv('SAPAS_TEST_DB_PASS') ?: $settings['pass']);
+        $charset = (string) (getenv('OAAS_TEST_DB_CHARSET') ?: getenv('SAPAS_TEST_DB_CHARSET') ?: $settings['charset']);
         $options = $settings['options'];
 
         $server = new PDO(
@@ -115,13 +115,10 @@ final class TestDatabase
 
     public function resetSchema(): void
     {
-        // Maintained minimal schema mirror for fast integration tests.
-        // Update this alongside relevant production migrations to avoid silent schema drift.
-        $this->connection->exec('SET FOREIGN_KEY_CHECKS = 0');
-        $this->connection->exec('DROP TABLE IF EXISTS leave_request_attachments, audit_logs, notifications, leave_requests, holidays, overtime_decisions, attendance_records, employee_profiles, work_schedule_assignments, overtime_policy_settings, attendance_policy_settings, company_profiles, work_schedule_days, work_schedule_templates, staff_code_sequences, users, positions, departments');
-        $this->connection->exec('SET FOREIGN_KEY_CHECKS = 1');
-
-        $this->connection->exec(
+        $queries = [
+            'SET FOREIGN_KEY_CHECKS = 0',
+            'DROP TABLE IF EXISTS leave_request_attachments, audit_logs, notifications, leave_requests, holidays, overtime_decisions, attendance_sessions, attendance_records, employee_profiles, work_schedule_assignments, overtime_policy_settings, attendance_policy_settings, company_profiles, work_schedule_days, work_schedule_templates, staff_code_sequences, users, positions, departments',
+            'SET FOREIGN_KEY_CHECKS = 1',
             "CREATE TABLE departments (
                 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
                 name VARCHAR(255) NOT NULL UNIQUE,
@@ -130,7 +127,22 @@ final class TestDatabase
                 updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (id)
             ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci"
-        );
+        ];
+        
+        foreach ($queries as $i => $q) {
+            try {
+                $res = $this->connection->exec($q);
+                if ($res === false) {
+                    $err = $this->connection->errorInfo();
+                    if ($err[0] !== '00000') {
+                        throw new RuntimeException("Query $i failed: " . implode(' - ', $err) . "\n" . $q);
+                    }
+                }
+            } catch (Throwable $e) {
+                throw new RuntimeException("Exception on query $i: " . $e->getMessage() . "\n" . $q, 0, $e);
+            }
+        }
+
 
         $this->connection->exec(
             "CREATE TABLE positions (
@@ -148,7 +160,7 @@ final class TestDatabase
                 name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) NOT NULL UNIQUE,
                 password VARCHAR(255) NOT NULL,
-                role ENUM('admin', 'employee') NOT NULL DEFAULT 'employee',
+                role ENUM('admin', 'department_head', 'employee') NOT NULL DEFAULT 'employee',
                 department_id INT UNSIGNED DEFAULT NULL,
                 position_id INT UNSIGNED DEFAULT NULL,
                 status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
@@ -274,6 +286,7 @@ final class TestDatabase
                 maximum_attendance_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 960,
                 missing_check_out_mode ENUM('mark_incomplete', 'admin_review_required') NOT NULL DEFAULT 'mark_incomplete',
                 early_departure_enabled TINYINT(1) NOT NULL DEFAULT 1,
+                early_departure_grace_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 0,
                 manual_override_allowed TINYINT(1) NOT NULL DEFAULT 1,
                 override_reason_required TINYINT(1) NOT NULL DEFAULT 1,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -340,6 +353,7 @@ final class TestDatabase
                 user_id INT UNSIGNED NOT NULL UNIQUE,
                 phone VARCHAR(50) DEFAULT NULL,
                 address TEXT DEFAULT NULL,
+                profile_photo_filename VARCHAR(255) DEFAULT NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (id),
@@ -362,7 +376,7 @@ final class TestDatabase
                 check_out_at DATETIME NULL,
                 business_date DATE NULL,
                 day_type ENUM('working_day', 'non_working_day', 'holiday') NULL,
-                attendance_state ENUM('present', 'absent', 'incomplete') NULL,
+                attendance_state ENUM('present', 'absent', 'incomplete', 'out_of_schedule') NULL,
                 is_late TINYINT(1) NOT NULL DEFAULT 0,
                 is_early_departure TINYINT(1) NOT NULL DEFAULT 0,
                 is_missing_check_out TINYINT(1) NOT NULL DEFAULT 0,
@@ -370,6 +384,8 @@ final class TestDatabase
                 is_overnight_attendance TINYINT(1) NOT NULL DEFAULT 0,
                 regular_minutes INT UNSIGNED NULL,
                 early_departure_minutes INT UNSIGNED NOT NULL DEFAULT 0,
+                early_departure_reason VARCHAR(100) NULL,
+                early_departure_note VARCHAR(500) NULL,
                 early_overtime_minutes INT UNSIGNED NOT NULL DEFAULT 0,
                 after_hours_overtime_minutes INT UNSIGNED NOT NULL DEFAULT 0,
                 non_working_day_overtime_minutes INT UNSIGNED NOT NULL DEFAULT 0,
@@ -389,6 +405,22 @@ final class TestDatabase
                 KEY idx_attendance_date (attendance_date),
                 KEY idx_attendance_date_status_user (attendance_date, status, user_id),
                 CONSTRAINT fk_test_attendance_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE
+            ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci"
+        );
+
+        $this->connection->exec(
+            "CREATE TABLE attendance_sessions (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                attendance_id INT UNSIGNED NOT NULL,
+                check_in_at DATETIME NOT NULL,
+                check_out_at DATETIME NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_test_attendance_sessions_time (attendance_id, check_in_at, id),
+                KEY idx_test_attendance_sessions_open (attendance_id, check_out_at),
+                CONSTRAINT fk_test_attendance_sessions_attendance FOREIGN KEY (attendance_id) REFERENCES attendance_records (id) ON DELETE CASCADE ON UPDATE CASCADE,
+                CONSTRAINT chk_test_attendance_sessions_interval CHECK (check_out_at IS NULL OR check_out_at > check_in_at)
             ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci"
         );
 
@@ -429,6 +461,7 @@ final class TestDatabase
                 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
                 user_id INT UNSIGNED NOT NULL,
                 leave_type ENUM('casual', 'medical', 'unpaid', 'other') NOT NULL,
+                reason_category VARCHAR(32) DEFAULT NULL,
                 start_date DATE NOT NULL,
                 end_date DATE NOT NULL,
                 duration_days INT UNSIGNED NOT NULL,
@@ -461,19 +494,32 @@ final class TestDatabase
                 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
                 user_id INT UNSIGNED NOT NULL,
                 type VARCHAR(80) NOT NULL,
+                category VARCHAR(32) NOT NULL DEFAULT 'system',
+                priority ENUM('urgent', 'high', 'normal', 'low') NOT NULL DEFAULT 'normal',
                 title_key VARCHAR(150) NOT NULL,
                 message_key VARCHAR(150) NOT NULL,
+                context_json LONGTEXT NULL,
+                deduplication_key VARCHAR(190) NULL,
                 link_url VARCHAR(255) NULL,
                 related_user_id INT UNSIGNED NULL,
                 related_leave_request_id INT UNSIGNED NULL,
+                related_work_schedule_assignment_id INT UNSIGNED NULL,
                 read_at DATETIME NULL,
+                archived_at DATETIME NULL,
+                cancelled_at DATETIME NULL,
+                available_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (id),
                 INDEX idx_notifications_user_read_created (user_id, read_at, created_at),
+                INDEX idx_notifications_user_available_read (user_id, available_at, read_at),
+                INDEX idx_notifications_center_filters (user_id, category, priority, archived_at, cancelled_at, available_at),
+                INDEX idx_notifications_deduplication (user_id, deduplication_key),
                 INDEX idx_notifications_related_leave (related_leave_request_id),
+                INDEX idx_notifications_related_assignment (related_work_schedule_assignment_id),
                 CONSTRAINT fk_test_notifications_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE,
                 CONSTRAINT fk_test_notifications_related_user_id FOREIGN KEY (related_user_id) REFERENCES users (id) ON DELETE SET NULL ON UPDATE CASCADE,
-                CONSTRAINT fk_test_notifications_related_leave_request_id FOREIGN KEY (related_leave_request_id) REFERENCES leave_requests (id) ON DELETE SET NULL ON UPDATE CASCADE
+                CONSTRAINT fk_test_notifications_related_leave_request_id FOREIGN KEY (related_leave_request_id) REFERENCES leave_requests (id) ON DELETE SET NULL ON UPDATE CASCADE,
+                CONSTRAINT fk_test_notifications_related_assignment FOREIGN KEY (related_work_schedule_assignment_id) REFERENCES work_schedule_assignments (id) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci"
         );
 

@@ -109,7 +109,7 @@ $employeeLabel = static function (array $row): string {
                             <td>
                                 <div class="sapas-overtime-context">
                                     <span class="sapas-badge sapas-badge-neutral"><?= htmlspecialchars($t('workforce_policy.day_types.' . (string) ($row['day_type'] ?? 'working_day')), ENT_QUOTES, 'UTF-8') ?></span>
-                                    <small><?= htmlspecialchars((string) ($row['policy_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></small>
+                                    <small><?= htmlspecialchars(\App\Services\BrandingPresenter::policyName($row['policy_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></small>
                                 </div>
                             </td>
                             <td>
@@ -152,7 +152,7 @@ $employeeLabel = static function (array $row): string {
                     </div>
                     <div class="sapas-overtime-mobile-context">
                         <span class="sapas-badge sapas-badge-neutral"><?= htmlspecialchars($t('workforce_policy.day_types.' . (string) ($row['day_type'] ?? 'working_day')), ENT_QUOTES, 'UTF-8') ?></span>
-                        <span><?= htmlspecialchars((string) ($row['policy_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></span>
+                        <span><?= htmlspecialchars(\App\Services\BrandingPresenter::policyName($row['policy_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></span>
                     </div>
                     <dl class="sapas-overtime-breakdown">
                         <div><dt><?= htmlspecialchars($t('workforce_policy.overtime.early'), ENT_QUOTES, 'UTF-8') ?></dt><dd><?= htmlspecialchars($minutes($row['early_overtime_minutes'] ?? null), ENT_QUOTES, 'UTF-8') ?></dd></div>

@@ -31,7 +31,7 @@ class AttendanceController extends MasterDataController
     private ?AttendanceOperationService $attendanceOperations;
     private AttendanceNetworkAccessService $attendanceNetworkAccess;
 
-    public function __construct(Attendance $attendanceModel, Holiday $holidayModel, Employee $employeeModel, LeaveRequest $leaveRequestModel, SessionManager $sessionManager, Application $app, ?DateValidationService $dateValidator = null, ?AttendancePolicyService $attendancePolicy = null, ?AttendanceOperationService $attendanceOperations = null, private ?AttendanceReportContextService $attendanceContext = null, ?AttendanceNetworkAccessService $attendanceNetworkAccess = null)
+    public function __construct(Attendance $attendanceModel, Holiday $holidayModel, Employee $employeeModel, LeaveRequest $leaveRequestModel, SessionManager $sessionManager, Application $app, ?DateValidationService $dateValidator = null, ?AttendancePolicyService $attendancePolicy = null, ?AttendanceOperationService $attendanceOperations = null, private ?AttendanceReportContextService $attendanceContext = null, ?AttendanceNetworkAccessService $attendanceNetworkAccess = null, private ?\App\Models\Department $departmentModel = null)
     {
         parent::__construct($sessionManager, $app);
         $this->attendanceModel = $attendanceModel;
@@ -74,15 +74,25 @@ class AttendanceController extends MasterDataController
         $canClockOut = false;
         $hasApprovedLeaveToday = false;
         $clockInBlockReason = null;
+        $earlyCheckoutPreview = null;
 
         if ($filterErrors !== []) {
             $records = [];
             $total = 0;
-        } elseif ($role === 'admin') {
-            $total = $this->attendanceModel->countAll($selectedEmployeeId, $search, $fromDate, $toDate);
+        } elseif ($role === 'admin' || $role === 'department_head') {
+            $scope = $this->resolveScopeFilters($request);
+            $departmentId = $scope['department_id'] ?? null;
+            if (isset($scope['employee_id'])) {
+                $selectedEmployeeId = (int) $scope['employee_id'];
+            }
+            $selectedEmployeeId = $this->normalizeEmployeeForDepartment($this->employeeModel, $selectedEmployeeId, $departmentId);
+            $total = $this->attendanceModel->countAll($selectedEmployeeId, $search, $fromDate, $toDate, $departmentId, 'absent');
             $page = $this->clampPage($page, $perPage, $total);
-            $records = $this->attendanceModel->findAll($selectedEmployeeId, $search, $fromDate, $toDate, $page, $perPage);
+            $records = $this->attendanceModel->findAll($selectedEmployeeId, $search, $fromDate, $toDate, $page, $perPage, $departmentId, 'absent');
             $records = $this->withOvertimeContext($records);
+
+            $departments = $this->departmentModel ? $this->filterAllowedDepartments($this->departmentModel->findAll(''), $departmentId) : [];
+            $employees = $this->employeeModel->findReportEmployees($departmentId);
         } else {
             if ($userId === null) {
                 header('Location: /login');
@@ -91,9 +101,9 @@ class AttendanceController extends MasterDataController
 
             $this->ensureActiveEmployee($userId);
 
-            $total = $this->attendanceModel->countAll($userId, '', $fromDate, $toDate);
+            $total = $this->attendanceModel->countAll($userId, '', $fromDate, $toDate, null, 'absent');
             $page = $this->clampPage($page, $perPage, $total);
-            $records = $this->attendanceModel->findAll($userId, '', $fromDate, $toDate, $page, $perPage);
+            $records = $this->attendanceModel->findAll($userId, '', $fromDate, $toDate, $page, $perPage, null, 'absent');
             $records = $this->withOvertimeContext($records);
             $todayRecord = $this->attendanceModel->findByUserIdAndDate($userId, $today);
             if ($todayRecord !== null) {
@@ -103,15 +113,29 @@ class AttendanceController extends MasterDataController
             $hasApprovedLeaveToday = $this->leaveRequestModel->existsApprovedLeaveForDate($userId, $today);
             $clockInBlockReason = $this->selfClockInBlockReason($userId, $today, $todayRecord, $hasApprovedLeaveToday);
             $canClockIn = $clockInBlockReason === null;
-            $canClockOut = $todayRecord !== null && $todayRecord['clock_in_time'] !== null && $todayRecord['clock_out_time'] === null;
+            $sessionOpen = $this->attendanceOperations?->hasOpenSessionForEmployee($userId);
+            $canClockOut = $sessionOpen ?? ($todayRecord !== null && $todayRecord['clock_in_time'] !== null && $todayRecord['clock_out_time'] === null);
+            if ($canClockOut && $this->attendanceOperations !== null) {
+                try {
+                    $earlyCheckoutPreview = $this->attendanceOperations->previewClockOut($userId, $today, date('H:i:s'));
+                } catch (\Throwable) {
+                    $earlyCheckoutPreview = null;
+                }
+            }
+            if (($todayRecord['status'] ?? null) === 'absent') {
+                $todayRecord = null;
+            }
         }
 
         $this->render('attendance/index', [
             'title' => $this->t('attendance.title'),
-            'isAdmin' => $role === 'admin',
+            'isTeamViewer' => $role === 'admin' || $role === 'department_head',
+            'canManageAttendance' => in_array($role, ['admin', 'department_head'], true),
+            'departmentScopeLocked' => $role === 'department_head',
             'records' => $records,
             'search' => $search,
-            'selectedEmployeeId' => $role === 'admin' ? $selectedEmployeeId : null,
+            'selectedEmployeeId' => ($role === 'admin' || $role === 'department_head') ? $selectedEmployeeId : null,
+            'departmentId' => ($role === 'admin' || $role === 'department_head') ? ($departmentId ?? null) : null,
             'fromDate' => $fromDate,
             'toDate' => $toDate,
             'page' => $page,
@@ -124,6 +148,10 @@ class AttendanceController extends MasterDataController
             'canClockOut' => $canClockOut,
             'hasApprovedLeaveToday' => $hasApprovedLeaveToday,
             'clockInBlockReason' => $clockInBlockReason,
+            'earlyCheckoutPreview' => $earlyCheckoutPreview,
+            'departments' => $departments ?? [],
+            'employees' => $employees ?? [],
+            'earlyDepartureReasonCodes' => AttendanceOperationService::EARLY_DEPARTURE_REASONS,
             'isHolidayOrWeekend' => $todayStatus !== 'present',
             'today' => $today,
             'errors' => $filterErrors,
@@ -132,7 +160,7 @@ class AttendanceController extends MasterDataController
 
     public function clockIn(Request $request): void
     {
-        $this->sessionManager->requireRole('employee');
+        $this->sessionManager->requireAnyRole(['employee', 'department_head']);
         $this->validateCsrfToken($request);
 
         $userId = $this->sessionManager->getUserId();
@@ -163,7 +191,7 @@ class AttendanceController extends MasterDataController
 
     public function clockOut(Request $request): void
     {
-        $this->sessionManager->requireRole('employee');
+        $this->sessionManager->requireAnyRole(['employee', 'department_head']);
         $this->validateCsrfToken($request);
 
         $userId = $this->sessionManager->getUserId();
@@ -180,10 +208,28 @@ class AttendanceController extends MasterDataController
             exit;
         }
 
-        $today = date('Y-m-d');
+        $requestTime = new DateTimeImmutable('now');
+        $today = $requestTime->format('Y-m-d');
+        $body = $request->getBodyParams();
+        $earlyDepartureReason = isset($body['early_departure_reason']) ? (string) $body['early_departure_reason'] : null;
+        $earlyDepartureNote = isset($body['early_departure_note']) ? (string) $body['early_departure_note'] : null;
         try {
-            $this->requireAttendanceOperations()->clockOut($userId, $today, date('H:i:s'), $userId, $this->auditContext($request));
-            $this->sessionManager->setFlash('success', $this->t('flash.attendance_clock_out_success'));
+            $calculation = $this->requireAttendanceOperations()->clockOut(
+                $userId,
+                $today,
+                $requestTime->format('H:i:s'),
+                $userId,
+                $this->auditContext($request),
+                $earlyDepartureReason,
+                $earlyDepartureNote,
+            );
+            $message = $this->t('flash.attendance_clock_out_success');
+            if ((int) ($calculation['is_early_departure'] ?? 0) === 1) {
+                $message .= ' ' . strtr($this->t('flash.attendance_early_departure_recorded'), [
+                    '{duration}' => $this->attendancePolicy->formatDuration((int) ($calculation['early_departure_minutes'] ?? 0)),
+                ]);
+            }
+            $this->sessionManager->setFlash('success', $message);
         } catch (AttendanceOperationException $exception) {
             $this->sessionManager->setFlash('error', $this->attendanceOperationMessage($exception->reason(), 'flash.attendance_clock_out_failed'));
         }
@@ -194,7 +240,7 @@ class AttendanceController extends MasterDataController
 
     public function create(Request $request): void
     {
-        $this->ensureAdmin();
+        $this->ensureAdminOrDepartmentHead();
 
         $this->render('attendance/form', [
             'title' => $this->t('attendance.add_record'),
@@ -209,7 +255,7 @@ class AttendanceController extends MasterDataController
 
     public function store(Request $request): void
     {
-        $this->ensureAdmin();
+        $this->ensureAdminOrDepartmentHead();
         $this->validateCsrfToken($request);
 
         $employeeId = $this->parseOptionalInt($request->getBodyParams()['employee_id'] ?? null);
@@ -223,8 +269,12 @@ class AttendanceController extends MasterDataController
 
         $errors = $this->validateAttendanceData($employeeId, $attendanceDate, $clockInInput, $clockOutInput, $clockInTime, $clockOutTime, $status);
 
-        if ($employeeId !== null && !$this->isValidAttendanceEmployee($employeeId)) {
-            $errors[] = $this->t('validation.attendance_employee_invalid');
+        if ($employeeId !== null) {
+            if (!$this->isValidAttendanceEmployee($employeeId)) {
+                $errors[] = $this->t('validation.attendance_employee_invalid');
+            } elseif (!$this->canManageUserInScope($this->employeeModel, $employeeId)) {
+                $this->denyOutOfScopeManagement();
+            }
         }
 
         if ($employeeId !== null && $this->attendanceModel->existsByUserAndDate($employeeId, $attendanceDate)) {
@@ -270,7 +320,7 @@ class AttendanceController extends MasterDataController
 
     public function edit(Request $request): void
     {
-        $this->ensureAdmin();
+        $this->ensureAdminOrDepartmentHead();
 
         $id = (int) $request->query('id', 0);
         $attendance = $this->attendanceModel->findById($id);
@@ -279,6 +329,10 @@ class AttendanceController extends MasterDataController
             $this->sessionManager->setFlash('error', $this->t('flash.attendance_not_found'));
             header('Location: /attendance');
             exit;
+        }
+
+        if (!$this->canManageUserInScope($this->employeeModel, (int) $attendance['user_id'])) {
+            $this->denyOutOfScopeManagement();
         }
 
         $this->render('attendance/form', [
@@ -294,7 +348,7 @@ class AttendanceController extends MasterDataController
 
     public function update(Request $request): void
     {
-        $this->ensureAdmin();
+        $this->ensureAdminOrDepartmentHead();
         $this->validateCsrfToken($request);
 
         $id = (int) $request->query('id', 0);
@@ -304,6 +358,10 @@ class AttendanceController extends MasterDataController
             $this->sessionManager->setFlash('error', $this->t('flash.attendance_not_found'));
             header('Location: /attendance');
             exit;
+        }
+
+        if (!$this->canManageUserInScope($this->employeeModel, (int) $attendance['user_id'])) {
+            $this->denyOutOfScopeManagement();
         }
 
         $employeeId = $this->parseOptionalInt($request->getBodyParams()['employee_id'] ?? null);
@@ -328,6 +386,10 @@ class AttendanceController extends MasterDataController
                 }
             } elseif (!$this->isValidAttendanceEmployee($employeeId)) {
                 $errors[] = $this->t('validation.attendance_employee_invalid');
+            }
+
+            if (!$this->canManageUserInScope($this->employeeModel, $employeeId)) {
+                $this->denyOutOfScopeManagement();
             }
         }
 
@@ -430,15 +492,23 @@ class AttendanceController extends MasterDataController
 
     private function getAttendanceEmployees(?int $includeEmployeeId = null): array
     {
+        $departmentId = $this->sessionManager->getUserRole() === 'department_head'
+            ? $this->sessionManager->getUserDepartmentId()
+            : null;
         $employees = array_values(array_filter(
-            $this->employeeModel->findAll('', null, null, 'active', 1, 500),
+            $this->employeeModel->findAll('', $departmentId, null, 'active', 1, 500),
             static fn (array $employee): bool => ($employee['role'] ?? '') === 'employee'
         ));
 
         if ($includeEmployeeId !== null) {
             $included = $this->employeeModel->findById($includeEmployeeId);
 
-            if ($included !== null && ($included['role'] ?? '') === 'employee' && ($included['status'] ?? '') !== 'active') {
+            if (
+                $included !== null
+                && ($included['role'] ?? '') === 'employee'
+                && ($included['status'] ?? '') !== 'active'
+                && $this->canManageUserInScope($this->employeeModel, $includeEmployeeId)
+            ) {
                 $included['name'] = $included['name'] . ' (inactive)';
                 $employees[] = $included;
             }
@@ -618,6 +688,11 @@ class AttendanceController extends MasterDataController
             'concurrent_update' => $this->t('validation.concurrent_record_update'),
             'employee_profile_missing' => $this->t('validation.attendance_employee_profile_missing'),
             'employee_invalid' => $this->t('validation.attendance_employee_invalid'),
+            'authorization_denied' => $this->t('validation.department_scope_denied'),
+            'early_departure_reason_required' => $this->t('validation.early_departure_reason_required'),
+            'early_departure_reason_invalid' => $this->t('validation.early_departure_reason_invalid'),
+            'early_departure_note_required' => $this->t('validation.early_departure_note_required'),
+            'early_departure_note_too_long' => $this->t('validation.early_departure_note_too_long'),
             default => $this->t($fallbackKey),
         };
     }

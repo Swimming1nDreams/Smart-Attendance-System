@@ -18,6 +18,13 @@ if (!isset($perPage)) {
 if (!isset($filters)) {
     $filters = ['status' => '', 'leave_type' => '', 'search' => '', 'from' => '', 'to' => ''];
 }
+if (!isset($departments) || !is_array($departments)) {
+    $departments = [];
+}
+if (!isset($employees) || !is_array($employees)) {
+    $employees = [];
+}
+$departmentScopeLocked = isset($departmentScopeLocked) ? (bool) $departmentScopeLocked : false;
 
 $layout = 'layouts/app';
 $pageTitle = $title;
@@ -30,7 +37,22 @@ $leaveTypeFilter = (string) ($filters['leave_type'] ?? '');
 $searchFilter = (string) ($filters['search'] ?? '');
 $fromFilter = (string) ($filters['from'] ?? '');
 $toFilter = (string) ($filters['to'] ?? '');
-$hasFilters = $statusFilter !== '' || $leaveTypeFilter !== '' || $searchFilter !== '' || $fromFilter !== '' || $toFilter !== '';
+$departmentId = isset($filters['department_id']) && is_numeric($filters['department_id']) && (int) $filters['department_id'] > 0 ? (int) $filters['department_id'] : null;
+$employeeId = isset($filters['employee_id']) && is_numeric($filters['employee_id']) && (int) $filters['employee_id'] > 0 ? (int) $filters['employee_id'] : null;
+$departmentNames = [];
+if (isset($departments) && is_array($departments)) {
+    foreach ($departments as $department) {
+        $departmentNames[(int) $department['id']] = (string) $department['name'];
+    }
+}
+$employeeNames = [];
+if (isset($employees) && is_array($employees)) {
+    foreach ($employees as $employee) {
+        $employeeNames[(int) $employee['id']] = (string) $employee['name'];
+    }
+}
+
+$hasFilters = $statusFilter !== '' || $leaveTypeFilter !== '' || $searchFilter !== '' || $fromFilter !== '' || $toFilter !== '' || $departmentId !== null || $employeeId !== null;
 $paginationQuery = array_filter([
     'status' => $statusFilter,
     'leave_type' => $leaveTypeFilter,
@@ -38,6 +60,12 @@ $paginationQuery = array_filter([
     'from' => $fromFilter,
     'to' => $toFilter,
 ], static fn (string $value): bool => $value !== '');
+if ($departmentId !== null) {
+    $paginationQuery['department_id'] = (string) $departmentId;
+}
+if ($employeeId !== null) {
+    $paginationQuery['employee_id'] = (string) $employeeId;
+}
 $paginationQuery['per_page'] = (string) $perPage;
 $paginationPageSizeOptions = [20, 50, 100];
 
@@ -87,7 +115,12 @@ function adminLeaveTemplate(string $key, array $values): string
 }
 
 $activeFilters = [];
-if ($searchFilter !== '') {
+if ($departmentId !== null) {
+    $activeFilters[] = $t('common.labels.department') . ': ' . ($departmentNames[$departmentId] ?? ('ID #' . $departmentId));
+}
+if ($employeeId !== null) {
+    $activeFilters[] = $t('common.labels.employee') . ': ' . ($employeeNames[$employeeId] ?? ('ID #' . $employeeId));
+} elseif ($searchFilter !== '') {
     $activeFilters[] = $t('common.labels.employee') . ': ' . $searchFilter;
 }
 if ($statusFilter !== '') {
@@ -121,8 +154,43 @@ if ($toFilter !== '') {
         <form method="get" action="/admin/leave" class="mt-6 grid gap-4 xl:grid-cols-6 sapas-polish-filter-grid">
             <input type="hidden" name="per_page" value="<?= $perPage ?>">
             <div class="xl:col-span-2">
-                <label class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?></label>
-                <input type="search" name="search" value="<?= htmlspecialchars($searchFilter, ENT_QUOTES, 'UTF-8') ?>" placeholder="<?= htmlspecialchars($t('leave_module.employee_placeholder'), ENT_QUOTES, 'UTF-8') ?>" class="mt-2 sapas-form-control">
+                <label for="department_id" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?></label>
+                <?php if ($departmentScopeLocked): ?>
+                    <input type="hidden" name="department_id" value="<?= (int) ($departmentId ?? 0) ?>">
+                    <select class="mt-2 sapas-form-control" disabled aria-disabled="true">
+                        <?php foreach ($departments as $department): ?>
+                            <option selected><?= htmlspecialchars((string) $department['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php else: ?>
+                    <select id="department_id" name="department_id" class="mt-2 sapas-form-control" onchange="if (this.form.elements['employee_id']) { this.form.elements['employee_id'].value = ''; } this.form.submit()">
+                        <option value=""><?= htmlspecialchars($t('reports_module.all_departments'), ENT_QUOTES, 'UTF-8') ?></option>
+                        <?php foreach ($departments as $department): ?>
+                            <option value="<?= (int) $department['id'] ?>" <?= $departmentId === (int) $department['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars((string) $department['name'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php endif; ?>
+            </div>
+            <div class="xl:col-span-2">
+                <label for="employee_id" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.employee'), ENT_QUOTES, 'UTF-8') ?></label>
+                <select id="employee_id" name="employee_id" class="mt-2 sapas-form-control">
+                    <option value=""><?= htmlspecialchars($t('reports_module.all_employees'), ENT_QUOTES, 'UTF-8') ?></option>
+                    <?php if (isset($employees) && is_array($employees)): ?>
+                        <?php foreach ($employees as $employee): ?>
+                            <option value="<?= (int) $employee['id'] ?>" <?= $employeeId === (int) $employee['id'] ? 'selected' : '' ?>>
+                                <?php
+                                $employeeName = trim((string) ($employee['name'] ?? ''));
+                                $staffCode = trim((string) ($employee['staff_code'] ?? ''));
+                                $employeeIdentity = $staffCode !== '' ? $employeeName . ' (' . $staffCode . ')' : $employeeName;
+                                $employeeEmail = trim((string) ($employee['email'] ?? ''));
+                                ?>
+                                <?= htmlspecialchars($employeeEmail !== '' ? $employeeIdentity . ' — ' . $employeeEmail : $employeeIdentity, ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
             </div>
             <div>
                 <label class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></label>
@@ -231,7 +299,10 @@ if ($toFilter !== '') {
                                     <p class="sapas-person-email" title="<?= htmlspecialchars($employeeEmail, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($employeeEmail, ENT_QUOTES, 'UTF-8') ?></p>
                                 </div>
                             </td>
-                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="sapas-leave-type-chip"><?= htmlspecialchars(adminLeaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap">
+                                <span class="sapas-leave-type-chip"><?= htmlspecialchars(adminLeaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
+                                <p class="mt-2 text-xs text-slate-500"><?= htmlspecialchars(\App\Services\LeaveReasonCatalog::label((string) ($leaveRequest['reason_category'] ?? ''), $t), ENT_QUOTES, 'UTF-8') ?></p>
+                            </td>
                             <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap">
                                 <div class="sapas-leave-date-cell">
                                     <p class="sapas-leave-date-range">

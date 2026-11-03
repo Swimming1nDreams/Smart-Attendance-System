@@ -70,7 +70,7 @@ test('myanmar login and shared navigation strings do not fall back to confirmed 
         'auth.secure_sign_in' => 'Secure workforce access',
         'auth.login_intro' => 'Use your work account to continue to attendance, leave, analytics, and reports.',
         'auth.security_reassurance' => 'Secure access for authorized workforce accounts only.',
-        'app.tagline' => 'Performance & Workforce Analytics',
+        'app.tagline' => 'Attendance & Analytics',
         'nav_groups.overview' => 'Overview',
         'nav_groups.workforce' => 'Workforce',
         'nav_groups.insights' => 'Insights',

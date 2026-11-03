@@ -14,7 +14,7 @@ function buildSapasReleasePackage(string $projectRoot, string $outputDirectory, 
     $resolvedRoot = realpath($projectRoot);
 
     if ($resolvedRoot === false || !is_dir($resolvedRoot)) {
-        throw new RuntimeException('The SAPAS project root could not be resolved.');
+        throw new RuntimeException('The OAAS project root could not be resolved.');
     }
 
     if (!is_dir($outputDirectory) && !mkdir($outputDirectory, 0775, true) && !is_dir($outputDirectory)) {
@@ -28,7 +28,7 @@ function buildSapasReleasePackage(string $projectRoot, string $outputDirectory, 
     }
 
     $createdAt ??= new DateTimeImmutable('now');
-    $baseName = 'SAPAS-release-' . $createdAt->format('Ymd-His');
+    $baseName = 'OAAS-release-' . $createdAt->format('Ymd-His');
     $archivePath = $resolvedOutputDirectory . DIRECTORY_SEPARATOR . $baseName . '.zip';
     $suffix = 1;
 
@@ -100,7 +100,7 @@ function shouldExcludeSapasReleasePath(string $relativePath, bool $isDirectory):
         return true;
     }
 
-    $excludedDirectoryNames = ['.git', '.agents', '.codex', '.uploads', 'vendor', 'node_modules', 'coverage', 'tmp', 'temp', 'cache', 'logs', 'releases'];
+    $excludedDirectoryNames = ['.git', '.agents', '.codex', '.uploads', 'vendor', 'node_modules', 'coverage', 'tmp', 'temp', 'cache', 'logs', 'releases', 'scratch', 'storage', 'oapas'];
 
     foreach ($parts as $part) {
         if (in_array($part, $excludedDirectoryNames, true)) {
@@ -119,7 +119,24 @@ function shouldExcludeSapasReleasePath(string $relativePath, bool $isDirectory):
         return true;
     }
 
-    if (!$isDirectory && (str_ends_with($lower, '.log') || str_ends_with($lower, '.zip'))) {
+    if (
+        !$isDirectory
+        && (
+            str_ends_with($lower, '.log')
+            || str_ends_with($lower, '.zip')
+            || str_ends_with($lower, '.phase5bak')
+            || (str_ends_with($lower, '.sql') && !str_starts_with($lower, 'migrations/'))
+        )
+    ) {
+        return true;
+    }
+
+    if (!$isDirectory && in_array($baseName, [
+        'debug_creation.txt',
+        'tests_output.txt',
+        'tests_final_output.txt',
+        'tests_final_output_2.txt',
+    ], true)) {
         return true;
     }
 

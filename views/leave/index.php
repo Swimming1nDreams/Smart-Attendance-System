@@ -186,67 +186,105 @@ if ($toFilter !== '') {
             </div>
         </div>
 
-        <div class="sapas-data-table-scroll sapas-polish-table-scroll overflow-x-auto">
-            <table class="sapas-data-table sapas-leave-employee-table divide-y divide-slate-200">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="sapas-col-row-number whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-leave-type whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.type'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-leave-dates whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.dates'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-number whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.days'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-status whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-leave-reason whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.reason'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th class="sapas-col-leave-actions whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.actions.view'), ENT_QUOTES, 'UTF-8') ?></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 bg-white">
-                    <?php foreach ($leaveRequests as $index => $leaveRequest): ?>
-                        <?php
-                        $reason = trim((string) ($leaveRequest['reason'] ?? ''));
-                        $status = (string) ($leaveRequest['status'] ?? 'pending');
-                        $canCancel = $status === 'pending';
-                        $submittedAt = trim((string) ($leaveRequest['created_at'] ?? ''));
-                        $submittedParts = preg_split('/\s+/', $submittedAt, 2) ?: [];
-                        $submittedDate = (string) ($submittedParts[0] ?? '');
-                        $submittedTime = (string) ($submittedParts[1] ?? '');
-                        ?>
+        <div class="w-full max-w-[1200px] mx-auto">
+            <div class="sapas-data-table-scroll sapas-polish-table-scroll overflow-x-auto">
+                <table class="sapas-data-table sapas-leave-employee-table w-full table-fixed divide-y divide-slate-200">
+                    <colgroup>
+                        <col style="width: 45px;">
+                        <col style="width: 240px;">
+                        <col style="width: 135px;">
+                        <col style="width: 60px;">
+                        <col style="width: 110px;">
+                        <col style="width: 300px;">
+                        <col style="width: 150px;">
+                        <col style="width: 160px;">
+                    </colgroup>
+                    <thead class="bg-slate-50">
                         <tr>
-                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="sapas-row-number"><?= $rowNumberStart + (int) $index ?></span></td>
-                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="sapas-leave-type-chip"><?= htmlspecialchars(leaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap">
-                                <div class="sapas-leave-date-cell">
-                                    <p class="sapas-leave-date-range">
-                                        <span><?= htmlspecialchars((string) ($leaveRequest['start_date'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
-                                        <span class="sapas-leave-date-separator" aria-hidden="true">→</span>
-                                        <span><?= htmlspecialchars((string) ($leaveRequest['end_date'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
-                                    </p>
-                                    <p class="sapas-table-text-cell" title="<?= htmlspecialchars($submittedAt, ENT_QUOTES, 'UTF-8') ?>">
-                                        <?= htmlspecialchars($t('leave_module.submitted'), ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($submittedDate, ENT_QUOTES, 'UTF-8') ?><?= $submittedTime !== '' ? ' · ' . htmlspecialchars($submittedTime, ENT_QUOTES, 'UTF-8') : '' ?>
-                                    </p>
-                                </div>
-                            </td>
-                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="sapas-table-number"><?= (int) ($leaveRequest['duration_days'] ?? 0) ?></span></td>
-                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><span class="<?= leaveStatusBadgeClass($status) ?>"><?= htmlspecialchars(leaveStatusLabel($status), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td class="px-4 py-4 text-sm text-slate-600 whitespace-nowrap"><p class="sapas-leave-reason" title="<?= htmlspecialchars($reason, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(leavePreview($reason), ENT_QUOTES, 'UTF-8') ?></p></td>
-                            <td class="px-4 py-4 text-sm font-medium sapas-table-action">
-                                <div class="sapas-leave-actions">
-                                    <a href="/leave/show?id=<?= (int) ($leaveRequest['id'] ?? 0) ?>" class="sapas-btn sapas-btn-secondary"><?= htmlspecialchars($t('common.actions.view_details'), ENT_QUOTES, 'UTF-8') ?></a>
-                                    <?php if ($canCancel): ?>
-                                        <form method="post" action="/leave/cancel" onsubmit="return confirm('<?= htmlspecialchars($t('leave_module.confirm_cancel_pending'), ENT_QUOTES, 'UTF-8') ?>');">
-                                            <input type="hidden" name="id" value="<?= (int) ($leaveRequest['id'] ?? 0) ?>">
-                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) ($csrf_token ?? ''), ENT_QUOTES, 'UTF-8') ?>">
-                                            <button type="submit" class="sapas-btn sapas-btn-danger-quiet"><?= htmlspecialchars($t('leave_module.cancel_request'), ENT_QUOTES, 'UTF-8') ?></button>
-                                        </form>
-                                    <?php endif; ?>
-                                </div>
-                            </td>
+                            <th class="whitespace-nowrap px-4 py-3 text-left align-middle text-sm font-medium text-slate-700 sapas-col-row-number"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left align-middle text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.type'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left align-middle text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.dates'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left align-middle text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.days'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left align-middle text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left align-middle text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.reason'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left align-middle text-sm font-medium text-slate-700"><?= htmlspecialchars($t('leave_module.submitted'), ENT_QUOTES, 'UTF-8') ?></th>
+                            <th class="whitespace-nowrap px-4 py-3 text-left align-middle text-sm font-medium text-slate-700 sapas-table-action"><?= htmlspecialchars($t('common.actions.view'), ENT_QUOTES, 'UTF-8') ?></th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 bg-white">
+                        <?php foreach ($leaveRequests as $index => $leaveRequest): ?>
+                            <?php
+                            $reason = trim((string) ($leaveRequest['reason'] ?? ''));
+                            $reasonDisplay = $reason !== '' ? $reason : $t('leave_module.no_reason_provided');
+                            $status = (string) ($leaveRequest['status'] ?? 'pending');
+                            $canCancel = $status === 'pending';
+                            $submittedAt = trim((string) ($leaveRequest['created_at'] ?? ''));
+                            $submittedParts = preg_split('/\s+/', $submittedAt, 2) ?: [];
+                            $submittedDate = (string) ($submittedParts[0] ?? '');
+                            $submittedTime = (string) ($submittedParts[1] ?? '');
+                            $startDate = (string) ($leaveRequest['start_date'] ?? '');
+                            $endDate = (string) ($leaveRequest['end_date'] ?? '');
+                            $isSingleDate = $startDate !== '' && $startDate === $endDate;
+                            ?>
+                            <tr class="align-middle hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap sapas-row-number"><?= $rowNumberStart + (int) $index ?></td>
+                                <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap overflow-hidden">
+                                    <div class="font-medium text-slate-900 truncate" title="<?= htmlspecialchars(leaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(leaveTypeLabel((string) ($leaveRequest['leave_type'] ?? '')), ENT_QUOTES, 'UTF-8') ?></div>
+                                    <?php $categoryLabel = \App\Services\LeaveReasonCatalog::label((string) ($leaveRequest['reason_category'] ?? ''), $t); ?>
+                                    <?php if ($categoryLabel !== '' && $categoryLabel !== leaveTypeLabel((string) ($leaveRequest['leave_type'] ?? ''))): ?>
+                                        <div class="text-xs text-slate-500 mt-1 truncate" title="<?= htmlspecialchars($categoryLabel, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($categoryLabel, ENT_QUOTES, 'UTF-8') ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap overflow-hidden">
+                                    <?php if ($isSingleDate): ?>
+                                        <div class="font-medium text-slate-800 truncate" title="<?= htmlspecialchars($startDate, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($startDate, ENT_QUOTES, 'UTF-8') ?></div>
+                                    <?php else: ?>
+                                        <div class="flex items-center gap-1.5 truncate" title="<?= htmlspecialchars($startDate . ' → ' . $endDate, ENT_QUOTES, 'UTF-8') ?>">
+                                            <span class="text-slate-800"><?= htmlspecialchars($startDate, ENT_QUOTES, 'UTF-8') ?></span>
+                                            <span class="text-slate-400">→</span>
+                                            <span class="text-slate-800"><?= htmlspecialchars($endDate, ENT_QUOTES, 'UTF-8') ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap overflow-hidden sapas-table-number">
+                                    <span class="font-medium text-slate-900"><?= (int) ($leaveRequest['duration_days'] ?? 0) ?></span>
+                                </td>
+                                <td class="px-4 py-3 text-sm whitespace-nowrap overflow-hidden">
+                                    <span class="<?= leaveStatusBadgeClass($status) ?>"><?= htmlspecialchars(leaveStatusLabel($status), ENT_QUOTES, 'UTF-8') ?></span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-slate-600 leading-snug overflow-hidden">
+                                    <div class="truncate" title="<?= htmlspecialchars($reasonDisplay, ENT_QUOTES, 'UTF-8') ?>">
+                                        <?= htmlspecialchars(leavePreview($reasonDisplay, 80), ENT_QUOTES, 'UTF-8') ?>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap overflow-hidden sapas-table-number">
+                                    <div class="text-slate-800 truncate" title="<?= htmlspecialchars($submittedDate, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($submittedDate, ENT_QUOTES, 'UTF-8') ?></div>
+                                    <?php if ($submittedTime !== ''): ?>
+                                        <div class="text-xs text-slate-500 mt-1 truncate"><?= htmlspecialchars(substr($submittedTime, 0, 5), ENT_QUOTES, 'UTF-8') ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-4 py-3 text-sm font-medium whitespace-nowrap overflow-hidden sapas-table-action">
+                                    <div class="flex items-center gap-2 sapas-leave-actions">
+                                        <a href="/leave/show?id=<?= (int) ($leaveRequest['id'] ?? 0) ?>" class="sapas-btn sapas-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm flex-shrink-0" title="<?= htmlspecialchars($t('common.actions.view_details'), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($t('common.actions.view_details'), ENT_QUOTES, 'UTF-8') ?></a>
+                                        <?php if ($canCancel): ?>
+                                            <form method="post" action="/leave/cancel" onsubmit="return confirm('<?= htmlspecialchars($t('leave_module.confirm_cancel_pending'), ENT_QUOTES, 'UTF-8') ?>');" class="inline m-0 p-0 flex-shrink-0">
+                                                <input type="hidden" name="id" value="<?= (int) ($leaveRequest['id'] ?? 0) ?>">
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) ($csrf_token ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                                <button type="submit" class="sapas-btn sapas-btn-danger-quiet whitespace-nowrap px-3 py-1.5 text-sm" title="<?= htmlspecialchars($t('leave_module.cancel_request'), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($t('leave_module.cancel_request'), ENT_QUOTES, 'UTF-8') ?></button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+    
+            <?php $paginationPath = '/leave'; ?>
+            <div class="mt-6">
+                <?php require __DIR__ . '/../partials/pagination.php'; ?>
+            </div>
         </div>
-
-        <?php $paginationPath = '/leave'; ?>
-        <?php require __DIR__ . '/../partials/pagination.php'; ?>
     <?php endif; ?>
 </div>

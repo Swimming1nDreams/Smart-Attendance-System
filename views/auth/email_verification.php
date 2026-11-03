@@ -3,9 +3,13 @@ $t = $t ?? static fn (string $key): string => $key;
 $layout = 'layouts/guest';
 $status = $status ?? 'pending';
 $expiryMinutes = (int) ($expiryMinutes ?? 15);
-$title = $t('auth.email_verification_title');
+$title = $t('auth.email_verification_title') . ' - ' . $t('app.official_name');
 $guestTitle = $t('auth.email_verification_title');
+$guestBrandShowSubtitle = true;
+$guestBrandWordmark = $t('app.acronym');
+$guestBrandSubtitle = $t('app.official_name');
 $showGuestVisual = false;
+$guestFrameVariant = 'verification';
 
 $isSuccess = $status === 'verified';
 $isError = in_array($status, ['invalid', 'expired', 'attempts_exceeded', 'delivery_failed'], true);

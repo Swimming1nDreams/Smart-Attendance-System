@@ -3,12 +3,13 @@ $t = $t ?? static fn (string $key): string => $key;
 $userRole = $userRole ?? 'employee';
 $currentPath = $currentPath ?? '/';
 
-$navigationGroups = $userRole === 'admin'
-    ? [
+if ($userRole === 'admin') {
+    $navigationGroups = [
         [
             'label' => $t('nav_groups.overview'),
             'items' => [
                 ['label' => $t('nav.dashboard'), 'href' => '/admin/dashboard', 'match' => '/admin/dashboard', 'icon' => 'dashboard'],
+                ['label' => $t('nav.profile'), 'href' => '/profile', 'match' => '/profile', 'icon' => 'user'],
                 ['label' => $t('notifications.title'), 'href' => '/notifications', 'match' => '/notifications', 'icon' => 'bell'],
             ],
         ],
@@ -17,6 +18,7 @@ $navigationGroups = $userRole === 'admin'
             'items' => [
                 ['label' => $t('nav.employees'), 'href' => '/employees', 'match' => '/employees', 'icon' => 'users'],
                 ['label' => $t('nav.attendance'), 'href' => '/attendance', 'match' => '/attendance', 'icon' => 'clock'],
+                ['label' => $t('nav.absence'), 'href' => '/absence', 'match' => '/absence', 'icon' => 'x-circle'],
                 ['label' => $t('nav.leave_requests'), 'href' => '/admin/leave', 'match' => '/admin/leave', 'icon' => 'leave'],
             ],
         ],
@@ -37,12 +39,44 @@ $navigationGroups = $userRole === 'admin'
                 ['label' => $t('nav.audit_logs'), 'href' => '/admin/audit-logs', 'match' => '/admin/audit-logs', 'icon' => 'shield'],
             ],
         ],
-    ]
-    : [
+    ];
+} elseif ($userRole === 'department_head') {
+    $navigationGroups = [
+        [
+            'label' => $t('nav_groups.overview'),
+            'items' => [
+                ['label' => $t('nav.dashboard'), 'href' => '/department-head/dashboard', 'match' => '/department-head/dashboard', 'icon' => 'dashboard'],
+                ['label' => $t('nav.profile'), 'href' => '/profile', 'match' => '/profile', 'icon' => 'user'],
+                ['label' => $t('notifications.title'), 'href' => '/notifications', 'match' => '/notifications', 'icon' => 'bell'],
+            ],
+        ],
+        [
+            'label' => $t('nav_groups.workforce'),
+            'items' => [
+                ['label' => $t('nav.employees'), 'href' => '/employees', 'match' => '/employees', 'icon' => 'users'],
+                ['label' => $t('nav.attendance'), 'href' => '/attendance', 'match' => '/attendance', 'icon' => 'clock'],
+                ['label' => $t('nav.department_absence'), 'href' => '/absence', 'match' => '/absence', 'icon' => 'x-circle'],
+                ['label' => $t('nav.leave_requests'), 'href' => '/admin/leave', 'match' => '/admin/leave', 'icon' => 'leave'],
+                ['label' => $t('nav.my_leave'), 'href' => '/leave', 'match' => '/leave', 'icon' => 'leave'],
+                ['label' => $t('nav.holidays'), 'href' => '/holidays', 'match' => '/holidays', 'icon' => 'calendar'],
+                ['label' => $t('nav.my_work_policy'), 'href' => '/my-work-policy', 'match' => '/my-work-policy', 'icon' => 'timer'],
+            ],
+        ],
+        [
+            'label' => $t('nav_groups.insights'),
+            'items' => [
+                ['label' => $t('nav.analytics'), 'href' => '/admin/analytics', 'match' => '/admin/analytics', 'icon' => 'analytics'],
+                ['label' => $t('nav.reports'), 'href' => '/admin/reports', 'match' => '/admin/reports', 'icon' => 'file-text'],
+            ],
+        ],
+    ];
+} else {
+    $navigationGroups = [
         [
             'label' => $t('nav_groups.overview'),
             'items' => [
                 ['label' => $t('nav.dashboard'), 'href' => '/employee/dashboard', 'match' => '/employee/dashboard', 'icon' => 'dashboard'],
+                ['label' => $t('nav.profile'), 'href' => '/profile', 'match' => '/profile', 'icon' => 'user'],
                 ['label' => $t('notifications.title'), 'href' => '/notifications', 'match' => '/notifications', 'icon' => 'bell'],
             ],
         ],
@@ -50,18 +84,21 @@ $navigationGroups = $userRole === 'admin'
             'label' => $t('nav_groups.workforce'),
             'items' => [
                 ['label' => $t('nav.attendance'), 'href' => '/attendance', 'match' => '/attendance', 'icon' => 'clock'],
+                ['label' => $t('nav.my_absence'), 'href' => '/absence', 'match' => '/absence', 'icon' => 'x-circle'],
                 ['label' => $t('nav.my_leave'), 'href' => '/leave', 'match' => '/leave', 'icon' => 'leave'],
                 ['label' => $t('nav.holidays'), 'href' => '/holidays', 'match' => '/holidays', 'icon' => 'calendar'],
+                ['label' => $t('nav.my_work_policy'), 'href' => '/my-work-policy', 'match' => '/my-work-policy', 'icon' => 'timer'],
             ],
         ],
     ];
+}
 ?>
 <div class="sapas-sidebar-content">
     <div class="sapas-sidebar-heading">
         <div class="sapas-sidebar-brand">
             <?php
             $brandVariant = 'primary';
-            $brandHref = $userRole === 'admin' ? '/admin/dashboard' : '/employee/dashboard';
+            $brandHref = $userRole === 'admin' ? '/admin/dashboard' : ($userRole === 'department_head' ? '/department-head/dashboard' : '/employee/dashboard');
             $brandShowSubtitle = true;
             $brandWordmark = $t('app.acronym');
             $brandSubtitle = $t('app.sidebar_subtitle');

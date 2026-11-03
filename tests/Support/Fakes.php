@@ -55,7 +55,7 @@ final class FakeEmployee extends Employee
         return $this->employees[$id] ?? null;
     }
 
-    public function findAll(string $search = '', ?int $departmentId = null, ?int $positionId = null, ?string $status = null, int $page = 1, int $perPage = 20): array
+    public function findAll(string $search = '', ?int $departmentId = null, ?int $positionId = null, ?string $status = null, int $page = 1, int $perPage = 20, ?string $role = null): array
     {
         return array_values($this->employees);
     }
@@ -76,6 +76,11 @@ final class FakeLeaveRequest extends LeaveRequest
     public function existsApprovedLeaveForDate(int $userId, string $date): bool
     {
         return $this->approvedLeaveConflict;
+    }
+
+    public function findOverlappingRequests(int $userId, string $startDate, string $endDate, ?int $excludeId = null): array
+    {
+        return [];
     }
 }
 

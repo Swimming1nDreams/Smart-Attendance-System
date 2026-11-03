@@ -8,22 +8,12 @@ $pageActions = '<a href="/admin/company-profile/edit" class="sapas-btn sapas-btn
     . '<a href="/admin/work-schedules" class="sapas-btn sapas-btn-secondary">' . htmlspecialchars($t('work_schedules.title'), ENT_QUOTES, 'UTF-8') . '</a>';
 $title = $title ?? $pageTitle;
 $value = static fn (mixed $item): string => trim((string) $item) !== '' ? (string) $item : '—';
-$identityValue = static function (string $key, mixed $item) use ($t, $value): string {
-    $displayValue = $value($item);
-    $normalized = strtolower(trim($displayValue));
-
-    if ($key === 'company_name' && in_array($normalized, [
-        'smart attendance and performance analytic system',
-        'smart attendance and performance analytics system',
-    ], true)) {
-        return $t('app.official_name');
-    }
-    if ($key === 'short_name' && $normalized === 'smart attendance') {
-        return $t('app.acronym');
-    }
-
-    return $displayValue;
-};
+$identityValue = static fn (string $key, mixed $item): string => \App\Services\BrandingPresenter::companyValue(
+    $key,
+    $item,
+    $t('app.official_name'),
+    $t('app.acronym'),
+);
 ?>
 <div class="sapas-workspace-stack">
     <?php if ($profile === null): ?>
@@ -77,14 +67,17 @@ $identityValue = static function (string $key, mixed $item) use ($t, $value): st
                 <div>
                     <dt class="text-xs font-semibold text-slate-500"><?= htmlspecialchars($t('company_profile.fields.date_format'), ENT_QUOTES, 'UTF-8') ?></dt>
                     <dd class="mt-1 font-medium text-slate-900"><?= htmlspecialchars($value($profile['date_format'] ?? ''), ENT_QUOTES, 'UTF-8') ?></dd>
+                    <p class="mt-1 text-xs text-slate-500"><?= htmlspecialchars($t('company_profile.format_help'), ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
                 <div>
                     <dt class="text-xs font-semibold text-slate-500"><?= htmlspecialchars($t('company_profile.fields.time_format'), ENT_QUOTES, 'UTF-8') ?></dt>
                     <dd class="mt-1 font-medium text-slate-900"><?= htmlspecialchars($value($profile['time_format'] ?? ''), ENT_QUOTES, 'UTF-8') ?></dd>
+                    <p class="mt-1 text-xs text-slate-500"><?= htmlspecialchars($t('company_profile.format_help'), ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
                 <div>
                     <dt class="text-xs font-semibold text-slate-500"><?= htmlspecialchars($t('company_profile.fields.default_schedule'), ENT_QUOTES, 'UTF-8') ?></dt>
-                    <dd class="mt-1 font-medium text-slate-900"><?= htmlspecialchars($value($profile['default_schedule_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></dd>
+                    <dd class="mt-1 font-medium text-slate-900"><?= htmlspecialchars($value(\App\Services\BrandingPresenter::policyName($profile['default_schedule_name'] ?? '')), ENT_QUOTES, 'UTF-8') ?></dd>
+                    <p class="mt-1 text-xs text-slate-500"><?= htmlspecialchars($t('company_profile.default_schedule_help'), ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
             </dl>
             <p class="mt-5 text-xs text-slate-500">

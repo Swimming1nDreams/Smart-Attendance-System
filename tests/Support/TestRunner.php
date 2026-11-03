@@ -48,7 +48,7 @@ final class TestRunner
 
         $total = count($this->tests);
         $failed = count($failures);
-        echo sprintf("SAPAS regression tests: %d passed, %d failed, %d skipped, %d total\n", $passed, $failed, count($skipped), $total);
+        echo sprintf("OAAS regression tests: %d passed, %d failed, %d skipped, %d total\n", $passed, $failed, count($skipped), $total);
 
         return $failed === 0 ? 0 : 1;
     }

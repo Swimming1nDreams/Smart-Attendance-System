@@ -17,6 +17,7 @@ use App\Services\EmailVerificationService;
 use App\Services\EmployeeValidationService;
 use App\Services\PasswordPolicyException;
 use App\Services\PasswordPolicyService;
+use App\Services\ProfilePhotoStorageService;
 use App\Services\WorkScheduleResolverService;
 
 class EmployeeController extends MasterDataController
@@ -31,8 +32,9 @@ class EmployeeController extends MasterDataController
     private PasswordPolicyService $passwordPolicy;
     private ?WorkScheduleResolverService $scheduleResolver;
     private ?AuditLogService $auditLog;
+    private ?ProfilePhotoStorageService $profilePhotoStorage;
 
-    public function __construct(Employee $employeeModel, EmployeeProfile $employeeProfileModel, Department $departmentModel, Position $positionModel, EmailVerificationService $emailVerificationService, AccountManagementService $accountManagementService, EmployeeValidationService $employeeValidationService, PasswordPolicyService $passwordPolicy, \App\Core\SessionManager $sessionManager, Application $app, ?WorkScheduleResolverService $scheduleResolver = null, ?AuditLogService $auditLog = null)
+    public function __construct(Employee $employeeModel, EmployeeProfile $employeeProfileModel, Department $departmentModel, Position $positionModel, EmailVerificationService $emailVerificationService, AccountManagementService $accountManagementService, EmployeeValidationService $employeeValidationService, PasswordPolicyService $passwordPolicy, \App\Core\SessionManager $sessionManager, Application $app, ?WorkScheduleResolverService $scheduleResolver = null, ?AuditLogService $auditLog = null, ?ProfilePhotoStorageService $profilePhotoStorage = null)
     {
         parent::__construct($sessionManager, $app);
         $this->employeeModel = $employeeModel;
@@ -45,15 +47,29 @@ class EmployeeController extends MasterDataController
         $this->passwordPolicy = $passwordPolicy;
         $this->scheduleResolver = $scheduleResolver;
         $this->auditLog = $auditLog;
+        $this->profilePhotoStorage = $profilePhotoStorage;
     }
 
     public function index(Request $request): void
     {
-        $this->ensureAdmin();
+        $this->ensureAdminOrDepartmentHead();
+        $currentRole = $this->sessionManager->getUserRole();
+        
+        $scopeFilters = $this->resolveScopeFilters($request);
+        $forcedDepartmentId = $scopeFilters['department_id'];
 
         $search = trim((string) $request->query('search', ''));
-        $departmentId = $this->parseOptionalInt($request->query('department_id'));
+        $departmentIdInput = $this->parseOptionalInt($request->query('department_id'));
+        $departmentId = $forcedDepartmentId ?? $departmentIdInput;
+        
         $positionId = $this->parseOptionalInt($request->query('position_id'));
+        $role = trim((string) $request->query('role', ''));
+        if (!in_array($role, ['admin', 'department_head', 'employee'], true)) {
+            $role = '';
+        }
+        if ($currentRole === 'department_head') {
+            $role = 'employee';
+        }
         $status = trim((string) $request->query('status', ''));
         if (!in_array($status, ['active', 'inactive'], true)) {
             $status = '';
@@ -63,11 +79,12 @@ class EmployeeController extends MasterDataController
         $requestedPerPage = (int) $request->query('per_page', 20);
         $perPage = in_array($requestedPerPage, [20, 50, 100], true) ? $requestedPerPage : 20;
 
-        $total = $this->employeeModel->countAll($search, $departmentId, $positionId, $status);
+        $total = $this->employeeModel->countAll($search, $departmentId, $positionId, $status, $role);
         $pages = max(1, (int) ceil($total / $perPage));
         $page = min($requestedPage, $pages);
-        $employees = $this->employeeModel->findAll($search, $departmentId, $positionId, $status, $page, $perPage);
+        $employees = $this->employeeModel->findAll($search, $departmentId, $positionId, $status, $page, $perPage, $role);
         $departments = $this->departmentModel->findAll('');
+        $departments = $this->filterAllowedDepartments($departments, $forcedDepartmentId);
         $positions = $this->positionModel->findAll('');
 
         $this->render('employees/index', [
@@ -78,6 +95,9 @@ class EmployeeController extends MasterDataController
             'departmentId' => $departmentId,
             'positionId' => $positionId,
             'status' => $status,
+            'role' => $role,
+            'canManageUsers' => $currentRole === 'admin',
+            'departmentScopeLocked' => $currentRole === 'department_head',
             'page' => $page,
             'perPage' => $perPage,
             'total' => $total,
@@ -166,6 +186,13 @@ class EmployeeController extends MasterDataController
         }
 
         $profile = $this->employeeProfileModel->findByUserId($id);
+        $photoFilename = trim((string) ($profile['profile_photo_filename'] ?? ''));
+        $hasProfilePhoto = ($employee['role'] ?? null) === 'employee'
+            && $photoFilename !== ''
+            && $this->profilePhotoStorage?->resolve($photoFilename) !== null;
+        $profilePhotoUrl = $hasProfilePhoto
+            ? '/profile/photo?id=' . $id . '&v=' . rawurlencode((string) ($profile['updated_at'] ?? ''))
+            : null;
 
         $resolvedWorkPolicy = null;
         if ($this->scheduleResolver !== null) {
@@ -180,6 +207,7 @@ class EmployeeController extends MasterDataController
         $this->render('employees/show', [
             'employee' => $employee,
             'profile' => $profile,
+            'profilePhotoUrl' => $profilePhotoUrl,
             'resolvedWorkPolicy' => $resolvedWorkPolicy,
             'title' => $this->t('employees_module.details_title'),
         ]);
@@ -243,7 +271,12 @@ class EmployeeController extends MasterDataController
         }
 
         $staffCode = (string) ($employee['staff_code'] ?? '');
-        $validation = $this->employeeValidationService->validate($request->getBodyParams(), $id, $staffCode);
+        $input = $request->getBodyParams();
+        // Existing account email is an identity field, not a normal edit field.
+        // Supply the current value for shared validation, then let the service
+        // enforce the same invariant at the write boundary.
+        $input['email'] = (string) $employee['email'];
+        $validation = $this->employeeValidationService->validate($input, $id, $staffCode);
         $data = $validation['data'];
         $errors = $this->translateValidationErrors($validation['errors']);
         $expectedSecurityState = [

@@ -3,34 +3,13 @@ $t = $t ?? static fn (string $key): string => $key;
 $layout = 'layouts/guest';
 $title = $t('app.official_name');
 $guestTitle = $t('app.official_name');
-$guestDescription = $t('app.official_name');
-$guestBrandShowSubtitle = false;
+$guestDescription = '';
+$guestBrandShowSubtitle = true;
 $guestBrandWordmark = $t('app.acronym');
-$guestVisualTitle = $t('auth.login_visual_title');
+$guestBrandSubtitle = $t('app.official_name');
+$guestFooterText = '';
 $loadingText = $t('auth.logging_in');
-$guestOverviewIntro = '';
-$guestOverviewFeatures = [
-    [
-        'title' => $t('auth.overview_attendance_title'),
-        'copy' => '',
-        'tone' => 'emerald',
-        'icon' => 'clock',
-    ],
-    [
-        'title' => $t('auth.overview_leave_title'),
-        'copy' => '',
-        'tone' => 'amber',
-        'icon' => 'leave',
-    ],
-    [
-        'title' => $t('auth.overview_analytics_title'),
-        'copy' => '',
-        'tone' => 'indigo',
-        'icon' => 'analytics',
-    ],
-];
-$guestCompactVisual = true;
-$showGuestVisual = true;
+$showGuestVisual = false;
 $guestFrameVariant = 'focused-login';
 
 $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon'): void {
@@ -46,6 +25,7 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
 <?php endif; ?>
 
 <div class="sapas-login-card-header text-center mb-8">
+    <p class="sapas-login-eyebrow"><?= htmlspecialchars($t('auth.secure_sign_in'), ENT_QUOTES, 'UTF-8') ?></p>
     <h1 class="text-3xl font-extrabold tracking-tight text-slate-900"><?= htmlspecialchars($t('auth.welcome_back'), ENT_QUOTES, 'UTF-8') ?></h1>
     <p class="mt-3 text-base text-slate-500 font-medium"><?= htmlspecialchars($t('auth.login_form_intro'), ENT_QUOTES, 'UTF-8') ?></p>
 </div>
@@ -99,6 +79,10 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
         </div>
     </div>
 
+    <p class="sapas-login-security">
+        <span aria-hidden="true"><?= $renderIcon('shield', 'sapas-icon') ?></span>
+        <span><?= htmlspecialchars($t('auth.security_reassurance'), ENT_QUOTES, 'UTF-8') ?></span>
+    </p>
 
     <button
         type="submit"

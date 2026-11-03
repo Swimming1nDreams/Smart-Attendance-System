@@ -93,7 +93,7 @@ foreach ($rows as $row) {
     }
 }
 
-echo "SAPAS attendance consistency dry run\n";
+echo "OAAS attendance consistency dry run\n";
 echo "Rows requiring manual review: " . count($issues) . "\n";
 
 foreach ($issues as [$row, $issue, $calculation, $resolution]) {

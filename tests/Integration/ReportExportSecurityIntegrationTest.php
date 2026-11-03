@@ -11,6 +11,7 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Services\AttendanceExceptionReportService;
 use App\Services\AttendanceSummaryReportService;
+use App\Services\AbsenceReportService;
 use App\Services\DateValidationService;
 use App\Services\EmployeeAttendanceReportService;
 use App\Services\LeaveReportService;
@@ -38,6 +39,7 @@ test('valid administrator can load the real reports landing page', function (): 
         reportSecurityUninitialized(EmployeeAttendanceReportService::class),
         reportSecurityUninitialized(LeaveReportService::class),
         reportSecurityUninitialized(AttendanceExceptionReportService::class),
+        reportSecurityUninitialized(AbsenceReportService::class),
         reportSecurityUninitialized(Employee::class),
         reportSecurityUninitialized(Department::class),
         new ReportPdfExportService(),
@@ -53,6 +55,7 @@ test('valid administrator can load the real reports landing page', function (): 
     assert_contains('/admin/reports/attendance-summary', $output);
     assert_contains('/admin/reports/employee-attendance-detail', $output);
     assert_contains('/admin/reports/leave-requests', $output);
+    assert_contains('/admin/reports/absence', $output);
     assert_contains('/admin/reports/late-absent-exceptions', $output);
 });
 

@@ -1,0 +1,45 @@
+OAAS REPORTS + STAFF CODE UPGRADE — 2026-08-21
+=================================================
+
+WHAT THIS PATCH DOES
+--------------------
+1. Enforces Department Head report scope inside filters and data services.
+2. Rejects cross-department employee IDs in report requests.
+3. Adds a dedicated Absence Report with PDF and Excel exports.
+4. Keeps absent rows out of Attendance Summary and Employee Attendance Detail.
+5. Requires exactly six digits whenever an Administrator creates or edits a Staff Code.
+6. Updates demo seed codes to six digits without adding automatic live-code generation.
+7. Adds a read-only Staff Code audit command.
+
+INSTALL
+-------
+1. Stop the local PHP server.
+2. Back up the OAAS project folder and database.
+3. Extract this ZIP.
+4. Copy its contents into the inner OAAS project folder—the folder containing
+   README.md, public, src, views, scripts, and tests.
+5. Allow Windows to replace matching files.
+
+No database migration is required for this patch.
+
+VERIFY IN POWERSHELL
+--------------------
+Run these commands from the inner OAAS project folder:
+
+php .\tests\run.php
+php .\scripts\audit_staff_codes.php
+
+The audit command is read-only. Exit code 2 means it found historical codes that
+an Administrator must replace through Employees > Edit. It never changes a code.
+
+MANUAL UAT
+----------
+1. Sign in as Administrator and open Reports > Absence Report.
+2. Test filters, PDF export, and Excel export.
+3. Sign in as a Department Head and confirm only that department's employees and
+   rows appear in Attendance, Employee Detail, Leave, Absence, PDF, and Excel.
+4. Try another department_id or employee_id in the URL; the report must reject it.
+5. As Administrator, create an employee using a six-digit Staff Code such as 004217.
+6. Confirm letters, hyphens, five digits, seven digits, and duplicates are rejected.
+7. Edit a historical account with a legacy code; assign a deliberate unique six-digit
+   replacement before saving.

@@ -44,13 +44,25 @@ class AuthService
             return false;
         }
 
+        $role = (string) ($user['role'] ?? '');
+        $departmentId = isset($user['department_id']) ? (int) $user['department_id'] : null;
+
+        if (
+            !in_array($role, SessionSecurityService::AUTHENTICATED_ROLES, true)
+            || ($role === 'department_head' && ($departmentId === null || $departmentId <= 0))
+        ) {
+            $this->lastLoginFailureReason = 'invalid';
+            return false;
+        }
+
         $this->sessionManager->regenerateSession();
         $this->sessionManager->setAuthenticatedUser(
             (int) $user['id'],
             $user['name'],
             $user['email'],
-            $user['role'],
+            $role,
             (int) ($user['session_version'] ?? 1),
+            $departmentId
         );
 
         return true;

@@ -403,17 +403,20 @@ test('database integration: leave overlap and decision races recheck locked stat
     $leaveOperations = new LeaveOperationService($database->pdo());
     $leaveModel = new LeaveRequest($database->pdo());
 
+    assert_same('reason_category_invalid', capture_leave_operation_reason(static function () use ($leaveOperations, $ids): void {
+        $leaveOperations->createRequest($ids['employee_id'], 'casual', '2026-11-02', '2026-11-02', 1, 'Invalid category', 'not-supported');
+    }));
     assert_same('invalid_date_range', capture_leave_operation_reason(static function () use ($leaveOperations, $ids): void {
-        $leaveOperations->createRequest($ids['employee_id'], 'casual', '2026-02-30', '2026-03-02', 1, 'Invalid date');
+        $leaveOperations->createRequest($ids['employee_id'], 'casual', '2026-02-30', '2026-03-02', 1, 'Invalid date', 'personal_matter');
     }));
     assert_same('invalid_duration', capture_leave_operation_reason(static function () use ($leaveOperations, $ids): void {
-        $leaveOperations->createRequest($ids['employee_id'], 'casual', '2026-11-02', '2026-11-02', 0, 'Invalid duration');
+        $leaveOperations->createRequest($ids['employee_id'], 'casual', '2026-11-02', '2026-11-02', 0, 'Invalid duration', 'personal_matter');
     }));
 
-    $firstId = $leaveOperations->createRequest($ids['employee_id'], 'casual', '2026-11-02', '2026-11-04', 3, 'First');
+    $firstId = $leaveOperations->createRequest($ids['employee_id'], 'casual', '2026-11-02', '2026-11-04', 3, 'First', 'personal_matter');
     assert_true($firstId > 0);
     assert_same('overlap', capture_leave_operation_reason(static function () use ($leaveOperations, $ids): void {
-        $leaveOperations->createRequest($ids['employee_id'], 'medical', '2026-11-04', '2026-11-05', 2, 'Overlap');
+        $leaveOperations->createRequest($ids['employee_id'], 'medical', '2026-11-04', '2026-11-05', 2, 'Overlap', 'medical_appointment');
     }));
 
     $decisionId = $leaveModel->create($ids['other_employee_id'], 'casual', '2026-11-09', '2026-11-09', 1, 'Decision', 'pending');

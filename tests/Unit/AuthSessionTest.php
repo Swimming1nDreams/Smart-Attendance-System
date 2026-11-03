@@ -55,6 +55,45 @@ test('active users can establish and invalidate an authenticated session', funct
     assert_false($sessionManager->validateCsrfToken('not-the-token'), 'CSRF token should be cleared with auth session.');
 });
 
+test('department heads require a department before authentication', function (): void {
+    reset_test_session();
+
+    $withoutDepartment = new AuthService(
+        new FakeUser([
+            'id' => 8,
+            'name' => 'Unscoped Department Head',
+            'email' => 'unscoped-head@example.test',
+            'password' => 'hash',
+            'role' => 'department_head',
+            'department_id' => null,
+            'status' => 'active',
+        ]),
+        new SessionManager()
+    );
+
+    assert_false($withoutDepartment->login('unscoped-head@example.test', 'secret'));
+    assert_same('invalid', $withoutDepartment->getLastLoginFailureReason());
+
+    reset_test_session();
+    $sessionManager = new SessionManager();
+    $withDepartment = new AuthService(
+        new FakeUser([
+            'id' => 9,
+            'name' => 'Scoped Department Head',
+            'email' => 'scoped-head@example.test',
+            'password' => 'hash',
+            'role' => 'department_head',
+            'department_id' => 4,
+            'status' => 'active',
+        ]),
+        $sessionManager
+    );
+
+    assert_true($withDepartment->login('scoped-head@example.test', 'secret'));
+    assert_same('department_head', $sessionManager->getUserRole());
+    assert_same(4, $sessionManager->getUserDepartmentId());
+});
+
 test('csrf tokens require an exact current token match', function (): void {
     reset_test_session();
 

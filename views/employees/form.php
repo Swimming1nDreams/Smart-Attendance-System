@@ -34,6 +34,7 @@ $cancelHref = $isEdit && isset($employee['id'])
 $passwordHelp = $isEdit
     ? $t('employees_module.password_help_edit')
     : $t('employees_module.password_help_create');
+$departmentRequired = ($employee['role'] ?? 'employee') === 'department_head';
 $isOwnAdministratorAccount = $isEdit
     && (int) ($employee['id'] ?? 0) === (int) ($userId ?? 0)
     && ($employee['role'] ?? '') === 'admin';
@@ -73,6 +74,12 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
         <p><?= htmlspecialchars($t('employees_module.required_fields_help'), ENT_QUOTES, 'UTF-8') ?></p>
     </div>
 
+    <?php if ($isEdit): ?>
+        <div class="sapas-alert-warning" role="note">
+            <?= htmlspecialchars($t('employees_module.security_change_warning'), ENT_QUOTES, 'UTF-8') ?>
+        </div>
+    <?php endif; ?>
+
     <div class="sapas-form-section">
         <div class="sapas-form-section-header">
             <h2><?= htmlspecialchars($t('employees_module.account_section'), ENT_QUOTES, 'UTF-8') ?></h2>
@@ -87,10 +94,17 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
                 <p id="name-live-feedback" class="sapas-field-feedback text-rose-600 text-sm mt-1 hidden" aria-live="polite">Letters, spaces, hyphens, periods, and apostrophes are allowed. Numbers are not allowed.</p>
             </div>
             <div>
-                <label for="email" class="sapas-form-label"><?= htmlspecialchars($t('common.labels.email'), ENT_QUOTES, 'UTF-8') ?><?= $requiredIndicator ?></label>
-                <input type="email" id="email" name="email" value="<?= htmlspecialchars($employee['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required maxlength="255" autocomplete="email" class="mt-2 sapas-form-control" data-live-email aria-describedby="email-help email-live-feedback">
-                <p id="email-help" class="sapas-field-help"><?= htmlspecialchars($t('employees_module.email_help'), ENT_QUOTES, 'UTF-8') ?></p>
-                <p id="email-live-feedback" class="sapas-field-feedback" data-live-email-feedback aria-live="polite"></p>
+                <label class="sapas-form-label"><?= htmlspecialchars($t('common.labels.email'), ENT_QUOTES, 'UTF-8') ?><?= $isEdit ? '' : $requiredIndicator ?></label>
+                <?php if ($isEdit): ?>
+                    <div class="mt-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3" aria-describedby="email-identity-help">
+                        <p class="break-words font-medium text-slate-900"><?= htmlspecialchars((string) ($employee['email'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
+                        <p id="email-identity-help" class="mt-1 text-sm text-slate-600"><?= htmlspecialchars($t('employees_module.email_identity_help'), ENT_QUOTES, 'UTF-8') ?></p>
+                    </div>
+                <?php else: ?>
+                    <input type="email" id="email" name="email" value="<?= htmlspecialchars($employee['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required maxlength="255" autocomplete="email" class="mt-2 sapas-form-control" data-live-email aria-describedby="email-help email-live-feedback">
+                    <p id="email-help" class="sapas-field-help"><?= htmlspecialchars($t('employees_module.email_help'), ENT_QUOTES, 'UTF-8') ?></p>
+                    <p id="email-live-feedback" class="sapas-field-feedback" data-live-email-feedback aria-live="polite"></p>
+                <?php endif; ?>
             </div>
             <div>
                 <label for="password" class="sapas-form-label"><?= htmlspecialchars($t('common.labels.password'), ENT_QUOTES, 'UTF-8') ?><?= $isEdit ? '' : $requiredIndicator ?></label>
@@ -125,6 +139,7 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
                 <label for="role" class="sapas-form-label"><?= htmlspecialchars($t('common.labels.role'), ENT_QUOTES, 'UTF-8') ?><?= $requiredIndicator ?></label>
                 <select id="role" name="role" required class="mt-2 sapas-form-control">
                     <option value="employee" <?= ($employee['role'] ?? 'employee') === 'employee' ? 'selected' : '' ?> <?= $isOwnAdministratorAccount ? 'disabled' : '' ?>><?= htmlspecialchars($t('roles.employee'), ENT_QUOTES, 'UTF-8') ?></option>
+                    <option value="department_head" <?= ($employee['role'] ?? 'employee') === 'department_head' ? 'selected' : '' ?> <?= $isOwnAdministratorAccount ? 'disabled' : '' ?>><?= htmlspecialchars($t('roles.department_head') ?? 'Department Head', ENT_QUOTES, 'UTF-8') ?></option>
                     <option value="admin" <?= ($employee['role'] ?? 'employee') === 'admin' ? 'selected' : '' ?>><?= htmlspecialchars($t('roles.admin'), ENT_QUOTES, 'UTF-8') ?></option>
                 </select>
                 <p class="sapas-field-help"><?= htmlspecialchars($t('employees_module.role_help'), ENT_QUOTES, 'UTF-8') ?></p>
@@ -166,14 +181,14 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
 
         <div class="sapas-form-grid">
             <div>
-                <label for="department_id" class="sapas-form-label"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?></label>
-                <select id="department_id" name="department_id" class="mt-2 sapas-form-control">
+                <label for="department_id" class="sapas-form-label"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?> <span data-department-required-indicator class="sapas-required-indicator <?= $departmentRequired ? '' : 'hidden' ?>"><?= htmlspecialchars($requiredText, ENT_QUOTES, 'UTF-8') ?></span></label>
+                <select id="department_id" name="department_id" class="mt-2 sapas-form-control" <?= $departmentRequired ? 'required aria-required="true"' : '' ?> data-department-select>
                     <option value=""><?= htmlspecialchars($t('common.none'), ENT_QUOTES, 'UTF-8') ?></option>
                     <?php foreach ($departments as $department): ?>
                         <option value="<?= (int) $department['id'] ?>" <?= ((int) ($employee['department_id'] ?? 0) === (int) $department['id']) ? 'selected' : '' ?>><?= htmlspecialchars($department['name'], ENT_QUOTES, 'UTF-8') ?></option>
                     <?php endforeach; ?>
                 </select>
-                <p class="sapas-field-help"><?= htmlspecialchars($t('employees_module.department_help'), ENT_QUOTES, 'UTF-8') ?></p>
+                <p class="sapas-field-help" data-department-help><?= htmlspecialchars($departmentRequired ? $t('employees_module.department_head_help') : $t('employees_module.department_help'), ENT_QUOTES, 'UTF-8') ?></p>
             </div>
             <div>
                 <label for="position_id" class="sapas-form-label"><?= htmlspecialchars($t('common.labels.position'), ENT_QUOTES, 'UTF-8') ?></label>
@@ -186,8 +201,8 @@ $renderIcon = static function (string $iconName, string $iconClass = 'sapas-icon
                 <p class="sapas-field-help"><?= htmlspecialchars($t('employees_module.position_help'), ENT_QUOTES, 'UTF-8') ?></p>
             </div>
             <div>
-                <label for="staff_code" class="sapas-form-label"><?= htmlspecialchars($t('employees_module.staff_code'), ENT_QUOTES, 'UTF-8') ?></label>
-                <input type="text" id="staff_code" value="<?= htmlspecialchars($isEdit ? (string) ($employee['staff_code'] ?? '') : $t('employees_module.staff_code_generated'), ENT_QUOTES, 'UTF-8') ?>" class="mt-2 sapas-form-control" readonly aria-readonly="true">
+                <label for="staff_code" class="sapas-form-label"><?= htmlspecialchars($t('employees_module.staff_code'), ENT_QUOTES, 'UTF-8') ?><?= $requiredIndicator ?></label>
+                <input type="text" id="staff_code" name="staff_code" value="<?= htmlspecialchars((string) ($employee['staff_code'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="off" required class="mt-2 sapas-form-control">
                 <p class="sapas-field-help"><?= htmlspecialchars($t('employees_module.staff_code_help'), ENT_QUOTES, 'UTF-8') ?></p>
             </div>
             <div>
@@ -260,6 +275,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameInput = document.getElementById('name');
     const nameFeedback = document.getElementById('name-live-feedback');
     const submitBtn = document.getElementById('submit-btn');
+    const roleInput = document.getElementById('role');
+    const departmentInput = document.querySelector('[data-department-select]');
+    const departmentHelp = document.querySelector('[data-department-help]');
+    const departmentRequiredIndicator = document.querySelector('[data-department-required-indicator]');
+
+    const syncDepartmentRequirement = () => {
+        if (!roleInput || !departmentInput || !departmentHelp) {
+            return;
+        }
+
+        const required = roleInput.value === 'department_head';
+        departmentInput.required = required;
+        departmentInput.setAttribute('aria-required', required ? 'true' : 'false');
+        if (departmentRequiredIndicator) {
+            departmentRequiredIndicator.classList.toggle('hidden', !required);
+        }
+        departmentHelp.textContent = required
+            ? <?= json_encode($t('employees_module.department_head_help'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
+            : <?= json_encode($t('employees_module.department_help'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    };
+
+    if (roleInput) {
+        roleInput.addEventListener('change', syncDepartmentRequirement);
+        syncDepartmentRequirement();
+    }
 
     if (nameInput && nameFeedback && submitBtn) {
         // Regex matching backend logic: /^[\p{L}\p{M} .\x{0027}\x{2019}-]+$/u

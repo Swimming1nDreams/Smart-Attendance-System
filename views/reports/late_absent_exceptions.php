@@ -74,21 +74,11 @@ function exceptionStatusClasses(string $status): string
 
 function exceptionTypeLabel(array $record): string
 {
-    if (($record['status'] ?? '') === 'absent') {
-        return \App\Core\Localization::current()->translate('statuses.exception.absent');
-    }
-
-    return ((int) ($record['late_minutes'] ?? 0)) > 0
-        ? \App\Core\Localization::current()->translate('statuses.exception.late')
-        : \App\Core\Localization::current()->translate('common.labels.exception');
+    return \App\Core\Localization::current()->translate('statuses.exception.late');
 }
 
 function exceptionTypeClasses(array $record): string
 {
-    if (($record['status'] ?? '') === 'absent') {
-        return 'sapas-badge sapas-badge-danger';
-    }
-
     return 'sapas-badge sapas-badge-warning';
 }
 
@@ -111,12 +101,6 @@ foreach ($employees as $employee) {
     $employeeNames[(int) $employee['id']] = (string) $employee['name'];
 }
 
-$exceptionTypeLabels = [
-    'all' => $t('reports_module.late_and_absent'),
-    'late' => $t('reports_module.late_only'),
-    'absent' => $t('reports_module.absent_only'),
-];
-
 $activeFilters = [];
 if (($filters['date_from'] ?? '') !== '') {
     $activeFilters[] = $t('common.labels.date_from') . ': ' . (string) $filters['date_from'];
@@ -132,16 +116,9 @@ if (($filters['employee_id'] ?? null) !== null) {
     $employeeId = (int) $filters['employee_id'];
     $activeFilters[] = $t('common.labels.employee') . ': ' . ($employeeNames[$employeeId] ?? ('ID #' . $employeeId));
 }
-if (($filters['exception_type'] ?? 'all') !== 'all') {
-    $activeFilters[] = $t('common.labels.exception') . ': ' . ($exceptionTypeLabels[(string) $filters['exception_type']] ?? $t('reports_module.late_and_absent'));
-}
-
 $lateExceptionCount = 0;
-$absentExceptionCount = 0;
 foreach ($records as $record) {
-    if (($record['status'] ?? '') === 'absent') {
-        $absentExceptionCount++;
-    } elseif ((int) ($record['late_minutes'] ?? 0) > 0) {
+    if ((int) ($record['late_minutes'] ?? 0) > 0) {
         $lateExceptionCount++;
     }
 }
@@ -151,14 +128,9 @@ $exceptionChartRows = [
         'value' => $lateExceptionCount,
         'class' => 'is-amber',
     ],
-    [
-        'label' => $t('reports_module.absent_only'),
-        'value' => $absentExceptionCount,
-        'class' => 'is-rose',
-    ],
 ];
-$exceptionChartMax = max(1, $lateExceptionCount, $absentExceptionCount);
-$pageExceptionTotal = max(1, $lateExceptionCount + $absentExceptionCount);
+$exceptionChartMax = max(1, $lateExceptionCount);
+$pageExceptionTotal = max(1, $lateExceptionCount);
 ?>
 <div class="sapas-workspace-stack">
     <?php if (!empty($errors)): ?>
@@ -183,10 +155,6 @@ $pageExceptionTotal = max(1, $lateExceptionCount + $absentExceptionCount);
                 <p class="sapas-report-summary-label"><?= htmlspecialchars($t('reports_module.late_only'), ENT_QUOTES, 'UTF-8') ?></p>
                 <p class="sapas-report-summary-value"><?= (int) $lateExceptionCount ?></p>
             </div>
-            <div class="sapas-report-insight-stat is-rose">
-                <p class="sapas-report-summary-label"><?= htmlspecialchars($t('reports_module.absent_only'), ENT_QUOTES, 'UTF-8') ?></p>
-                <p class="sapas-report-summary-value"><?= (int) $absentExceptionCount ?></p>
-            </div>
             <div class="sapas-report-insight-stat">
                 <p class="sapas-report-summary-label"><?= htmlspecialchars($t('reports.total_matches'), ENT_QUOTES, 'UTF-8') ?></p>
                 <p class="sapas-report-summary-value"><?= (int) $totalRecords ?></p>
@@ -195,7 +163,7 @@ $pageExceptionTotal = max(1, $lateExceptionCount + $absentExceptionCount);
     </section>
 
     <div class="sapas-report-filter-panel">
-        <form method="get" action="/admin/reports/late-absent-exceptions" class="sapas-report-filter-grid sapas-polish-filter-grid is-five">
+        <form method="get" action="/admin/reports/late-absent-exceptions" class="sapas-report-filter-grid sapas-polish-filter-grid is-four">
             <input type="hidden" name="per_page" value="<?= $perPage ?>">
             <div>
                 <label for="date_from" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('common.labels.date_from'), ENT_QUOTES, 'UTF-8') ?></label>
@@ -233,17 +201,7 @@ $pageExceptionTotal = max(1, $lateExceptionCount + $absentExceptionCount);
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div>
-                <label for="exception_type" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('reports_module.exception_type'), ENT_QUOTES, 'UTF-8') ?></label>
-                <select id="exception_type" name="exception_type" class="sapas-form-control mt-2">
-                    <?php foreach ($exceptionTypeLabels as $type => $label): ?>
-                        <option value="<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8') ?>" <?= (string) ($filters['exception_type'] ?? 'all') === $type ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="sapas-filter-actions xl:col-span-5 flex justify-end">
+            <div class="sapas-filter-actions xl:col-span-4 flex justify-end">
                 <button type="submit" class="sapas-btn sapas-btn-primary"><?= htmlspecialchars($t('common.actions.apply_filters'), ENT_QUOTES, 'UTF-8') ?></button>
                 <a href="/admin/reports/late-absent-exceptions" class="sapas-btn sapas-btn-secondary"><?= htmlspecialchars($t('common.actions.reset'), ENT_QUOTES, 'UTF-8') ?></a>
             </div>
@@ -255,7 +213,7 @@ $pageExceptionTotal = max(1, $lateExceptionCount + $absentExceptionCount);
                     <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('common.labels.active_filters'), ENT_QUOTES, 'UTF-8') ?></p>
                     <div class="mt-2 flex flex-wrap gap-2">
                         <?php if (empty($activeFilters)): ?>
-                            <span class="sapas-chip sapas-chip-muted"><?= htmlspecialchars($t('reports_module.late_and_absent'), ENT_QUOTES, 'UTF-8') ?></span>
+                            <span class="sapas-chip sapas-chip-muted"><?= htmlspecialchars($t('reports_module.late_only'), ENT_QUOTES, 'UTF-8') ?></span>
                         <?php else: ?>
                             <?php foreach ($activeFilters as $filter): ?>
                                 <span class="sapas-chip sapas-chip-info"><?= htmlspecialchars($filter, ENT_QUOTES, 'UTF-8') ?></span>

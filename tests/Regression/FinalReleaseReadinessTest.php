@@ -14,7 +14,16 @@ test('final release rules exclude runtime data uploads and local secrets', funct
         ['storage/private/demo-credentials.txt', false],
         ['storage/sessions/sess_example', false],
         ['storage/dompdf-fonts/generated-font-cache.ttf', false],
+        ['storage/phase5_live_qa.php', false],
+        ['OAPAS/README.md', false],
+        ['backup_pre_cleanup.sql', false],
+        ['src/Services/AttendanceCalculationService.php.phase5bak', false],
         ['releases/old-release.zip', false],
+        ['scratch/run_one_test.php', false],
+        ['debug_creation.txt', false],
+        ['tests_output.txt', false],
+        ['tests_final_output.txt', false],
+        ['tests_final_output_2.txt', false],
     ] as [$path, $isDirectory]) {
         assert_true(
             shouldExcludeSapasReleasePath($path, $isDirectory),

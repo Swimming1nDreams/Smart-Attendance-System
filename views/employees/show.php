@@ -38,16 +38,28 @@ $statusBadgeClass = $isActive
 <div class="space-y-6">
     <div class="sapas-workspace-card">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-                <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('employees_module.summary'), ENT_QUOTES, 'UTF-8') ?></p>
-                <h2 class="mt-2 text-3xl font-semibold"><?= htmlspecialchars($employeeName, ENT_QUOTES, 'UTF-8') ?></h2>
-                <p class="mt-1 text-slate-600"><?= htmlspecialchars($employeeEmail, ENT_QUOTES, 'UTF-8') ?></p>
-                <div class="mt-4 flex flex-wrap gap-2">
-                    <span class="<?= $roleBadgeClass ?>"><?= htmlspecialchars($t('roles.' . $role), ENT_QUOTES, 'UTF-8') ?></span>
-                    <span class="<?= $statusBadgeClass ?>"><?= htmlspecialchars($t('statuses.account.' . $status), ENT_QUOTES, 'UTF-8') ?></span>
-                    <span class="<?= $isEmailVerified ? 'sapas-badge bg-emerald-50 text-emerald-700' : 'sapas-badge bg-amber-50 text-amber-800' ?>"><?= htmlspecialchars($isEmailVerified ? $t('employees_module.email_verified') : $t('employees_module.email_unverified'), ENT_QUOTES, 'UTF-8') ?></span>
-                    <span class="sapas-badge bg-slate-100 text-slate-700"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?>: <?= htmlspecialchars($departmentName, ENT_QUOTES, 'UTF-8') ?></span>
-                    <span class="sapas-badge bg-slate-100 text-slate-700"><?= htmlspecialchars($t('common.labels.position'), ENT_QUOTES, 'UTF-8') ?>: <?= htmlspecialchars($positionName, ENT_QUOTES, 'UTF-8') ?></span>
+            <div class="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+                <?php
+                $avatarName = $employeeName;
+                $avatarPhotoUrl = (string) ($profilePhotoUrl ?? '');
+                $avatarClass = 'h-24 w-24 border-4 border-white shadow-md ring-1 ring-slate-200';
+                $avatarInitialsClass = 'text-2xl';
+                $avatarAlt = sprintf($t('profile.avatar_alt'), $employeeName);
+                $avatarFallbackLabel = sprintf($t('profile.avatar_fallback'), $employeeName);
+                require __DIR__ . '/../partials/avatar.php';
+                unset($avatarName, $avatarPhotoUrl, $avatarClass, $avatarInitialsClass, $avatarAlt, $avatarFallbackLabel);
+                ?>
+                <div>
+                    <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('employees_module.summary'), ENT_QUOTES, 'UTF-8') ?></p>
+                    <h2 class="mt-2 text-3xl font-semibold"><?= htmlspecialchars($employeeName, ENT_QUOTES, 'UTF-8') ?></h2>
+                    <p class="mt-1 text-slate-600"><?= htmlspecialchars($employeeEmail, ENT_QUOTES, 'UTF-8') ?></p>
+                    <div class="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
+                        <span class="<?= $roleBadgeClass ?>"><?= htmlspecialchars($t('roles.' . $role), ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="<?= $statusBadgeClass ?>"><?= htmlspecialchars($t('statuses.account.' . $status), ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="<?= $isEmailVerified ? 'sapas-badge bg-emerald-50 text-emerald-700' : 'sapas-badge bg-amber-50 text-amber-800' ?>"><?= htmlspecialchars($isEmailVerified ? $t('employees_module.email_verified') : $t('employees_module.email_unverified'), ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="sapas-badge bg-slate-100 text-slate-700"><?= htmlspecialchars($t('common.labels.department'), ENT_QUOTES, 'UTF-8') ?>: <?= htmlspecialchars($departmentName, ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="sapas-badge bg-slate-100 text-slate-700"><?= htmlspecialchars($t('common.labels.position'), ENT_QUOTES, 'UTF-8') ?>: <?= htmlspecialchars($positionName, ENT_QUOTES, 'UTF-8') ?></span>
+                    </div>
                 </div>
             </div>
 
@@ -136,28 +148,28 @@ $statusBadgeClass = $isActive
 
     <div class="sapas-workspace-card bg-slate-50 border border-slate-200">
         <h2 class="text-xl font-semibold"><?= htmlspecialchars($t('employees_module.work_policy') ?? 'Current Work Policy', ENT_QUOTES, 'UTF-8') ?></h2>
-        <p class="mt-1 text-sm text-slate-500">Authoritative policy resolved for today.</p>
+            <p class="mt-1 text-sm text-slate-500"><?= htmlspecialchars($t('employees_module.work_policy_help'), ENT_QUOTES, 'UTF-8') ?></p>
         <?php if (!empty($resolvedWorkPolicy['available'])): ?>
             <div class="mt-6 grid gap-6 md:grid-cols-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Policy Name</p>
+                    <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('employees_module.policy_name'), ENT_QUOTES, 'UTF-8') ?></p>
                     <p class="mt-1 text-lg text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['name'], ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Source</p>
+                    <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('employees_module.policy_source'), ENT_QUOTES, 'UTF-8') ?></p>
                     <p class="mt-1 text-lg text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['source_label'], ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Today's Schedule</p>
+                    <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('employees_module.today_schedule'), ENT_QUOTES, 'UTF-8') ?></p>
                     <p class="mt-1 text-lg text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['schedule_label'], ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Grace Period</p>
+                    <p class="text-sm font-medium text-slate-500"><?= htmlspecialchars($t('employees_module.grace_period'), ENT_QUOTES, 'UTF-8') ?></p>
                     <p class="mt-1 text-lg text-slate-900"><?= htmlspecialchars($resolvedWorkPolicy['grace_label'], ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
             </div>
         <?php else: ?>
-            <p class="mt-6 text-sm text-slate-600">No current work policy could be resolved.</p>
+            <p class="mt-6 text-sm text-slate-600"><?= htmlspecialchars($t('employees_module.no_current_work_policy'), ENT_QUOTES, 'UTF-8') ?></p>
         <?php endif; ?>
     </div>
 

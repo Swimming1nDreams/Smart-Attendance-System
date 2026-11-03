@@ -28,7 +28,7 @@ $pageActions = '<div class="sapas-workspace-actions"><a href="/admin/work-schedu
 
 $targetLabel = static function (array $row) use ($t): string {
     if (($row['scope_type'] ?? '') === 'company') {
-        return $t('workforce_policy.assignments.company_assignment');
+        return $t('workforce_policy.assignments.scope_company');
     }
     if (($row['scope_type'] ?? '') === 'department') {
         return (string) ($row['department_name'] ?? '—');
@@ -41,7 +41,7 @@ $targetLabel = static function (array $row) use ($t): string {
 
 <section class="sapas-filter-panel">
     <p class="mb-4 text-sm text-slate-600"><?= htmlspecialchars($t('workforce_policy.assignments.priority_help'), ENT_QUOTES, 'UTF-8') ?></p>
-    <form method="GET" action="/admin/work-schedules/assignments" class="grid gap-4 md:grid-cols-4">
+    <form method="GET" action="/admin/work-schedules/assignments" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
             <label class="block text-sm font-medium text-slate-700" for="scope-type"><?= htmlspecialchars($t('workforce_policy.assignments.scope'), ENT_QUOTES, 'UTF-8') ?></label>
             <select id="scope-type" name="scope_type" class="mt-1 sapas-form-control">
@@ -56,7 +56,7 @@ $targetLabel = static function (array $row) use ($t): string {
             <select id="policy-id" name="policy_id" class="mt-1 sapas-form-control">
                 <option value=""><?= htmlspecialchars($t('common.all'), ENT_QUOTES, 'UTF-8') ?></option>
                 <?php foreach ($options['policies'] as $policy): ?>
-                    <option value="<?= (int) $policy['id'] ?>" <?= (int) ($filters['policy_id'] ?? 0) === (int) $policy['id'] ? 'selected' : '' ?>><?= htmlspecialchars((string) $policy['name'], ENT_QUOTES, 'UTF-8') ?></option>
+                    <option value="<?= (int) $policy['id'] ?>" <?= (int) ($filters['policy_id'] ?? 0) === (int) $policy['id'] ? 'selected' : '' ?>><?= htmlspecialchars(\App\Services\BrandingPresenter::policyName($policy['name']), ENT_QUOTES, 'UTF-8') ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -69,9 +69,9 @@ $targetLabel = static function (array $row) use ($t): string {
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="flex items-end gap-2">
-            <button type="submit" class="sapas-btn sapas-btn-primary"><?= htmlspecialchars($t('common.actions.apply_filters'), ENT_QUOTES, 'UTF-8') ?></button>
-            <a href="/admin/work-schedules/assignments" class="sapas-btn sapas-btn-secondary"><?= htmlspecialchars($t('common.actions.reset'), ENT_QUOTES, 'UTF-8') ?></a>
+        <div class="flex items-end gap-2 sm:col-span-2 lg:col-span-1">
+            <button type="submit" class="sapas-btn sapas-btn-primary flex-shrink-0"><?= htmlspecialchars($t('common.actions.apply_filters'), ENT_QUOTES, 'UTF-8') ?></button>
+            <a href="/admin/work-schedules/assignments" class="sapas-btn sapas-btn-secondary flex-shrink-0"><?= htmlspecialchars($t('common.actions.reset'), ENT_QUOTES, 'UTF-8') ?></a>
         </div>
         <input type="hidden" name="per_page" value="<?= $perPage ?>">
     </form>
@@ -85,39 +85,50 @@ $targetLabel = static function (array $row) use ($t): string {
         </div>
     <?php else: ?>
         <div class="sapas-data-table-scroll overflow-x-auto">
-            <table class="sapas-data-table divide-y divide-slate-200">
+            <table class="sapas-data-table divide-y divide-slate-200 w-full min-w-[1250px]">
+                <colgroup>
+                    <col class="w-[60px]">
+                    <col class="w-[140px]">
+                    <col class="w-[240px]">
+                    <col class="w-[200px]">
+                    <col class="w-[240px]">
+                    <col class="w-[120px]">
+                    <col class="w-[100px]">
+                    <col class="w-[220px]">
+                    <col class="w-[110px]">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th class="sapas-col-row-number"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th><?= htmlspecialchars($t('workforce_policy.assignments.scope'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th><?= htmlspecialchars($t('workforce_policy.assignments.target'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th><?= htmlspecialchars($t('workforce_policy.policy_version'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th><?= htmlspecialchars($t('workforce_policy.assignments.effective_period'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th><?= htmlspecialchars($t('workforce_policy.assignments.priority'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th><?= htmlspecialchars($t('workforce_policy.assignments.reason'), ENT_QUOTES, 'UTF-8') ?></th>
-                        <th><?= htmlspecialchars($t('common.labels.actions'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="sapas-col-row-number text-left align-top"><?= htmlspecialchars($t('common.labels.no'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="text-left align-top"><?= htmlspecialchars($t('workforce_policy.assignments.scope'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="text-left align-top"><?= htmlspecialchars($t('workforce_policy.assignments.target'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="text-left align-top"><?= htmlspecialchars($t('workforce_policy.policy_version'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="text-left align-top"><?= htmlspecialchars($t('workforce_policy.assignments.effective_period'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="text-center align-top"><?= htmlspecialchars($t('common.labels.status'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="text-center align-top"><?= htmlspecialchars($t('workforce_policy.assignments.priority'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="text-left align-top"><?= htmlspecialchars($t('workforce_policy.assignments.reason'), ENT_QUOTES, 'UTF-8') ?></th>
+                        <th class="text-right align-top"><?= htmlspecialchars($t('common.labels.actions'), ENT_QUOTES, 'UTF-8') ?></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
                     <?php foreach ($records as $index => $row): ?>
                         <tr>
-                            <td><span class="sapas-row-number"><?= $rowNumberStart + $index ?></span></td>
-                            <td><?= htmlspecialchars($t('workforce_policy.assignments.scope_' . (string) $row['scope_type']), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><span title="<?= htmlspecialchars($targetLabel($row), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($targetLabel($row), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td><?= htmlspecialchars((string) ($row['policy_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td>
-                                <span><?= htmlspecialchars((string) ($row['effective_from'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></span>
-                                <span class="text-slate-400">-</span>
+                            <td class="align-top"><span class="sapas-row-number"><?= $rowNumberStart + $index ?></span></td>
+                            <td class="align-top break-words"><?= htmlspecialchars($t('workforce_policy.assignments.scope_' . (string) $row['scope_type']), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="align-top break-words"><span title="<?= htmlspecialchars($targetLabel($row), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($targetLabel($row), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td class="align-top break-words"><?= htmlspecialchars(\App\Services\BrandingPresenter::policyName($row['policy_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="align-top whitespace-nowrap">
+                                <span><?= ($row['effective_from'] ?? '') === '1970-01-01' ? htmlspecialchars($t('workforce_policy.assignments.baseline_start') ?: 'Baseline', ENT_QUOTES, 'UTF-8') : htmlspecialchars((string) ($row['effective_from'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></span>
+                                <span class="text-slate-400 mx-1">&ndash;</span>
                                 <span><?= htmlspecialchars((string) ($row['effective_to'] ?? $t('work_schedules.open_ended')), ENT_QUOTES, 'UTF-8') ?></span>
                             </td>
-                            <td><span class="sapas-badge <?= ($row['period_status'] ?? '') === 'active' ? 'sapas-badge-success' : 'sapas-badge-muted' ?>"><?= htmlspecialchars($t('workforce_policy.assignments.status_' . (string) $row['period_status']), ENT_QUOTES, 'UTF-8') ?></span></td>
-                            <td><?= (int) ($row['priority'] ?? 0) ?></td>
-                            <td><p class="sapas-table-text-cell" title="<?= htmlspecialchars((string) ($row['reason'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars((string) ($row['reason'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></p></td>
-                            <td class="sapas-table-action">
-                                <div class="sapas-masterdata-actions">
+                            <td class="text-center align-top whitespace-nowrap"><span class="sapas-badge <?= ($row['period_status'] ?? '') === 'active' ? 'sapas-badge-success' : 'sapas-badge-muted' ?>"><?= htmlspecialchars($t('workforce_policy.assignments.status_' . (string) $row['period_status']), ENT_QUOTES, 'UTF-8') ?></span></td>
+                            <td class="text-center align-top"><?= (int) ($row['priority'] ?? 0) ?></td>
+                            <td class="align-top break-words" title="<?= htmlspecialchars((string) ($row['reason'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>"><?= str_starts_with((string) ($row['reason'] ?? ''), 'Seeded from company') ? htmlspecialchars($t('workforce_policy.assignments.seeded_reason') ?: 'System Baseline', ENT_QUOTES, 'UTF-8') : htmlspecialchars((string) ($row['reason'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="sapas-table-action whitespace-nowrap text-right align-top">
+                                <div class="sapas-masterdata-actions flex justify-end gap-2">
                                     <a href="/admin/work-schedules/assignments/edit?id=<?= (int) $row['id'] ?>" class="sapas-btn sapas-btn-secondary"><?= htmlspecialchars($t('common.actions.edit'), ENT_QUOTES, 'UTF-8') ?></a>
-                                    <form method="post" action="/admin/work-schedules/assignments/end">
+                                    <form method="post" action="/admin/work-schedules/assignments/end" class="inline-block">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '', ENT_QUOTES, 'UTF-8') ?>">
                                         <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
                                         <button type="submit" class="sapas-btn sapas-btn-secondary"><?= htmlspecialchars($t('workforce_policy.assignments.end'), ENT_QUOTES, 'UTF-8') ?></button>

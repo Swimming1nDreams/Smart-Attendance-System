@@ -6,6 +6,9 @@ namespace App\Services;
 
 class EmailVerificationMailer
 {
+    private const PRODUCT_NAME = 'Office Attendance and Analytic System (OAAS)';
+    private const DEFAULT_VERIFICATION_SUBJECT = 'Your Office Attendance and Analytic System verification code';
+
     private array $config;
 
     public function __construct(array $config)
@@ -29,31 +32,31 @@ class EmailVerificationMailer
 
     private function buildVerificationBody(string $recipientName, string $verificationCode, int $expiryMinutes): string
     {
-        $name = trim($recipientName) !== '' ? trim($recipientName) : 'Smart Attendance user';
+        $name = trim($recipientName) !== '' ? trim($recipientName) : self::PRODUCT_NAME . ' user';
 
         return implode("\r\n", [
             'Hello ' . $name . ',',
             '',
-            'An administrator created your Smart Attendance account.',
+            'An administrator created your ' . self::PRODUCT_NAME . ' account.',
             '',
             'Your verification code is: ' . $verificationCode,
             '',
             'This code expires in ' . $expiryMinutes . ' minutes.',
             'If you did not expect this account, contact your HR administrator.',
             '',
-            'Smart Attendance',
+            self::PRODUCT_NAME,
         ]);
     }
 
     private function verificationSubject(): string
     {
-        return (string) ($this->config['verification_subject'] ?? 'Verify your Smart Attendance account email');
+        return (string) ($this->config['verification_subject'] ?? self::DEFAULT_VERIFICATION_SUBJECT);
     }
 
     private function sendViaMail(string $recipientEmail, string $subject, string $body): bool
     {
-        $fromEmail = (string) ($this->config['from_email'] ?? 'no-reply@sapas.local');
-        $fromName = (string) ($this->config['from_name'] ?? 'Smart Attendance');
+        $fromEmail = (string) ($this->config['from_email'] ?? 'no-reply@oaas.local');
+        $fromName = (string) ($this->config['from_name'] ?? self::PRODUCT_NAME);
         $headers = [
             'From: ' . $this->formatAddress($fromEmail, $fromName),
             'Content-Type: text/plain; charset=UTF-8',
@@ -72,8 +75,8 @@ class EmailVerificationMailer
     {
         $host = trim((string) ($this->config['host'] ?? ''));
         $port = (int) ($this->config['port'] ?? 587);
-        $fromEmail = trim((string) ($this->config['from_email'] ?? 'no-reply@sapas.local'));
-        $fromName = (string) ($this->config['from_name'] ?? 'Smart Attendance');
+        $fromEmail = trim((string) ($this->config['from_email'] ?? 'no-reply@oaas.local'));
+        $fromName = (string) ($this->config['from_name'] ?? self::PRODUCT_NAME);
 
         if ($host === '') {
             return $this->fail('SMTP host is not configured.');
@@ -209,7 +212,7 @@ class EmailVerificationMailer
     private function logEmail(string $recipientEmail, string $subject): bool
     {
         error_log(sprintf(
-            "Smart Attendance verification delivery dry run\nTo: %s\nSubject: %s\nMessage content omitted from logs.",
+            "OAAS verification delivery dry run\nTo: %s\nSubject: %s\nMessage content omitted from logs.",
             $recipientEmail,
             $subject,
         ));
@@ -219,7 +222,7 @@ class EmailVerificationMailer
 
     private function fail(string $reason): bool
     {
-        error_log('SAPAS email verification delivery failed: ' . $reason);
+        error_log('OAAS email verification delivery failed: ' . $reason);
 
         return false;
     }

@@ -115,7 +115,7 @@ test('structural guard: report pages and PDF or Excel exports call admin authori
         'lateAbsentExceptionsPdf',
         'lateAbsentExceptionsExcel',
     ] as $method) {
-        assert_method_contains($file, $method, '$this->ensureAdmin();');
+        assert_method_contains($file, $method, '$this->ensureAdminOrDepartmentHead();');
     }
 });
 
@@ -137,8 +137,9 @@ test('tampered report filters remain unreachable until after admin authorization
         'lateAbsentExceptionsExcel' => 'attendanceExceptions',
     ] as $method => $filterMethod) {
         assert_method_order($file, $method, [
-            '$this->ensureAdmin();',
-            '$this->filters->' . $filterMethod . '($request->getQueryParams())',
+            '$this->ensureAdminOrDepartmentHead();',
+            '$input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));',
+            '$this->filters->' . $filterMethod . '($input)',
         ]);
     }
 
@@ -153,8 +154,9 @@ test('tampered analytics month department and employee filters remain behind adm
     assert_not_contains("addRoute('GET', '/employee/analytics'", $routes);
 
     assert_method_order(project_path('src/Controllers/AnalyticsController.php'), 'index', [
-        '$this->ensureAdmin();',
-        '$this->filters->analytics($request->getQueryParams())',
+        '$this->ensureAdminOrDepartmentHead();',
+        '$input = array_merge($request->getQueryParams(), $this->resolveScopeFilters($request));',
+        '$this->filters->analytics($input)',
         '$this->analytics->generate($filters)',
     ]);
 
@@ -177,4 +179,24 @@ test('successful report exports preserve existing best-effort audit events', fun
     ]);
     assert_method_contains($controller, 'streamAndAudit', 'false);');
     assert_method_contains($controller, 'streamExcelAndAudit', 'false);');
+});
+
+test('current report downloads use the OAAS filename prefix', function (): void {
+    $controller = file_get_contents(project_path('src/Controllers/ReportsController.php'));
+    $pdfExporter = file_get_contents(project_path('src/Services/ReportPdfExportService.php'));
+    assert_true(is_string($controller), 'ReportsController should be readable.');
+    assert_true(is_string($pdfExporter), 'ReportPdfExportService should be readable.');
+
+    foreach ([
+        'oaas_attendance_summary_',
+        'oaas_employee_attendance_detail_',
+        'oaas_leave_requests_',
+        'oaas_late_absent_exceptions_',
+    ] as $prefix) {
+        assert_contains($prefix, $controller);
+    }
+
+    assert_not_contains("'sapas_", $controller);
+    assert_contains('oaas_report.pdf', $pdfExporter);
+    assert_not_contains('sapas_report.pdf', $pdfExporter);
 });

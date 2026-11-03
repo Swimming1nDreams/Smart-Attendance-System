@@ -9,15 +9,22 @@ $guestTitle = $guestTitle ?? $t('app.official_name');
 $guestDescription = $guestDescription ?? $t('app.guest_description');
 $guestBrandShowSubtitle = (bool) ($guestBrandShowSubtitle ?? true);
 $guestBrandWordmark = $guestBrandWordmark ?? $t('app.acronym');
+$guestBrandSubtitle = $guestBrandSubtitle ?? $t('app.tagline');
+$guestFooterText = (string) ($guestFooterText ?? $t('app.acronym'));
 $guestVisualTitle = $guestVisualTitle ?? $guestDescription;
 $guestOverviewIntro = $guestOverviewIntro ?? '';
 $guestOverviewFeatures = $guestOverviewFeatures ?? [];
 $hasGuestOverview = is_array($guestOverviewFeatures) && $guestOverviewFeatures !== [];
 $guestCompactVisual = (bool) ($guestCompactVisual ?? false);
+$guestVisualShowBrand = (bool) ($guestVisualShowBrand ?? false);
 $hasGuestVisualContent = $guestCompactVisual || $hasGuestOverview;
 $showGuestVisual = (bool) ($showGuestVisual ?? true);
 $guestFrameVariant = (string) ($guestFrameVariant ?? '');
-$guestFrameVariantClass = $guestFrameVariant === 'focused-login' ? 'is-focused-login' : '';
+$guestFrameVariantClass = match ($guestFrameVariant) {
+    'focused-login' => 'is-focused-login',
+    'verification' => 'is-verification',
+    default => '',
+};
 ?>
 <!DOCTYPE html>
 <html lang="<?= htmlspecialchars($htmlLang, ENT_QUOTES, 'UTF-8') ?>">
@@ -43,8 +50,9 @@ $guestFrameVariantClass = $guestFrameVariant === 'focused-login' ? 'is-focused-l
                     $brandHref = null;
                     $brandShowSubtitle = $guestBrandShowSubtitle;
                     $brandWordmark = $guestBrandWordmark;
+                    $brandSubtitle = $guestBrandSubtitle;
                     require __DIR__ . '/../partials/brand.php';
-                    unset($brandVariant, $brandHref, $brandShowSubtitle, $brandWordmark);
+                    unset($brandVariant, $brandHref, $brandShowSubtitle, $brandWordmark, $brandSubtitle);
                     ?>
                     <?php if ($guestDescription !== ''): ?>
                         <p class="sapas-guest-description"><?= htmlspecialchars($guestDescription, ENT_QUOTES, 'UTF-8') ?></p>
@@ -56,18 +64,35 @@ $guestFrameVariantClass = $guestFrameVariant === 'focused-login' ? 'is-focused-l
                     <?= $content ?>
                 </main>
 
-                <p class="sapas-guest-footer">&copy; 2026 <?= htmlspecialchars($t('app.acronym'), ENT_QUOTES, 'UTF-8') ?></p>
+                <?php if ($guestFooterText !== ''): ?>
+                    <p class="sapas-guest-footer">&copy; 2026 <?= htmlspecialchars($guestFooterText, ENT_QUOTES, 'UTF-8') ?></p>
+                <?php endif; ?>
             </section>
 
             <?php if ($showGuestVisual): ?>
             <aside class="sapas-guest-visual <?= $guestCompactVisual ? 'is-compact' : '' ?>" <?= $hasGuestVisualContent ? '' : 'aria-hidden="true" inert' ?>>
                 <div class="sapas-guest-visual-inner">
-                    <p class="sapas-guest-visual-kicker"><?= htmlspecialchars($t('app.tagline'), ENT_QUOTES, 'UTF-8') ?></p>
-                    <h2 class="sapas-guest-visual-title"><?= htmlspecialchars($guestVisualTitle, ENT_QUOTES, 'UTF-8') ?></h2>
-
-                    <?php if ($guestOverviewIntro !== ''): ?>
-                        <p class="sapas-guest-overview-intro"><?= htmlspecialchars((string) $guestOverviewIntro, ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php if ($guestVisualShowBrand): ?>
+                        <div class="sapas-guest-visual-brand">
+                            <?php
+                            $brandVariant = 'guest';
+                            $brandHref = null;
+                            $brandShowSubtitle = true;
+                            $brandWordmark = $t('app.acronym');
+                            $brandSubtitle = $t('app.official_name');
+                            require __DIR__ . '/../partials/brand.php';
+                            unset($brandVariant, $brandHref, $brandShowSubtitle, $brandWordmark, $brandSubtitle);
+                            ?>
+                        </div>
                     <?php endif; ?>
+                    <div class="sapas-guest-visual-copy">
+                        <p class="sapas-guest-visual-kicker"><?= htmlspecialchars($t('app.tagline'), ENT_QUOTES, 'UTF-8') ?></p>
+                        <h2 class="sapas-guest-visual-title"><?= htmlspecialchars($guestVisualTitle, ENT_QUOTES, 'UTF-8') ?></h2>
+
+                        <?php if ($guestOverviewIntro !== ''): ?>
+                            <p class="sapas-guest-overview-intro"><?= htmlspecialchars((string) $guestOverviewIntro, ENT_QUOTES, 'UTF-8') ?></p>
+                        <?php endif; ?>
+                    </div>
 
                     <?php if ($hasGuestOverview): ?>
                         <div class="sapas-guest-overview-grid">

@@ -39,7 +39,7 @@ test('phase 3 audit redacts secrets while preserving safe security metadata', fu
     assert_same(255, strlen((string) $row['user_agent']));
 });
 
-test('phase 3 employee creation assigns the locked next staff code and audits the transaction', function (): void {
+test('phase 3 employee creation stores the admin supplied six digit staff code and audits the transaction', function (): void {
     $database = TestDatabase::connect();
     $ids = $database->resetAndSeed();
     $pdo = $database->pdo();
@@ -49,7 +49,7 @@ test('phase 3 employee creation assigns the locked next staff code and audits th
         'Phase3!StrongPass9', 'Phase3!StrongPass9', $ids['admin_id']);
 
     $created = $pdo->query('SELECT staff_code FROM users WHERE id = ' . $userId)->fetch();
-    assert_same('SAP-0005', $created['staff_code']);
+    assert_same('654321', $created['staff_code']);
     assert_same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_logs WHERE entity_id = '{$userId}' AND action = 'employee.created'")->fetchColumn());
     assert_same(1, (int) $pdo->query("SELECT COUNT(*) FROM audit_logs WHERE entity_id = '{$userId}' AND action = 'employee.staff_code_assigned'")->fetchColumn());
     assert_same(0, (int) $pdo->query("SELECT COUNT(*) - COUNT(DISTINCT staff_code) FROM users")->fetchColumn());
@@ -165,6 +165,7 @@ function phase3_new_account(array $ids): array
     return [
         'name' => 'Phase Three Employee', 'email' => 'phase.three@silveroakhr.com', 'role' => 'employee',
         'department_id' => $ids['department_id'], 'position_id' => $ids['position_id'], 'status' => 'active',
+        'staff_code' => '654321',
         'employment_type' => 'full-time', 'join_date' => '2026-07-22', 'expected_daily_work_hours' => 8.0,
         'overtime_eligible' => true,
     ];

@@ -20,7 +20,7 @@ test('large list controllers validate the shared 20 50 100 page sizes', function
     assert_contains("\$filters['per_page'] ?? 20", $auditController);
     assert_contains("\$input['per_page'] ?? 20", $filterService);
     assert_contains("'per_page' => \$perPage", $filterService);
-    assert_same(4, substr_count($reportController, "(int) (\$filters['per_page'] ?? 20)"));
+    assert_same(5, substr_count($reportController, "(int) (\$filters['per_page'] ?? 20)"));
 });
 
 test('employees leave audit and report views expose the shared page-size selector', function (): void {
@@ -32,6 +32,7 @@ test('employees leave audit and report views expose the shared page-size selecto
         'views/reports/attendance_summary.php',
         'views/reports/employee_attendance_detail.php',
         'views/reports/leave_requests.php',
+        'views/reports/absence.php',
         'views/reports/late_absent_exceptions.php',
     ];
 

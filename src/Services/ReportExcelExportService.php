@@ -9,7 +9,7 @@ use DateTimeZone;
 use InvalidArgumentException;
 
 /**
- * Creates dependency-free Office Open XML (.xlsx) workbooks for SAPAS reports.
+ * Creates dependency-free Office Open XML (.xlsx) workbooks for OAAS reports.
  *
  * The writer deliberately uses inline strings and a standards-compliant stored
  * ZIP container so report export does not depend on ZipArchive or an external
@@ -19,7 +19,7 @@ use InvalidArgumentException;
 final class ReportExcelExportService
 {
     private const CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    private const DEFAULT_PROJECT_NAME = 'Smart Attendance and Performance Analytics System (SAPAS)';
+    private const DEFAULT_PROJECT_NAME = 'Office Attendance and Analytic System (OAAS)';
 
     /**
      * @param array{
@@ -610,7 +610,7 @@ final class ReportExcelExportService
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             . '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" '
             . 'xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">'
-            . '<Application>Smart Attendance</Application>'
+            . '<Application>OAAS</Application>'
             . '<DocSecurity>0</DocSecurity><ScaleCrop>false</ScaleCrop>'
             . '<HeadingPairs><vt:vector size="2" baseType="variant"><vt:variant><vt:lpstr>Worksheets</vt:lpstr></vt:variant><vt:variant><vt:i4>' . count($sheetNames) . '</vt:i4></vt:variant></vt:vector></HeadingPairs>'
             . '<TitlesOfParts><vt:vector size="' . count($sheetNames) . '" baseType="lpstr">' . $titles . '</vt:vector></TitlesOfParts>'

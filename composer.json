@@ -1,6 +1,6 @@
 {
-    "name": "sapas/sapas",
-    "description": "SAPAS attendance and leave management application",
+    "name": "oaas/oaas",
+    "description": "OAAS office attendance and analytic system application",
     "type": "project",
     "require": {
         "dompdf/dompdf": "^3.1",

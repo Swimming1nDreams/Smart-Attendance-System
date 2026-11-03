@@ -19,7 +19,7 @@ if ($brandVariant === 'guest') {
 <?php else: ?>
     <div class="<?= htmlspecialchars($brandClass, ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars($t('app.official_name'), ENT_QUOTES, 'UTF-8') ?>">
 <?php endif; ?>
-        <span class="sapas-brand-mark" aria-hidden="true"><span>S</span></span>
+        <span class="sapas-brand-mark" aria-hidden="true"><span>O</span></span>
         <?php if ($brandShowText): ?>
             <span class="sapas-brand-text">
                 <span class="sapas-brand-wordmark"><?= htmlspecialchars((string) $brandWordmark, ENT_QUOTES, 'UTF-8') ?></span>

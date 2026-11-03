@@ -1,0 +1,26 @@
+OAAS REPORT REGRESSION TEST ALIGNMENT — 2026-08-21
+==================================================
+
+This small follow-up aligns the shared report pagination markup and two static
+regression tests with the new report design:
+
+1. ReportsController now has five paginated report screens because Absence Report
+   was added.
+2. Employee Attendance Detail now forwards the enforced department ID before the
+   absent-status exclusion. The dedicated AbsenceReportService is also checked.
+3. The Absence Report uses the same validated per-page template markup as every
+   other paginated report.
+
+No application logic, database data, or migration is changed by this follow-up.
+
+INSTALL
+-------
+Extract the ZIP and copy its contents into the inner OAAS project folder. Allow
+Windows to replace the matching files.
+
+VERIFY
+------
+php .\tests\run.php
+
+Expected result for this project version:
+OAAS regression tests: 444 passed, 0 failed, 0 skipped, 444 total

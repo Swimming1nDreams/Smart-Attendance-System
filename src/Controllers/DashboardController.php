@@ -15,6 +15,7 @@ use App\Models\Notification;
 use App\Services\AttendancePolicyService;
 use App\Services\AttendanceOperationService;
 use App\Services\AttendanceReportContextService;
+use App\Services\AttendanceSessionReadService;
 use App\Services\WorkScheduleResolverService;
 
 class DashboardController extends Controller
@@ -36,6 +37,7 @@ class DashboardController extends Controller
         private ?AttendanceReportContextService $attendanceContext = null,
         private ?WorkScheduleResolverService $scheduleResolver = null,
         private ?AttendanceOperationService $attendanceOperations = null,
+        private ?AttendanceSessionReadService $sessionReader = null,
     ) {
         parent::__construct($app, $sessionManager);
 
@@ -87,9 +89,20 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function departmentHeadDashboard(): void
+    {
+        $this->sessionManager->requireRole('department_head');
+        $this->renderEmployeeDashboardInternal();
+    }
+
     public function employeeDashboard(): void
     {
         $this->sessionManager->requireRole('employee');
+        $this->renderEmployeeDashboardInternal();
+    }
+
+    private function renderEmployeeDashboardInternal(): void
+    {
 
         $userId = $this->sessionManager->getUserId();
 
@@ -169,6 +182,31 @@ class DashboardController extends Controller
             ? round(($presentDays / $totalWorkingDays) * 100, 1)
             : 0.0;
 
+        $has100PercentAttendance = false;
+        try {
+            $analyticsService = new \App\Services\AnalyticsService(
+                $this->employeeModel,
+                $this->attendanceModel,
+                $this->holidayModel,
+                $this->leaveRequestModel,
+                $this->attendancePolicy,
+                $this->scheduleResolver,
+                null,
+                $this->sessionReader,
+            );
+            $analyticsData = $analyticsService->generate(['month' => date('Y-m'), 'employee_id' => $userId]);
+            $employeeAnalytics = $analyticsData['employee_analytics'][0] ?? null;
+            if (is_array($employeeAnalytics)) {
+                $presentDays = (int) ($employeeAnalytics['present_days'] ?? 0);
+                $absentDays = (int) ($employeeAnalytics['absent_days'] ?? 0);
+                $lateDays = (int) ($employeeAnalytics['late_days'] ?? 0);
+                $attendancePercentage = (float) ($employeeAnalytics['attendance_percentage'] ?? 0.0);
+                $has100PercentAttendance = (bool) ($employeeAnalytics['has_100_percent_attendance'] ?? false);
+            }
+        } catch (\Throwable) {
+            // Keep the record-based compatibility summary if analytics is unavailable.
+        }
+
 
         // Attendance action permissions
 
@@ -176,10 +214,21 @@ class DashboardController extends Controller
         $canClockIn = $clockInBlockReason === null;
 
 
-        $canClockOut =
+        $sessionOpen = $this->attendanceOperations?->hasOpenSessionForEmployee($userId);
+        $canClockOut = $sessionOpen ?? (
             $todayRecord !== null &&
             $todayRecord['clock_in_time'] !== null &&
-            $todayRecord['clock_out_time'] === null;
+            $todayRecord['clock_out_time'] === null
+        );
+
+        $earlyCheckoutPreview = null;
+        if ($canClockOut && $this->attendanceOperations !== null) {
+            try {
+                $earlyCheckoutPreview = $this->attendanceOperations->previewClockOut($userId, $today, date('H:i:s'));
+            } catch (\Throwable) {
+                $earlyCheckoutPreview = null;
+            }
+        }
 
         $resolvedWorkPolicy = null;
         if ($this->scheduleResolver !== null) {
@@ -224,20 +273,11 @@ class DashboardController extends Controller
 
             'recentRecords' => $recentRecords,
 
-            'has100PercentAttendance' => (function() use ($userId) {
-                $analyticsService = new \App\Services\AnalyticsService(
-                    $this->employeeModel,
-                    $this->attendanceModel,
-                    $this->holidayModel,
-                    $this->leaveRequestModel,
-                    $this->attendancePolicy,
-                    $this->scheduleResolver
-                );
-                $data = $analyticsService->generate(['month' => date('Y-m'), 'employee_id' => $userId]);
-                return $data['employee_analytics'][0]['has_100_percent_attendance'] ?? false;
-            })(),
+            'has100PercentAttendance' => $has100PercentAttendance,
 
             'resolvedWorkPolicy' => $resolvedWorkPolicy,
+            'earlyCheckoutPreview' => $earlyCheckoutPreview,
+            'earlyDepartureReasonCodes' => AttendanceOperationService::EARLY_DEPARTURE_REASONS,
         ]);
     }
 

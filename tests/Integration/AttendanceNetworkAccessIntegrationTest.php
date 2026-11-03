@@ -24,7 +24,7 @@ test('database integration: denied office network access is audited without writ
         '198.51.100.25',
         $ids['employee_id'],
         'clock_in',
-        ['user_agent' => 'SAPAS Network Test'],
+        ['user_agent' => 'OAAS Network Test'],
     ));
     assert_null($attendance->findByUserIdAndDate($ids['employee_id'], '2026-07-22'));
 

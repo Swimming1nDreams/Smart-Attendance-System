@@ -10,11 +10,14 @@ use App\Core\Router;
 use App\Core\SessionManager;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
+use App\Controllers\MyWorkPolicyController;
 use App\Controllers\DepartmentController;
 use App\Controllers\PositionController;
+use App\Controllers\ProfileController;
 use App\Controllers\HolidayController;
 use App\Controllers\EmployeeController;
 use App\Controllers\AttendanceController;
+use App\Controllers\AbsenceController;
 use App\Controllers\AnalyticsController;
 use App\Controllers\LeaveController;
 use App\Controllers\NotificationController;
@@ -29,6 +32,7 @@ use App\Models\Holiday;
 use App\Models\Employee;
 use App\Models\EmployeeProfile;
 use App\Models\Attendance;
+use App\Models\AttendanceSession;
 use App\Models\Notification;
 use App\Models\AuditLog;
 use App\Models\CompanyProfile;
@@ -39,6 +43,8 @@ use App\Services\AccountManagementService;
 use App\Services\AttendanceNetworkAccessService;
 use App\Services\AttendanceOperationService;
 use App\Services\AttendanceCalculationService;
+use App\Services\AttendanceIntervalAggregationService;
+use App\Services\AttendanceSessionReadService;
 use App\Services\AttendancePolicyService;
 use App\Services\CompanyProfileService;
 use App\Services\DatabaseOperationException;
@@ -46,6 +52,7 @@ use App\Services\DateValidationService;
 use App\Services\EmailVerificationMailer;
 use App\Services\EmailVerificationService;
 use App\Services\PasswordPolicyService;
+use App\Services\ProfilePhotoStorageService;
 use App\Services\ReportExcelExportService;
 use App\Services\ReportPdfExportService;
 use App\Services\SessionSecurityService;
@@ -54,9 +61,11 @@ use App\Services\AnalyticsService;
 use App\Services\AttendanceExceptionReportService;
 use App\Services\AttendanceReportContextService;
 use App\Services\AttendanceSummaryReportService;
+use App\Services\AbsenceReportService;
 use App\Services\AuditLogService;
 use App\Services\EmployeeAttendanceReportService;
 use App\Services\EmployeeValidationService;
+use App\Services\EmployeeWorkPolicyPresenter;
 use App\Services\LeaveReportService;
 use App\Services\OvertimeReviewService;
 use App\Services\ReportFilterService;
@@ -111,7 +120,7 @@ set_exception_handler(static function (\Throwable $exception): void {
 
     $message = $exception instanceof DatabaseOperationException && class_exists(Localization::class)
         ? Localization::current()->translate('validation.database_operation_failed')
-        : 'SAPAS could not start safely. Please try again later or contact the administrator.';
+        : 'OAAS could not start safely. Please try again later or contact the administrator.';
     echo '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Service temporarily unavailable</title></head><body><h1>Service temporarily unavailable</h1><p>' . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . '</p></body></html>';
 });
 
@@ -166,6 +175,7 @@ $employeeValidationService = new EmployeeValidationService(
     $passwordPolicyService,
     $dateValidationService,
 );
+$profilePhotoStorageService = new ProfilePhotoStorageService();
 $attendancePolicyService = new AttendancePolicyService($dateValidationService);
 $attendanceModel = new Attendance($app->getDatabase()->getConnection(), $attendancePolicyService);
 $leaveRequestModel = new App\Models\LeaveRequest($app->getDatabase()->getConnection());
@@ -177,12 +187,16 @@ $companyProfileModel = new CompanyProfile($app->getDatabase()->getConnection());
 $workScheduleService = new WorkScheduleService($app->getDatabase()->getConnection(), $workScheduleTemplateModel, $dateValidationService, $auditLogService);
 $companyProfileService = new CompanyProfileService($app->getDatabase()->getConnection(), $companyProfileModel, $workScheduleTemplateModel, $auditLogService);
 $workScheduleResolverService = new WorkScheduleResolverService($app->getDatabase()->getConnection());
+$employeeWorkPolicyPresenter = new EmployeeWorkPolicyPresenter($attendancePolicyService);
 $workScheduleAssignmentService = new WorkScheduleAssignmentService($app->getDatabase()->getConnection(), $auditLogService);
 $overtimeReviewService = new OvertimeReviewService($app->getDatabase()->getConnection(), $auditLogService, $notificationModel);
-$attendanceCalculationService = new AttendanceCalculationService();
+$attendanceIntervalAggregationService = new AttendanceIntervalAggregationService();
+$attendanceCalculationService = new AttendanceCalculationService($attendanceIntervalAggregationService);
+$attendanceSessionModel = new AttendanceSession($app->getDatabase()->getConnection());
+$attendanceSessionReadService = new AttendanceSessionReadService($attendanceSessionModel, $attendanceCalculationService);
 $authController = new AuthController($authService, $emailVerificationService, $app, $sessionManager, $auditLogService);
 $attendanceNetworkAccessService = new AttendanceNetworkAccessService($config['attendance_network'] ?? [], $auditLogService);
-$attendanceOperationService = new AttendanceOperationService($app->getDatabase()->getConnection(), $attendancePolicyService, $auditLogService, $workScheduleResolverService, $attendanceCalculationService, $notificationModel);
+$attendanceOperationService = new AttendanceOperationService($app->getDatabase()->getConnection(), $attendancePolicyService, $auditLogService, $workScheduleResolverService, $attendanceCalculationService, $notificationModel, $attendanceSessionModel);
 $leaveOperationService = new LeaveOperationService($app->getDatabase()->getConnection(), $dateValidationService, $auditLogService);
 $reportPdfExportService = new ReportPdfExportService($config['pdf_browser_path'] ?? null);
 $reportExcelExportService = new ReportExcelExportService();
@@ -193,23 +207,28 @@ $attendanceReportContextService = new AttendanceReportContextService(
     $attendancePolicyService,
     $workScheduleResolverService,
     $attendanceCalculationService,
+    $attendanceSessionReadService,
 );
 $attendanceSummaryReportService = new AttendanceSummaryReportService($attendanceModel, $attendanceReportContextService, $attendancePolicyService);
 $employeeAttendanceReportService = new EmployeeAttendanceReportService($attendanceModel, $leaveRequestModel, $attendanceReportContextService);
 $leaveReportService = new LeaveReportService($leaveRequestModel);
 $attendanceExceptionReportService = new AttendanceExceptionReportService($attendanceModel, $attendanceReportContextService);
-$analyticsService = new AnalyticsService($employeeModel, $attendanceModel, $holidayModel, $leaveRequestModel, $attendancePolicyService, $workScheduleResolverService);
+$absenceReportService = new AbsenceReportService($attendanceModel);
+$analyticsService = new AnalyticsService($employeeModel, $attendanceModel, $holidayModel, $leaveRequestModel, $attendancePolicyService, $workScheduleResolverService, $attendanceCalculationService, $attendanceSessionReadService);
 
-$dashboardController = new DashboardController($sessionManager, $attendanceModel, $employeeModel, $holidayModel, $leaveRequestModel, $app, $attendancePolicyService, $attendanceReportContextService, $workScheduleResolverService, $attendanceOperationService);
+$dashboardController = new DashboardController($sessionManager, $attendanceModel, $employeeModel, $holidayModel, $leaveRequestModel, $app, $attendancePolicyService, $attendanceReportContextService, $workScheduleResolverService, $attendanceOperationService, $attendanceSessionReadService);
+$myWorkPolicyController = new MyWorkPolicyController($employeeModel, $workScheduleTemplateModel, $workScheduleResolverService, $employeeWorkPolicyPresenter, $sessionManager, $app);
 $departmentController = new DepartmentController($departmentModel, $sessionManager, $app, $auditLogService);
 $positionController = new PositionController($positionModel, $sessionManager, $app, $auditLogService);
 $holidayController = new HolidayController($holidayModel, $sessionManager, $app, $dateValidationService, $auditLogService);
-$employeeController = new EmployeeController($employeeModel, $employeeProfileModel, $departmentModel, $positionModel, $emailVerificationService, $accountManagementService, $employeeValidationService, $passwordPolicyService, $sessionManager, $app, $workScheduleResolverService, $auditLogService);
-$attendanceController = new AttendanceController($attendanceModel, $holidayModel, $employeeModel, $leaveRequestModel, $sessionManager, $app, $dateValidationService, $attendancePolicyService, $attendanceOperationService, $attendanceReportContextService, $attendanceNetworkAccessService);
+$employeeController = new EmployeeController($employeeModel, $employeeProfileModel, $departmentModel, $positionModel, $emailVerificationService, $accountManagementService, $employeeValidationService, $passwordPolicyService, $sessionManager, $app, $workScheduleResolverService, $auditLogService, $profilePhotoStorageService);
+$profileController = new ProfileController($employeeModel, $employeeProfileModel, $employeeValidationService, $profilePhotoStorageService, $sessionManager, $app, $auditLogService, $workScheduleResolverService, $workScheduleTemplateModel, $employeeWorkPolicyPresenter);
+$attendanceController = new AttendanceController($attendanceModel, $holidayModel, $employeeModel, $leaveRequestModel, $sessionManager, $app, $dateValidationService, $attendancePolicyService, $attendanceOperationService, $attendanceReportContextService, $attendanceNetworkAccessService, $departmentModel);
+$absenceController = new AbsenceController($attendanceModel, $employeeModel, $departmentModel, $sessionManager, $app, $dateValidationService);
 $analyticsController = new AnalyticsController($analyticsService, $reportFilterService, $departmentModel, $sessionManager, $app);
-$leaveController = new LeaveController($leaveRequestModel, $holidayModel, $employeeModel, $sessionManager, $app, $notificationModel, $dateValidationService, $leaveOperationService, $workScheduleResolverService);
+$leaveController = new LeaveController($leaveRequestModel, $holidayModel, $employeeModel, $sessionManager, $app, $notificationModel, $dateValidationService, $leaveOperationService, $workScheduleResolverService, $departmentModel);
 $notificationController = new NotificationController($notificationModel, $employeeModel, $sessionManager, $app);
-$reportsController = new ReportsController($reportFilterService, $attendanceSummaryReportService, $employeeAttendanceReportService, $leaveReportService, $attendanceExceptionReportService, $employeeModel, $departmentModel, $reportPdfExportService, $reportExcelExportService, $sessionManager, $app, $auditLogService);
+$reportsController = new ReportsController($reportFilterService, $attendanceSummaryReportService, $employeeAttendanceReportService, $leaveReportService, $attendanceExceptionReportService, $absenceReportService, $employeeModel, $departmentModel, $reportPdfExportService, $reportExcelExportService, $sessionManager, $app, $auditLogService);
 $auditLogController = new AuditLogController($auditLogModel, $employeeModel, $reportFilterService, $sessionManager, $app);
 $companyProfileController = new CompanyProfileController($companyProfileModel, $workScheduleTemplateModel, $companyProfileService, $sessionManager, $app);
 $workScheduleController = new WorkScheduleController($workScheduleTemplateModel, $workScheduleService, $companyProfileModel, $workScheduleAssignmentService, $overtimeReviewService, $departmentModel, $employeeModel, $sessionManager, $app);
@@ -246,8 +265,44 @@ $router->addRoute('GET', '/admin/dashboard', static function (Request $request) 
     $dashboardController->adminDashboard();
 });
 
+$router->addRoute('GET', '/department-head/dashboard', static function (Request $request) use ($dashboardController): void {
+    $dashboardController->departmentHeadDashboard();
+});
+
 $router->addRoute('GET', '/employee/dashboard', static function (Request $request) use ($dashboardController): void {
     $dashboardController->employeeDashboard();
+});
+
+$router->addRoute('GET', '/my-work-policy', static function (Request $request) use ($myWorkPolicyController): void {
+    $myWorkPolicyController->index();
+});
+
+$router->addRoute('GET', '/profile', static function (Request $request) use ($profileController): void {
+    $profileController->show($request);
+});
+
+$router->addRoute('POST', '/profile/update', static function (Request $request) use ($profileController): void {
+    $profileController->update($request);
+});
+
+$router->addRoute('GET', '/profile/password', static function (Request $request) use ($profileController): void {
+    $profileController->changePassword($request);
+});
+
+$router->addRoute('POST', '/profile/password/update', static function (Request $request) use ($profileController): void {
+    $profileController->updatePassword($request);
+});
+
+$router->addRoute('POST', '/profile/photo', static function (Request $request) use ($profileController): void {
+    $profileController->updatePhoto($request);
+});
+
+$router->addRoute('POST', '/profile/photo/remove', static function (Request $request) use ($profileController): void {
+    $profileController->removePhoto($request);
+});
+
+$router->addRoute('GET', '/profile/photo', static function (Request $request) use ($profileController): void {
+    $profileController->photo($request);
 });
 
 $router->addRoute('GET', '/access-denied', static function (Request $request) use ($dashboardController): void {
@@ -264,6 +319,14 @@ $router->addRoute('POST', '/notifications/read', static function (Request $reque
 
 $router->addRoute('POST', '/notifications/read-all', static function (Request $request) use ($notificationController): void {
     $notificationController->markAllRead($request);
+});
+
+$router->addRoute('POST', '/notifications/unread', static function (Request $request) use ($notificationController): void {
+    $notificationController->markUnread($request);
+});
+
+$router->addRoute('POST', '/notifications/archive', static function (Request $request) use ($notificationController): void {
+    $notificationController->archive($request);
 });
 
 $router->addRoute('GET', '/admin/analytics', static function (Request $request) use ($analyticsController): void {
@@ -308,6 +371,18 @@ $router->addRoute('GET', '/admin/reports/leave-requests/pdf', static function (R
 
 $router->addRoute('GET', '/admin/reports/leave-requests/excel', static function (Request $request) use ($reportsController): void {
     $reportsController->leaveRequestsExcel($request);
+});
+
+$router->addRoute('GET', '/admin/reports/absence', static function (Request $request) use ($reportsController): void {
+    $reportsController->absences($request);
+});
+
+$router->addRoute('GET', '/admin/reports/absence/pdf', static function (Request $request) use ($reportsController): void {
+    $reportsController->absencesPdf($request);
+});
+
+$router->addRoute('GET', '/admin/reports/absence/excel', static function (Request $request) use ($reportsController): void {
+    $reportsController->absencesExcel($request);
 });
 
 $router->addRoute('GET', '/admin/reports/late-absent-exceptions', static function (Request $request) use ($reportsController): void {
@@ -556,6 +631,10 @@ $router->addRoute('POST', '/employees/resend-verification', static function (Req
 
 $router->addRoute('GET', '/attendance', static function (Request $request) use ($attendanceController): void {
     $attendanceController->index($request);
+});
+
+$router->addRoute('GET', '/absence', static function (Request $request) use ($absenceController): void {
+    $absenceController->index($request);
 });
 
 $router->addRoute('POST', '/attendance/clock-in', static function (Request $request) use ($attendanceController): void {

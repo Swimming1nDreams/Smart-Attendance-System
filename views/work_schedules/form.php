@@ -43,7 +43,7 @@ $required = '<span class="text-rose-600" aria-hidden="true">*</span><span class=
                 <div class="mt-4 grid gap-4 md:grid-cols-2">
                     <div>
                         <label for="schedule-name" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('work_schedules.fields.name'), ENT_QUOTES, 'UTF-8') ?> <?= $required ?></label>
-                        <input id="schedule-name" class="mt-2 sapas-form-control" name="name" value="<?= htmlspecialchars((string) ($schedule['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required>
+                        <input id="schedule-name" class="mt-2 sapas-form-control" name="name" value="<?= htmlspecialchars(\App\Services\BrandingPresenter::policyName($schedule['name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required>
                         <?php if ($fieldError($errors, 'name') !== ''): ?><p class="mt-1 text-sm text-rose-700"><?= htmlspecialchars($fieldError($errors, 'name'), ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                     </div>
                     <div>
@@ -61,7 +61,7 @@ $required = '<span class="text-rose-600" aria-hidden="true">*</span><span class=
                     </div>
                     <div class="md:col-span-2">
                         <label for="schedule-description" class="block text-sm font-medium text-slate-700"><?= htmlspecialchars($t('work_schedules.fields.description'), ENT_QUOTES, 'UTF-8') ?></label>
-                        <textarea id="schedule-description" class="mt-2 sapas-form-control" name="description" rows="3"><?= htmlspecialchars((string) ($schedule['description'] ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
+                        <textarea id="schedule-description" class="mt-2 sapas-form-control" name="description" rows="3"><?= htmlspecialchars(\App\Services\BrandingPresenter::policyDescription($schedule['description'] ?? ''), ENT_QUOTES, 'UTF-8') ?></textarea>
                     </div>
                     <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
                         <input type="checkbox" name="is_active" value="1" class="h-4 w-4 rounded border-slate-300 text-brand-600" <?= (int) ($schedule['is_active'] ?? 1) === 1 ? 'checked' : '' ?>>
